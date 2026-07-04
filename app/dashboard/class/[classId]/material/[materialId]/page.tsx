@@ -1,0 +1,123 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { ArrowLeft, Loader2, Video, BookOpen, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+
+export default function MaterialDetailPage() {
+  const router = useRouter();
+  const params = useParams();
+  const classId = params.classId as string;
+  const materialId = params.materialId as string;
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [materialData, setMaterialData] = useState<any>(null);
+
+  useEffect(() => {
+    fetch(`http://localhost:7000/classes/${classId}/material/${materialId}`, {
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Gagal mengambil data materi");
+        return res.json();
+      })
+      .then((data) => {
+        setMaterialData(data);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setIsLoading(false);
+      });
+  }, [classId, materialId]);
+
+  if (isLoading || !materialData) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
+        <Loader2 className="w-10 h-10 text-brand-purple animate-spin" />
+        <p className="mt-4 text-sm text-muted-foreground animate-pulse font-heading">
+          Memuat detail materi…
+        </p>
+      </div>
+    );
+  }
+
+  const isVideo = materialData.type === "video";
+
+  return (
+    <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
+      {/* ── Top Header ── */}
+      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center">
+            <img src="/logo-black.png" alt="Infinite Learning Logo" className="dark:hidden h-7 w-auto" />
+            <img src="/logo-white.png" alt="Infinite Learning Logo" className="hidden dark:block h-7 w-auto" />
+          </Link>
+          <span className="text-border font-light text-sm">|</span>
+          <span className="font-heading font-medium text-sm text-muted-foreground hidden sm:inline-block">
+            Materi Kelas
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <Link
+            href={`/dashboard/class/${classId}`}
+            className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors border border-border px-3 py-1.5 rounded-lg shadow-sm"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Kembali
+          </Link>
+        </div>
+      </header>
+
+      {/* ── Main Content ── */}
+      <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8 space-y-6">
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="border-brand-purple text-brand-purple bg-brand-purple/5 font-mono text-[10px] tracking-wider uppercase">
+              {isVideo ? "Video" : "PDF / Teks"}
+            </Badge>
+            <span className="text-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" />
+              {materialData.createdAt ? new Date(materialData.createdAt).toLocaleDateString('id-ID') : "Baru saja"}
+            </span>
+          </div>
+          
+          <h1 className="font-heading font-black text-3xl md:text-4xl text-foreground">
+            {materialData.title}
+          </h1>
+        </div>
+
+        {/* Content Viewer Placeholder */}
+        <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden min-h-[400px] flex flex-col">
+          {isVideo ? (
+            <div className="aspect-video bg-black/5 dark:bg-black/50 flex flex-col items-center justify-center text-muted-foreground border-b border-border">
+              <Video className="w-16 h-16 mb-4 opacity-50" />
+              <p className="font-heading font-medium">Video Player Placeholder</p>
+              <p className="text-xs opacity-70 mt-1">Video materi akan dimuat di sini</p>
+            </div>
+          ) : (
+            <div className="h-[200px] bg-black/5 dark:bg-black/50 flex flex-col items-center justify-center text-muted-foreground border-b border-border">
+              <BookOpen className="w-16 h-16 mb-4 opacity-50" />
+              <p className="font-heading font-medium">PDF / Document Viewer Placeholder</p>
+            </div>
+          )}
+          
+          <div className="p-6 md:p-8 space-y-4">
+            <h3 className="font-heading font-bold text-lg border-b border-border pb-2">
+              Deskripsi Materi
+            </h3>
+            <div className="font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line">
+              {materialData.content || "Tidak ada deskripsi tambahan untuk materi ini."}
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}

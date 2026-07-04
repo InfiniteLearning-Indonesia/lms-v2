@@ -24,6 +24,7 @@ interface UserProfile {
   avatarUrl: string | null;
   createdAt: string;
   lastLoginAt: string | null;
+  selectedProgram?: string | null;
 }
 
 export default function DashboardPage() {
@@ -173,7 +174,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Views Routing based on Role & Active Tab */}
-          {profile?.role === "student" && <StudentDashboard />}
+          {profile?.role === "student" && <StudentDashboard profile={profile} />}
           
           {(profile?.role === "mentor" || (profile?.role === "admin" && adminActiveTab === "mentor")) && (
             <MentorDashboard />
