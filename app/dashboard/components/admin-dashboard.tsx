@@ -23,6 +23,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { AdminRules } from "./admin-rules";
 
 export interface UserListItem {
   id: string;
@@ -490,7 +491,7 @@ export function AdminDashboard() {
       </AnimatePresence>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full max-w-lg grid-cols-4 mb-8 min-h-12 p-1 bg-secondary border border-border rounded-lg">
+        <TabsList className="grid w-full max-w-xl grid-cols-5 mb-8 min-h-12 p-1 bg-secondary border border-border rounded-lg">
           <TabsTrigger value="users" className="text-xs font-semibold font-heading">
             Pengguna
           </TabsTrigger>
@@ -502,6 +503,9 @@ export function AdminDashboard() {
           </TabsTrigger>
           <TabsTrigger value="settings" className="text-xs font-semibold font-heading">
             Pengaturan
+          </TabsTrigger>
+          <TabsTrigger value="rules" className="text-xs font-semibold font-heading">
+            Rules (Domain)
           </TabsTrigger>
         </TabsList>
 
@@ -1018,6 +1022,11 @@ export function AdminDashboard() {
               </div>
             </div>
           </div>
+        </TabsContent>
+
+        {/* ──────── TAB 5: RULES & SOURCE OF TRUTH ──────── */}
+        <TabsContent value="rules" className="space-y-6 outline-hidden">
+          <AdminRules />
         </TabsContent>
       </Tabs>
 
