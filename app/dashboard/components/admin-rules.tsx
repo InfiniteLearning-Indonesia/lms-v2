@@ -144,6 +144,97 @@ export function AdminRules() {
       desc: "Saat impor data (CSV/Single), sistem otomatis melakukan normalisasi nama (Capitalized) dan pembersihan format nomor WhatsApp ke angka murni.",
       badge: "Infrastruktur",
     },
+    {
+      id: 13,
+      title: "Koordinasi Makro Primary Mentor",
+      category: "Kurikulum",
+      desc: "Fungsi Primary Mentor memegang peranan tertinggi atas koordinasi struktur akademik makro dari masing-masing program yang dipimpinnya.",
+      badge: "Otoritas",
+    },
+    {
+      id: 14,
+      title: "Fokus Operasional Secondary Mentor",
+      category: "Kurikulum",
+      desc: "Fungsi Secondary Mentor (UI/UX) dibatasi secara ketat memiliki hak akses operasional dan tanggung jawab penuh pada pemenuhan aspek desain antarmuka.",
+      badge: "Otoritas",
+    },
+    {
+      id: 15,
+      title: "Intervensi Pendukung Supporting Mentor",
+      category: "Kurikulum",
+      desc: "Supporting Mentor bertindak sebagai penyedia intervensi kompetensi pendukung (Soft Skills/CCA) lintas program tanpa hak kepemilikan struktural.",
+      badge: "Otoritas",
+    },
+    {
+      id: 16,
+      title: "Logika Otomatisasi Alokasi Modulo",
+      category: "Distribusi",
+      desc: "Logika backend wajib menerapkan pembagian rata (round-robin) untuk tim utama dan mengalihkan sisa nilai pembagian (remainder) ke mentor pendukung.",
+      badge: "Sistemik",
+    },
+    {
+      id: 17,
+      title: "Otoritas Admin & Delegasi Operasional",
+      category: "Keamanan",
+      desc: "Konfigurasi sistem adalah wewenang mutlak Admin. Namun pada level operasional program, Admin mendelegasikan wewenang enrollment dan alokasi tim kepada Primary Mentor.",
+      badge: "Delegasi",
+    },
+    {
+      id: 18,
+      title: "Rangkap Jabatan & Workflow Approval",
+      category: "Keamanan",
+      desc: "Admin diperbolehkan merangkap sebagai Mentor. Namun Mentor tidak memiliki hak Admin secara default dan harus melalui persetujuan (approval) eksplisit.",
+      badge: "Keamanan",
+    },
+    {
+      id: 19,
+      title: "Proteksi Penghapusan pada Batch Aktif",
+      category: "Keselamatan",
+      desc: "Sistem dilarang keras melakukan Hard Delete pada akun Mentor/Student yang aktif di Batch berjalan agar tidak merusak integritas kelas dan bimbingan.",
+      badge: "Keselamatan",
+    },
+    {
+      id: 20,
+      title: "Alur Wajib Handover / Reassignment",
+      category: "Keselamatan",
+      desc: "Sebelum Mentor yang aktif diganti atau resign, Admin wajib melalui alur Handover untuk memindahkan kelas, antrean tugas, dan murid ke Mentor Pengganti.",
+      badge: "Handover",
+    },
+    {
+      id: 21,
+      title: "Kekebalan Arsip Historis (Read-Only)",
+      category: "Keselamatan",
+      desc: "Saat Batch berakhir (Completed), seluruh data menjadi Read-Only. Terhadap pengguna di batch lampau diterapkan Soft Delete agar jejak sejarah tetap sah.",
+      badge: "Arsip",
+    },
+    {
+      id: 22,
+      title: "Pembatasan 4 Program Resmi",
+      category: "Kurikulum",
+      desc: "Pembuatan program oleh Admin dibatasi mutlak hanya pada 4 rumpun resmi: AI, Game, Web & UI/UX, dan Mobile & UI/UX Development.",
+      badge: "Infrastruktur",
+    },
+    {
+      id: 23,
+      title: "Mode Read-Only Batch Selesai",
+      category: "Keselamatan",
+      desc: "Saat Batch bermarkah 'Selesai', seluruh data program dan kelas terkunci menjadi Read-Only bagi Mentor dan Student. Hak edit transaksional hanya milik Admin.",
+      badge: "Arsip",
+    },
+    {
+      id: 24,
+      title: "Guardrail CRUD & Suspend Murid oleh Mentor",
+      category: "Keselamatan",
+      desc: "Mentor diperbolehkan mendaftarkan (enrollment), mengedit, dan menonaktifkan/suspend akun murid di programnya, tetapi dilarang keras melakukan Hard Delete.",
+      badge: "Keselamatan",
+    },
+    {
+      id: 25,
+      title: "Clean Transfer & Reset Progress Lintas Program",
+      category: "Keselamatan",
+      desc: "Memindahkan murid antar program (Case 3) akan menghapus seluruh nilai, absen, tugas, dan progres di program lama. Murid wajib mengulang dari awal.",
+      badge: "Clean Transfer",
+    },
   ];
 
   const filteredRules = rulesList.filter(
@@ -189,7 +280,7 @@ export function AdminRules() {
               }`}
             >
               <Shield className="w-3.5 h-3.5" />
-              18 Rules
+              25 Rules (Safety & Delegation)
             </button>
             <button
               onClick={() => setActiveTab("mermaid")}

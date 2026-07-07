@@ -22,6 +22,12 @@ import {
   BookMarked,
   HelpCircle,
   Info,
+  Lock,
+  Play,
+  UserPlus,
+  RefreshCw,
+  Sliders,
+  X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,6 +53,79 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+
+  const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+  const [enrollCase, setEnrollCase] = useState<"case1" | "case2">("case2");
+  const [availableStudents, setAvailableStudents] = useState<any[]>([]);
+  const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [isSubmittingEnroll, setIsSubmittingEnroll] = useState(false);
+  const [distributeMessage, setDistributeMessage] = useState<string | null>(null);
+  const [isDistributing, setIsDistributing] = useState(false);
+
+  const openEnrollModal = async () => {
+    setIsEnrollModalOpen(true);
+    try {
+      const res = await fetch("http://localhost:7000/classes/programs-list", {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setAvailableStudents(d.noProgramStudents || []);
+      }
+    } catch (err) {
+      console.error("Gagal memuat siswa tanpa program:", err);
+    }
+  };
+
+  const handleMentorEnroll = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedStudentId) return;
+    setIsSubmittingEnroll(true);
+    const targetProgramName = classes[0]?.program?.name || profile?.selectedProgram || "Web Development";
+    try {
+      const res = await fetch("http://localhost:7000/classes/program-enroll", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId: selectedStudentId,
+          programName: targetProgramName,
+          mentorId: profile?.email ? undefined : undefined,
+        }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        setIsEnrollModalOpen(false);
+        fetchMentorData();
+      }
+    } catch (err) {
+      console.error("Gagal daftarkan siswa:", err);
+    } finally {
+      setIsSubmittingEnroll(false);
+    }
+  };
+
+  const handleDistributeModulo = async (progName: string) => {
+    setIsDistributing(true);
+    setDistributeMessage(null);
+    try {
+      const res = await fetch("http://localhost:7000/classes/program-distribute-modulo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ programName: progName }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setDistributeMessage(d.message || "Distribusi Modulo berhasil dijalankan.");
+        fetchMentorData();
+      }
+    } catch (err) {
+      console.error("Gagal distribusi modulo:", err);
+    } finally {
+      setIsDistributing(false);
+    }
+  };
 
   useEffect(() => {
     fetchMentorData();
@@ -90,6 +169,8 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
       (student.selectedProgram && student.selectedProgram.toLowerCase().includes(query))
     );
   });
+
+  const isReadOnly = classes.some((c) => c.batch?.status === "completed");
 
   if (isLoading) {
     return (
@@ -211,6 +292,19 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
         </Card>
       </div>
 
+      {/* ── Read-Only / Status Banner ── */}
+      {isReadOnly && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center gap-3 text-amber-700 dark:text-amber-400">
+          <Lock className="w-6 h-6 shrink-0 text-amber-600" />
+          <div>
+            <h4 className="font-heading font-bold text-sm">Mode Read-Only Aktif (Rule 21 & 23)</h4>
+            <p className="text-xs mt-0.5">
+              Batch akademik ini telah selesai. Seluruh data kelas, materi, tugas, dan nilai siswa dikunci menjadi arsip historis. Modifikasi data ditiadakan.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Main Tabs ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="bg-secondary/60 p-1 rounded-xl border border-border/60 grid grid-cols-2 max-w-md">
@@ -306,6 +400,45 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
                         <Progress value={65} className="h-2 bg-secondary" />
                       </div>
 
+                      {/* Otomatisasi Alokasi Murid (Round-Robin & Modulo) */}
+                      {(() => {
+                        const progName = selectedCls.program?.name || "";
+                        const isCollab = progName.toLowerCase().includes("web") || progName.toLowerCase().includes("mobile");
+                        if (!isCollab) return null;
+                        return (
+                          <div className="border border-brand-purple/30 bg-brand-purple/5 rounded-xl p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Sliders className="w-4 h-4 text-brand-purple" />
+                                <h4 className="font-heading font-bold text-sm text-foreground">
+                                  Distribusi Alokasi Murid (Round-Robin & Modulo)
+                                </h4>
+                              </div>
+                              {!isReadOnly && (
+                                <Button
+                                  onClick={() => handleDistributeModulo(progName)}
+                                  disabled={isDistributing}
+                                  size="sm"
+                                  className="bg-brand-purple hover:bg-brand-purple-hover text-white text-xs h-8"
+                                >
+                                  {isDistributing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                                  Jalankan Distribusi
+                                </Button>
+                              )}
+                            </div>
+                            <p className="text-2xs text-muted-foreground leading-relaxed">
+                              Sesuai Bab 5 & Bab 9 Source of Truth: Sistem akan membagi siswa secara merata ke Primary Mentor. Sisa pembagian (Modulo remainder) akan dialokasikan secara otomatis ke Supporting/Secondary Mentor (UI/UX & Professional).
+                            </p>
+                            {distributeMessage && (
+                              <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-medium flex items-center gap-2">
+                                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                <span>{distributeMessage}</span>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
+
                       {/* Materials Section */}
                       <div className="space-y-3">
                         <h4 className="font-heading font-bold text-sm text-foreground flex items-center gap-2">
@@ -391,14 +524,25 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
                   </CardDescription>
                 </div>
 
-                <div className="relative w-full sm:w-64">
-                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
-                  <Input
-                    placeholder="Cari nama atau email siswa..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9 h-9 text-xs bg-secondary/50"
-                  />
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                  <div className="relative w-full sm:w-64">
+                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Cari nama atau email siswa..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-9 h-9 text-xs bg-secondary/50"
+                    />
+                  </div>
+                  {!isReadOnly && (
+                    <Button
+                      onClick={openEnrollModal}
+                      className="bg-brand-purple hover:bg-brand-purple-hover text-white text-xs h-9 px-3 shrink-0 flex items-center gap-1.5"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Daftarkan Murid
+                    </Button>
+                  )}
                 </div>
               </div>
             </CardHeader>
@@ -455,19 +599,27 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
                               )}
                             </td>
                             <td className="py-3.5 px-4 text-right">
-                              {student.whatsapp ? (
-                                <a
-                                  href={`https://wa.me/${student.whatsapp.replace(/^0/, "62")}`}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[11px] transition-colors shadow-2xs"
-                                >
-                                  <MessageSquare className="w-3 h-3" />
-                                  WhatsApp
-                                </a>
-                              ) : (
-                                <span className="text-muted-foreground text-[11px]">-</span>
-                              )}
+                              <div className="flex items-center justify-end gap-2">
+                                {student.whatsapp && (
+                                  <a
+                                    href={`https://wa.me/${student.whatsapp.replace(/^0/, "62")}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[11px] transition-colors shadow-2xs"
+                                  >
+                                    <MessageSquare className="w-3 h-3" />
+                                    WA
+                                  </a>
+                                )}
+                                {!isReadOnly && (
+                                  <button
+                                    onClick={() => alert("Sesuai aturan keselamatan (Safety Rule): Penghapusan permanen dilarang. Fitur ini akan menonaktifkan sementara (Suspend) akses murid.")}
+                                    className="px-2 py-1 rounded border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-amber-600 text-[11px] font-medium transition-colors"
+                                  >
+                                    Suspend / Handover
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         );
@@ -480,6 +632,84 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
           </Card>
         </TabsContent>
       </Tabs>
+      {/* ──────── MODAL STUDENT ENROLLMENT (CASE 1 & CASE 2) ──────── */}
+      <AnimatePresence>
+        {isEnrollModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsEnrollModalOpen(false)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative z-10 bg-card border border-border rounded-xl shadow-xl max-w-md w-full p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <h3 className="font-heading font-bold text-base text-foreground">
+                  Student Enrollment (Bimbingan Mentor)
+                </h3>
+                <button onClick={() => setIsEnrollModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="flex border-b border-border">
+                <button
+                  type="button"
+                  onClick={() => setEnrollCase("case2")}
+                  className={`flex-1 py-2 text-xs font-semibold border-b-2 transition-colors ${enrollCase === "case2" ? "border-brand-purple text-brand-purple" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+                >
+                  Case 2: Ke Program Ini
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEnrollCase("case1")}
+                  className={`flex-1 py-2 text-xs font-semibold border-b-2 transition-colors ${enrollCase === "case1" ? "border-brand-purple text-brand-purple" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+                >
+                  Case 1: Murid Baru
+                </button>
+              </div>
+
+              <p className="text-2xs text-muted-foreground">
+                {enrollCase === "case2"
+                  ? "Daftarkan murid tanpa program ke dalam program studi yang Anda ampu saat ini."
+                  : "Daftarkan murid baru yang belum memilih program studi."}
+              </p>
+
+              <form onSubmit={handleMentorEnroll} className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">Pilih Siswa Tanpa Program</label>
+                  <select
+                    value={selectedStudentId}
+                    onChange={(e) => setSelectedStudentId(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 rounded-lg bg-background border border-input text-foreground text-xs focus:ring-2 focus:ring-brand-purple outline-hidden"
+                  >
+                    <option value="">-- Pilih Siswa --</option>
+                    {availableStudents.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.email})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex justify-end gap-2 pt-2 border-t border-border">
+                  <button type="button" onClick={() => setIsEnrollModalOpen(false)} className="px-3 py-1.5 rounded-lg border border-border text-xs font-semibold">Batal</button>
+                  <button type="submit" disabled={isSubmittingEnroll} className="px-4 py-1.5 rounded-lg bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
+                    {isSubmittingEnroll && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    Daftarkan
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

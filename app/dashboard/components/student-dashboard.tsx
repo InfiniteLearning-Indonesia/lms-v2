@@ -20,23 +20,25 @@ export function StudentDashboard({ profile }: StudentDashboardProps) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // In a real integration, we'd fetch from http://localhost:7000/classes/my-classes
-    // Mocking the API response to demonstrate the Class Architecture:
-    setTimeout(() => {
-      const mockClass = profile.selectedProgram
-        ? [
-            {
-              id: "550e8400-e29b-41d4-a716-446655440000",
-              program: { name: profile.selectedProgram },
-              batch: { name: "Batch 7 - 2026" },
-              mentor: { name: "Riyanda Azis Febrian" },
-            },
-          ]
-        : [];
-      setClasses(mockClass);
-      setIsLoading(false);
-    }, 600);
-  }, [profile.selectedProgram]);
+    setIsLoading(true);
+    fetch("http://localhost:7000/classes/my-classes", {
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Gagal mengambil kelas");
+        return res.json();
+      })
+      .then((data) => {
+        setClasses(Array.isArray(data) ? data : []);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.error("Error fetching student classes:", err);
+        setClasses([]);
+        setIsLoading(false);
+      });
+  }, []);
 
   if (isLoading) {
     return (
@@ -60,7 +62,7 @@ export function StudentDashboard({ profile }: StudentDashboardProps) {
                 Belum Ada Program Aktif
               </AlertTitle>
               <AlertDescription className="text-sm text-muted-foreground mt-1">
-                Anda belum dijadwalkan atau belum memilih Program Studi / Kelas (misal: AI Development).
+                Anda belum dijadwalkan ke Kelas (misal: AI Development).
                 Silakan hubungi administrator atau tunggu pembaharuan otomatis.
               </AlertDescription>
             </div>
