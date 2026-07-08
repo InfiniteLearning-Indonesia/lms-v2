@@ -26,6 +26,10 @@ import {
   ChevronRight,
   GraduationCap,
   Calendar,
+  FileSpreadsheet,
+  Upload,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AdminRules } from "./admin-rules";
@@ -42,6 +46,7 @@ export interface UserListItem {
   institution?: string | null;
   studyProgram?: string | null;
   selectedProgram?: string | null;
+  specialization?: string | null;
 }
 
 export function AdminDashboard() {
@@ -135,6 +140,20 @@ export function AdminDashboard() {
   const [selectedProgramIdsForBatch, setSelectedProgramIdsForBatch] = useState<string[]>([]);
   const [customProgramInput, setCustomProgramInput] = useState("");
   const [isSubmittingCreateBatch, setIsSubmittingCreateBatch] = useState(false);
+
+  // CSV Importer State
+  const [csvText, setCsvText] = useState("");
+  const [selectedBatchForImport, setSelectedBatchForImport] = useState("");
+  const [autoDistributeImport, setAutoDistributeImport] = useState(true);
+  const [isSubmittingImport, setIsSubmittingImport] = useState(false);
+  const [importResult, setImportResult] = useState<any>(null);
+  const [copiedHeader, setCopiedHeader] = useState(false);
+
+  // Mentor Assignment Matrix State
+  const [isMentorMatrixModalOpen, setIsMentorMatrixModalOpen] = useState(false);
+  const [selectedBatchForMatrix, setSelectedBatchForMatrix] = useState<any>(null);
+  const [matrixProgramMentors, setMatrixProgramMentors] = useState<Record<string, string[]>>({});
+  const [isSubmittingMatrix, setIsSubmittingMatrix] = useState(false);
 
   useEffect(() => {
     fetchUsersList();
@@ -317,6 +336,115 @@ export function AdminDashboard() {
       );
     } else {
       executeCreate();
+    }
+  };
+
+  const handleCsvImport = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedBatchForImport) {
+      alert("Pilih Batch tujuan terlebih dahulu!");
+      return;
+    }
+    if (!csvText.trim()) {
+      alert("Teks CSV / data tidak boleh kosong!");
+      return;
+    }
+
+    const lines = csvText.trim().split(/\r?\n/);
+    if (lines.length < 2) {
+      alert("Data CSV harus memiliki minimal 1 baris header dan 1 baris data murid!");
+      return;
+    }
+
+    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
+    const nameIdx = headers.indexOf("name");
+    const emailIdx = headers.indexOf("email");
+    const whatsappIdx = headers.indexOf("whatsapp");
+    const instIdx = headers.indexOf("institution");
+    const studyIdx = headers.indexOf("studyprogram");
+    const progIdx = headers.indexOf("selectedprogram");
+
+    if (nameIdx === -1 || emailIdx === -1 || progIdx === -1) {
+      alert("Header CSV wajib mengandung kolom: name, email, selectedProgram");
+      return;
+    }
+
+    const usersToImport = [];
+    for (let i = 1; i < lines.length; i++) {
+      if (!lines[i].trim()) continue;
+      const cols = lines[i].split(",").map((c) => c.trim().replace(/^"|"$/g, ""));
+      if (!cols[nameIdx] || !cols[emailIdx]) continue;
+      usersToImport.push({
+        name: cols[nameIdx],
+        email: cols[emailIdx],
+        whatsapp: whatsappIdx !== -1 ? cols[whatsappIdx] : "",
+        institution: instIdx !== -1 ? cols[instIdx] : "",
+        studyProgram: studyIdx !== -1 ? cols[studyIdx] : "",
+        selectedProgram: cols[progIdx] || "",
+      });
+    }
+
+    if (usersToImport.length === 0) {
+      alert("Tidak ada data murid valid yang ditemukan!");
+      return;
+    }
+
+    setIsSubmittingImport(true);
+    setImportResult(null);
+    try {
+      const res = await fetch(`http://localhost:7000/classes/batches/${selectedBatchForImport}/import-enroll`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          users: usersToImport,
+          autoDistribute: autoDistributeImport,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setImportResult(data);
+        setCsvText("");
+        fetchBatchesList();
+        fetchProgramsList();
+        fetchUsersList();
+      } else {
+        const err = await res.json();
+        alert(`Gagal impor: ${err.message || "Terjadi kesalahan"}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan koneksi saat mengimpor data.");
+    } finally {
+      setIsSubmittingImport(false);
+    }
+  };
+
+  const handleSaveMentorMatrix = async () => {
+    if (!selectedBatchForMatrix) return;
+    setIsSubmittingMatrix(true);
+    try {
+      for (const prog of selectedBatchForMatrix.includedPrograms || []) {
+        const selectedMentorIds = matrixProgramMentors[prog.id] || [];
+        await fetch(`http://localhost:7000/classes/batches/${selectedBatchForMatrix.id}/assign-mentors`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            programId: prog.id,
+            mentorIds: selectedMentorIds,
+          }),
+        });
+      }
+      setIsMentorMatrixModalOpen(false);
+      fetchBatchesList();
+      fetchProgramsList();
+      fetchUsersList();
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menyimpan penugasan mentor.");
+    } finally {
+      setIsSubmittingMatrix(false);
     }
   };
 
@@ -1247,6 +1375,27 @@ export function AdminDashboard() {
             </button>
           </div>
 
+          {/* Guide Banner - Cohort Prep Hub */}
+          <div className="bg-gradient-to-r from-brand-purple/15 via-brand-purple/5 to-transparent border border-brand-purple/30 rounded-xl p-5 shadow-sm relative overflow-hidden">
+            <div className="flex items-start gap-3 relative z-10">
+              <div className="p-2.5 bg-brand-purple/20 rounded-lg text-brand-purple shrink-0 mt-0.5">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-heading font-bold text-sm text-foreground flex items-center gap-2">
+                  One-Stop Cohort Preparation Hub (Masa Persiapan Angkatan)
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Gunakan hub ini untuk mempersiapkan angkatan baru (misal: selama bulan Juli sebelum masa aktif di Agustus). Dalam status <strong className="text-amber-500 font-semibold">DRAFT</strong>, Anda dapat:
+                  <span className="block mt-1 space-y-0.5">
+                    • <strong>1-Click Mentor Matrix:</strong> Menugaskan tim mentor ke program studi yang diikutsertakan.<br />
+                    • <strong>Standardized CSV Importer:</strong> Mengimpor data murid secara massal dari Airtable/Spreadsheet tanpa email spam (Silent Whitelist), langsung mendaftarkan ke program studi, dan mendistribusikan ke mentor secara Round-Robin/Modulo (Rule 23 & 25).
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-4">
             <h3 className="font-heading font-semibold text-sm text-foreground flex items-center gap-2">
               <Calendar className="w-4 h-4 text-brand-purple" />
@@ -1334,7 +1483,25 @@ export function AdminDashboard() {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-end gap-2 pt-1">
+                      <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                        {!isCompleted && (
+                          <button
+                            onClick={() => {
+                              setSelectedBatchForMatrix(batch);
+                              const initialMatrix: Record<string, string[]> = {};
+                              batch.includedPrograms?.forEach((prog: any) => {
+                                initialMatrix[prog.id] = prog.mentors?.map((m: any) => m.id) || [];
+                              });
+                              setMatrixProgramMentors(initialMatrix);
+                              setIsMentorMatrixModalOpen(true);
+                            }}
+                            className="px-3 py-1.5 bg-brand-purple/10 hover:bg-brand-purple/20 text-brand-purple border border-brand-purple/20 rounded-lg text-2xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+                          >
+                            <UserCheck className="w-3.5 h-3.5" />
+                            Atur Mentor
+                          </button>
+                        )}
+
                         {!isActive && (
                           <button
                             onClick={() => {
@@ -1437,6 +1604,147 @@ export function AdminDashboard() {
                   );
                 })}
               </div>
+            )}
+          </div>
+
+          {/* ──────── STANDARDIZED CSV IMPORTER ──────── */}
+          <div className="bg-card border border-border rounded-xl p-6 shadow-sm space-y-6">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-border pb-4">
+              <div>
+                <h3 className="font-heading font-bold text-base text-foreground flex items-center gap-2">
+                  <FileSpreadsheet className="w-5 h-5 text-brand-purple" />
+                  Impor Data Murid & Auto-Enrollment (Standardized CSV Schema)
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Unggah atau paste data dari spreadsheet/Airtable. Sistem mengikuti standar spesifikasi kolom mutlak tanpa risiko salah tebak/fuzzy parsing.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 bg-secondary/60 border border-border px-3 py-1.5 rounded-lg">
+                <span className="text-2xs font-mono text-muted-foreground font-semibold">
+                  name,email,whatsapp,institution,studyProgram,selectedProgram
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText("name,email,whatsapp,institution,studyProgram,selectedProgram");
+                    setCopiedHeader(true);
+                    setTimeout(() => setCopiedHeader(false), 2000);
+                  }}
+                  className="p-1 hover:bg-muted rounded text-foreground transition-colors shrink-0 cursor-pointer"
+                  title="Salin Template Header"
+                >
+                  {copiedHeader ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+                </button>
+              </div>
+            </div>
+
+            <form onSubmit={handleCsvImport} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">Pilih Angkatan / Batch Tujuan:</label>
+                  <select
+                    value={selectedBatchForImport}
+                    onChange={(e) => setSelectedBatchForImport(e.target.value)}
+                    className="w-full bg-background border border-border rounded-lg px-3 py-2 text-xs text-foreground font-medium focus:outline-none focus:border-brand-purple"
+                    required
+                  >
+                    <option value="">-- Pilih Batch (Active / Draft) --</option>
+                    {batchesList.filter(b => b.status !== "completed").map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name} ({b.status.toUpperCase()}) - {b.includedPrograms?.length || 0} Program
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center pt-6">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-foreground cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={autoDistributeImport}
+                      onChange={(e) => setAutoDistributeImport(e.target.checked)}
+                      className="rounded border-border text-brand-purple focus:ring-brand-purple w-4 h-4 cursor-pointer"
+                    />
+                    <span>Otomatisi Distribusi Round-Robin ke Mentor Utama (Rule 23 & 25)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-foreground">Paste Isi Data CSV / Spreadsheet:</label>
+                  <span className="text-3xs text-muted-foreground">Tip: Gunakan koma (,) sebagai pemisah kolom</span>
+                </div>
+                <textarea
+                  value={csvText}
+                  onChange={(e) => setCsvText(e.target.value)}
+                  placeholder={`name,email,whatsapp,institution,studyProgram,selectedProgram\nBudi Santoso,budi@student.umrah.ac.id,081234567890,Universitas Maritim Raja Ali Haji,Teknik Informatika,AI Development\nSiti Aminah,siti@gmail.com,089876543210,Institut Teknologi Bandung,Sistem Informasi,Web Development and UI/UX Design`}
+                  rows={6}
+                  className="w-full bg-background border border-border rounded-lg p-3 text-xs font-mono text-foreground focus:outline-none focus:border-brand-purple leading-relaxed"
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <div className="text-2xs text-muted-foreground flex items-center gap-1.5">
+                  <ShieldAlert className="w-4 h-4 text-amber-500" />
+                  <span>Silent Whitelist: Murid dengan email Gmail/kampus akan didaftarkan tanpa email blast otomatis per aturan Google.</span>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmittingImport || !selectedBatchForImport || !csvText.trim()}
+                  className="px-5 py-2.5 bg-brand-purple hover:bg-brand-purple-hover disabled:opacity-50 text-white font-semibold text-xs rounded-lg shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  {isSubmittingImport ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Memproses Impor & Distribusi...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4" />
+                      Impor, Daftarkan, & Distribusikan
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+
+            {/* Import Result Report Card */}
+            {importResult && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-5 space-y-3"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold text-sm">
+                    <CheckCircle2 className="w-5 h-5" />
+                    {importResult.message}
+                  </div>
+                  <button onClick={() => setImportResult(null)} className="text-muted-foreground hover:text-foreground text-xs font-semibold cursor-pointer">
+                    Tutup
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 pt-2 border-t border-emerald-500/20">
+                  <div className="bg-background/80 p-3 rounded-lg border border-border">
+                    <div className="text-2xs text-muted-foreground">Total Diimpor</div>
+                    <div className="text-lg font-bold text-foreground">{importResult.totalImported} Murid</div>
+                  </div>
+                  <div className="bg-background/80 p-3 rounded-lg border border-border">
+                    <div className="text-2xs text-muted-foreground">Total Terdaftar</div>
+                    <div className="text-lg font-bold text-emerald-500">{importResult.totalEnrolled} Murid</div>
+                  </div>
+                  <div className="bg-background/80 p-3 rounded-lg border border-border col-span-2">
+                    <div className="text-2xs text-muted-foreground mb-1">Distribusi per Program Studi</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {Object.entries(importResult.distributionSummary || {}).map(([progName, count]) => (
+                        <span key={progName} className="px-2 py-0.5 bg-secondary text-foreground text-3xs font-semibold rounded border border-border">
+                          {progName}: {count as number} murid
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             )}
           </div>
         </TabsContent>
@@ -2152,6 +2460,135 @@ export function AdminDashboard() {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ──────── MENTOR ASSIGNMENT MATRIX MODAL ──────── */}
+      <AnimatePresence>
+        {isMentorMatrixModalOpen && selectedBatchForMatrix && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMentorMatrixModalOpen(false)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              className="relative z-10 bg-card border border-border rounded-xl shadow-lg max-w-2xl w-full p-6 space-y-6 max-h-[85vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-border pb-4">
+                <div>
+                  <h3 className="font-heading font-bold text-lg text-foreground flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-brand-purple" />
+                    Matrix Penugasan Mentor - {selectedBatchForMatrix.name}
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Pilih mentor yang bertugas membimbing murid di masing-masing program studi pada angkatan ini.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsMentorMatrixModalOpen(false)}
+                  className="p-1 hover:bg-muted rounded-lg text-muted-foreground transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {selectedBatchForMatrix.includedPrograms?.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-6">Belum ada program studi di dalam batch ini.</p>
+                ) : (
+                  selectedBatchForMatrix.includedPrograms?.map((prog: any) => {
+                    const allMentors = usersList.filter(u => u.role === "mentor" && u.status === "active");
+                    const selectedForProg = matrixProgramMentors[prog.id] || [];
+
+                    return (
+                      <div key={prog.id} className="border border-border rounded-xl p-4 bg-secondary/20 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-heading font-bold text-sm text-foreground flex items-center gap-2">
+                            <BookOpen className="w-4 h-4 text-brand-purple" />
+                            {prog.name}
+                          </h4>
+                          <span className="text-2xs font-semibold px-2 py-0.5 bg-brand-purple/10 text-brand-purple rounded-full">
+                            {selectedForProg.length} Mentor Ditugaskan
+                          </span>
+                        </div>
+
+                        {allMentors.length === 0 ? (
+                          <p className="text-2xs text-muted-foreground">Belum ada akun Mentor yang berstatus ACTIVE di sistem.</p>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                            {allMentors.map((m) => {
+                              const isChecked = selectedForProg.includes(m.id);
+                              return (
+                                <label
+                                  key={m.id}
+                                  className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-all ${
+                                    isChecked
+                                      ? "bg-brand-purple/10 border-brand-purple/40 text-foreground font-semibold"
+                                      : "bg-card border-border text-muted-foreground hover:border-border/80"
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={(e) => {
+                                      const checked = e.target.checked;
+                                      setMatrixProgramMentors((prev) => {
+                                        const current = prev[prog.id] || [];
+                                        return {
+                                          ...prev,
+                                          [prog.id]: checked
+                                            ? [...current, m.id]
+                                            : current.filter((id) => id !== m.id),
+                                        };
+                                      });
+                                    }}
+                                    className="rounded border-border text-brand-purple focus:ring-brand-purple w-4 h-4 cursor-pointer"
+                                  />
+                                  <div className="overflow-hidden">
+                                    <div className="truncate text-foreground font-medium">{m.name}</div>
+                                    <div className="text-3xs text-muted-foreground truncate">{m.email} {m.specialization ? `• ${m.specialization}` : ""}</div>
+                                  </div>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              <div className="flex justify-end gap-2.5 pt-4 border-t border-border">
+                <button
+                  onClick={() => setIsMentorMatrixModalOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-border bg-card hover:bg-muted/50 text-foreground text-xs font-semibold font-heading transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  onClick={handleSaveMentorMatrix}
+                  disabled={isSubmittingMatrix}
+                  className="px-5 py-2 bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-semibold font-heading rounded-lg transition-colors shadow-sm flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isSubmittingMatrix ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Menyimpan Penugasan...
+                    </>
+                  ) : (
+                    "Simpan Penugasan Mentor"
+                  )}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
