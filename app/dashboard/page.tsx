@@ -32,8 +32,7 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-  // Role tab for Admin (who can switch to Mentor view)
-  const [adminActiveTab, setAdminActiveTab] = useState<"admin" | "mentor">("admin");
+
 
   useEffect(() => {
     // Fetch profile
@@ -146,43 +145,12 @@ export default function DashboardPage() {
               </p>
             </div>
             
-            {/* Tabs for Admin / Mentor Role Switcher */}
-            {profile?.role === "admin" && (
-              <div className="flex bg-secondary border border-border p-0.5 rounded-lg">
-                <button
-                  onClick={() => setAdminActiveTab("admin")}
-                  className={`px-3 py-1.5 rounded-md text-xs font-semibold font-heading transition-all ${
-                    adminActiveTab === "admin"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Tab Admin
-                </button>
-                <button
-                  onClick={() => setAdminActiveTab("mentor")}
-                  className={`px-3 py-1.5 rounded-md text-xs font-semibold font-heading transition-all ${
-                    adminActiveTab === "mentor"
-                      ? "bg-card text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Tab Mentor
-                </button>
-              </div>
-            )}
           </div>
 
-          {/* Views Routing based on Role & Active Tab */}
+          {/* Views Routing based on Role */}
           {profile?.role === "student" && <StudentDashboard profile={profile} />}
-          
-          {(profile?.role === "mentor" || (profile?.role === "admin" && adminActiveTab === "mentor")) && (
-            <MentorDashboard />
-          )}
-
-          {profile?.role === "admin" && adminActiveTab === "admin" && (
-            <AdminDashboard />
-          )}
+          {profile?.role === "mentor" && <MentorDashboard />}
+          {profile?.role === "admin" && <AdminDashboard />}
 
         </div>
       </main>
