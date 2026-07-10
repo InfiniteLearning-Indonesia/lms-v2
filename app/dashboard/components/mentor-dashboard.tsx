@@ -222,6 +222,7 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
           description: formData.get("description"),
           competency: formData.get("competency"),
           dueDate: formData.get("dueDate"),
+          submissionType: formData.get("submissionType"),
         }),
         credentials: "include",
       });
@@ -959,6 +960,18 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
                   {competencies.map((c) => (
                     <option key={c.id} value={c.name}>{c.name} ({c.category})</option>
                   ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 flex items-center justify-between">
+                  Tipe Pengumpulan
+                  <span className="text-[10px] text-muted-foreground font-normal bg-secondary px-2 py-0.5 rounded-full">Format Wajib</span>
+                </label>
+                <select name="submissionType" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="github">Link GitHub (Tugas Kode & Automasi)</option>
+                  <option value="figma">Link Figma (Tugas UI/UX)</option>
+                  <option value="drive">Link Google Drive (Gambar/Lainnya)</option>
+                  <option value="any">Link Bebas</option>
                 </select>
               </div>
               <div>

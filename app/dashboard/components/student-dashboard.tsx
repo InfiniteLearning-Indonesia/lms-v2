@@ -121,15 +121,52 @@ export function StudentDashboard({ profile }: StudentDashboardProps) {
             Tugas Mendatang
           </h2>
           {classes.length > 0 ? (
-            <div className="text-center py-6 space-y-2">
-              <div className="w-12 h-12 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-3">
-                <CheckCircle2 className="w-5 h-5 text-muted-foreground/50" />
-              </div>
-              <p className="text-sm font-semibold text-foreground">Semua Selesai!</p>
-              <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
-                Belum ada tugas baru dari mentor untuk kelas {classes[0].program?.name}.
-              </p>
-            </div>
+            (() => {
+              const allAssignments = classes.flatMap((c) => 
+                (c.assignments || []).map((a: any) => ({ ...a, classId: c.id, programName: c.program?.name }))
+              );
+              
+              if (allAssignments.length > 0) {
+                return (
+                  <div className="space-y-3">
+                    {allAssignments.map((assignment: any) => (
+                      <Link href={`/dashboard/class/${assignment.classId}/assignment/${assignment.id}`} key={assignment.id} className="block">
+                        <div className="p-3 border border-border rounded-lg hover:border-brand-purple/50 transition-colors bg-secondary/10">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 rounded-md bg-brand-yellow/20 text-amber-600 flex items-center justify-center shrink-0 mt-0.5">
+                              <CheckCircle2 className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <h4 className="font-heading font-semibold text-xs text-foreground line-clamp-1">{assignment.title}</h4>
+                              <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">
+                                {assignment.programName}
+                              </p>
+                              {assignment.dueDate && (
+                                <span className="inline-block mt-1.5 text-[10px] px-2 py-0.5 rounded bg-brand-yellow/10 text-amber-600 font-mono">
+                                  Tenggat: {new Date(assignment.dueDate).toLocaleDateString("id-ID")}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                );
+              }
+
+              return (
+                <div className="text-center py-6 space-y-2">
+                  <div className="w-12 h-12 bg-secondary/50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CheckCircle2 className="w-5 h-5 text-muted-foreground/50" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">Semua Selesai!</p>
+                  <p className="text-xs text-muted-foreground max-w-[200px] mx-auto">
+                    Belum ada tugas baru dari mentor untuk kelas {classes[0].program?.name}.
+                  </p>
+                </div>
+              );
+            })()
           ) : (
             <p className="text-xs text-muted-foreground py-4 text-center">
               Belum ada tugas karena Anda belum terdaftar di kelas apapun.

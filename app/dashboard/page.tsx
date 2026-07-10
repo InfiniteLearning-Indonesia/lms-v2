@@ -111,7 +111,7 @@ export default function DashboardPage() {
 
         <div className="flex items-center gap-4">
           <ThemeToggle />
-          
+
           <span className="text-xs text-muted-foreground hidden sm:inline-block">
             Halo, <strong className="text-foreground">{profile?.name}</strong>
           </span>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
       {/* ── Main Content ── */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
         <div className="space-y-6">
-          
+
           {/* Welcome Panel */}
           <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div className="space-y-1.5">
@@ -144,7 +144,7 @@ export default function DashboardPage() {
                 Email Anda: <span className="font-medium text-foreground">{profile?.email}</span>
               </p>
             </div>
-            
+
           </div>
 
           {/* Views Routing based on Role */}

@@ -19,23 +19,31 @@ export default function AssignmentDetailPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [assignmentData, setAssignmentData] = useState<any>(null);
-  
+  const [profile, setProfile] = useState<any>(null);
+
   // Mock form state
   const [submissionLink, setSubmissionLink] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
-    fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}`, {
-      headers: { Accept: "application/json" },
-      credentials: "include",
-    })
-      .then((res) => {
+    // Fetch both assignment and profile concurrently
+    Promise.all([
+      fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      }).then((res) => {
         if (!res.ok) throw new Error("Gagal mengambil data tugas");
         return res.json();
-      })
-      .then((data) => {
-        setAssignmentData(data);
+      }),
+      fetch("http://localhost:7000/auth/profile", {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      }).then((res) => res.ok ? res.json() : null)
+    ])
+      .then(([assignment, userProfile]) => {
+        setAssignmentData(assignment);
+        setProfile(userProfile);
         setIsLoading(false);
       })
       .catch((err) => {
@@ -96,9 +104,9 @@ export default function AssignmentDetailPage() {
 
       {/* ── Main Content ── */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-8 space-y-8">
-        
+
         <div className="grid md:grid-cols-[1fr_350px] gap-8">
-          
+
           {/* Left Column: Assignment Details */}
           <div className="space-y-6">
             <div className="space-y-4">
@@ -107,11 +115,11 @@ export default function AssignmentDetailPage() {
                   Tugas Praktik
                 </Badge>
               </div>
-              
+
               <h1 className="font-heading font-black text-3xl md:text-4xl text-foreground">
                 {assignmentData.title}
               </h1>
-              
+
               <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground border-b border-border pb-4">
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4" />
@@ -131,72 +139,123 @@ export default function AssignmentDetailPage() {
             </div>
           </div>
 
-          {/* Right Column: Submission Form */}
+          {/* Right Column: Dynamic Form (Mentor vs Mentee) */}
           <div>
-            <div className="sticky top-24 bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col">
-              <h3 className="font-heading font-bold text-lg mb-1">Pengumpulan Tugas</h3>
-              <p className="text-xs text-muted-foreground mb-6">Status: {isSubmitted ? <span className="text-emerald-600 font-semibold">Terkumpul</span> : <span className="text-amber-600 font-semibold">Belum Terkumpul</span>}</p>
-              
-              {isSubmitted ? (
-                <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
-                  <CheckCircle2 className="h-4 w-4 stroke-current" />
-                  <AlertTitle className="text-sm font-semibold">Tugas Berhasil Dikirim!</AlertTitle>
-                  <AlertDescription className="text-xs mt-1">
-                    Mentor Anda akan segera meninjau hasil tugas Anda.
-                  </AlertDescription>
-                </Alert>
-              ) : (
-                <form onSubmit={handleMockSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="link-input" className="text-xs">Tautan Tugas (Github / Figma / Drive)</Label>
-                    <div className="relative">
-                      <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="link-input"
-                        type="url"
-                        required
-                        placeholder="https://..."
-                        value={submissionLink}
-                        onChange={(e) => setSubmissionLink(e.target.value)}
-                        className="pl-9 border-brand-gray/40 focus-visible:border-brand-purple text-xs"
-                      />
-                    </div>
-                  </div>
+            {profile?.role === 'MENTOR' ? (
+              <div className="sticky top-24 space-y-4">
+                <div className="bg-brand-purple/10 border border-brand-purple/20 rounded-xl p-6 shadow-sm flex flex-col">
+                  <h3 className="font-heading font-bold text-lg mb-2 text-brand-purple">Panel Mentor</h3>
+                  <p className="text-xs text-muted-foreground mb-4">Anda sedang dalam mode pratinjau penilaian tugas.</p>
 
-                  <div className="space-y-2">
-                    <Label className="text-xs">Atau Unggah Berkas (Opsional)</Label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-secondary/20 transition-colors">
-                      <UploadCloud className="w-8 h-8 text-muted-foreground mb-2" />
-                      <p className="text-xs font-semibold text-foreground">Klik untuk unggah berkas</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">Maks. ukuran berkas: 10MB</p>
+                  {assignmentData.submissionType === 'github' && (
+                    <div className="bg-background border border-border rounded-lg p-4 mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                          <CheckCircle2 className="w-3 h-3" />
+                        </div>
+                        <h4 className="font-heading font-semibold text-sm">Otomasi Evaluasi (Ollama)</h4>
+                      </div>
+                      <p className="text-xs text-muted-foreground mb-3">Tugas kode berbasis GitHub ini dapat dievaluasi secara otomatis oleh agen lokal Ollama.</p>
+                      <Button size="sm" variant="outline" className="w-full text-xs font-semibold h-8" onClick={() => alert('Fitur Ollama sedang dalam pengembangan')}>
+                        Jalankan Evaluasi Massal Ollama
+                      </Button>
                     </div>
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-brand-purple hover:bg-brand-purple-hover text-white transition-all shadow-sm h-10 text-sm font-semibold"
-                    disabled={isSubmitting || isPastDue}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                        Mengirim...
-                      </>
-                    ) : (
-                      "Kirim Tugas"
-                    )}
-                  </Button>
-                  
-                  {isPastDue && (
-                    <p className="text-[10px] text-destructive text-center mt-2">
-                      Tugas telah melewati batas waktu pengumpulan.
-                    </p>
                   )}
-                </form>
-              )}
-            </div>
+
+                  <div className="bg-background border border-border rounded-lg p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-md bg-amber-500/10 text-amber-600 flex items-center justify-center">
+                        <CheckCircle2 className="w-3 h-3" />
+                      </div>
+                      <h4 className="font-heading font-semibold text-sm">Evaluasi Manual</h4>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">Beri nilai dan umpan balik langsung pada pengumpulan mentee secara manual.</p>
+                    <Button size="sm" className="w-full text-xs font-semibold h-8" onClick={() => alert('Buka panel penilaian manual...')}>
+                      Buka Panel Penilaian
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="sticky top-24 bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col">
+                <h3 className="font-heading font-bold text-lg mb-1">Pengumpulan Tugas</h3>
+                <p className="text-xs text-muted-foreground mb-6">Status: {isSubmitted ? <span className="text-emerald-600 font-semibold">Terkumpul</span> : <span className="text-amber-600 font-semibold">Belum Terkumpul</span>}</p>
+
+                {isSubmitted ? (
+                  <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="h-4 w-4 stroke-current" />
+                    <AlertTitle className="text-sm font-semibold">Tugas Berhasil Dikirim!</AlertTitle>
+                    <AlertDescription className="text-xs mt-1">
+                      Mentor Anda akan segera meninjau hasil tugas Anda.
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <form onSubmit={handleMockSubmit} className="space-y-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="link-input" className="text-xs">
+                        {assignmentData.submissionType === 'github' ? 'Tautan Repository GitHub' :
+                          assignmentData.submissionType === 'figma' ? 'Tautan File Figma' :
+                            assignmentData.submissionType === 'drive' ? 'Tautan Google Drive' :
+                              'Tautan Tugas (Bebas)'}
+                      </Label>
+                      <div className="relative">
+                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="link-input"
+                          type="url"
+                          required
+                          placeholder={
+                            assignmentData.submissionType === 'github' ? 'https://github.com/username/repo' :
+                              assignmentData.submissionType === 'figma' ? 'https://figma.com/file/...' :
+                                assignmentData.submissionType === 'drive' ? 'https://drive.google.com/...' :
+                                  'https://...'
+                          }
+                          pattern={
+                            assignmentData.submissionType === 'github' ? '.*github\\.com.*' :
+                              assignmentData.submissionType === 'figma' ? '.*figma\\.com.*' :
+                                assignmentData.submissionType === 'drive' ? '.*drive\\.google\\.com.*' :
+                                  undefined
+                          }
+                          title={
+                            assignmentData.submissionType === 'github' ? 'Harus berupa link GitHub (mengandung github.com)' :
+                              assignmentData.submissionType === 'figma' ? 'Harus berupa link Figma (mengandung figma.com)' :
+                                assignmentData.submissionType === 'drive' ? 'Harus berupa link Google Drive (mengandung drive.google.com)' :
+                                  undefined
+                          }
+                          value={submissionLink}
+                          onChange={(e) => setSubmissionLink(e.target.value)}
+                          className="pl-9 border-brand-gray/40 focus-visible:border-brand-purple text-xs"
+                        />
+                      </div>
+
+                    </div>
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-brand-purple hover:bg-brand-purple-hover text-white transition-all shadow-sm h-10 text-sm font-semibold"
+                      disabled={isSubmitting || isPastDue}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                          Mengirim...
+                        </>
+                      ) : (
+                        "Kirim Tugas"
+                      )}
+                    </Button>
+
+                    {isPastDue && (
+                      <p className="text-[10px] text-destructive text-center mt-2">
+                        Tugas telah melewati batas waktu pengumpulan.
+                      </p>
+                    )}
+                  </form>
+                )}
+              </div>
+            )}
           </div>
-          
+
         </div>
       </main>
     </div>
