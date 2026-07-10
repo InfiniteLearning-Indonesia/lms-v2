@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,6 +30,7 @@ import {
   RefreshCw,
   Sliders,
   X,
+  Plus,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -61,6 +64,12 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
   const [isSubmittingEnroll, setIsSubmittingEnroll] = useState(false);
   const [distributeMessage, setDistributeMessage] = useState<string | null>(null);
   const [isDistributing, setIsDistributing] = useState(false);
+
+  const [competencies, setCompetencies] = useState<any[]>([]);
+  const [isAddCompetencyModalOpen, setIsAddCompetencyModalOpen] = useState(false);
+  const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
+  const [isAddAssignmentModalOpen, setIsAddAssignmentModalOpen] = useState(false);
+  const [materialType, setMaterialType] = useState("pdf");
 
   const openEnrollModal = async () => {
     setIsEnrollModalOpen(true);
@@ -129,7 +138,105 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
 
   useEffect(() => {
     fetchMentorData();
+    fetchCompetencies();
   }, []);
+
+  const fetchCompetencies = async () => {
+    try {
+      const res = await fetch(`http://localhost:7000/classes/competencies`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCompetencies(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCreateCompetency = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    try {
+      const res = await fetch("http://localhost:7000/classes/competencies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.get("name"),
+          category: formData.get("category"),
+          programId: classes[0]?.program?.id,
+        }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        setIsAddCompetencyModalOpen(false);
+        fetchCompetencies();
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCreateMaterial = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    try {
+      const res = await fetch(`http://localhost:7000/classes/${selectedClassId}/material`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.get("title"),
+          type: formData.get("type"),
+          competency: formData.get("competency"),
+          url: formData.get("url") || formData.get("caption") || "",
+          content: formData.get("content") || "",
+        }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        setIsAddMaterialModalOpen(false);
+        fetchMentorData();
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCreateAssignment = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    try {
+      const res = await fetch(`http://localhost:7000/classes/${selectedClassId}/assignment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.get("title"),
+          description: formData.get("description"),
+          competency: formData.get("competency"),
+          dueDate: formData.get("dueDate"),
+          submissionType: formData.get("submissionType"),
+        }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        setIsAddAssignmentModalOpen(false);
+        fetchMentorData();
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const fetchMentorData = async () => {
     setIsLoading(true);
@@ -170,7 +277,8 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
     );
   });
 
-  const isReadOnly = classes.some((c) => c.batch?.status === "completed");
+  const selectedCls = classes.find((c) => c.id === selectedClassId) || classes[0];
+  const isReadOnly = selectedCls?.batch?.status === "completed";
 
   if (isLoading) {
     return (
@@ -193,7 +301,7 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
       >
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-brand-purple/30 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-brand-yellow/10 rounded-full blur-2xl pointer-events-none" />
-        
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-brand-yellow">
@@ -323,10 +431,7 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
           <div className="grid md:grid-cols-3 gap-6">
             {/* Class List */}
             <div className="md:col-span-1 space-y-4">
-              <h2 className="font-heading font-bold text-sm text-foreground flex items-center gap-2">
-                <BookMarked className="w-4 h-4 text-brand-purple" />
-                Daftar Kelas Ajar
-              </h2>
+
               <div className="space-y-3">
                 {classes.map((cls) => {
                   const isSelected = cls.id === selectedClassId;
@@ -334,19 +439,24 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
                     <div
                       key={cls.id}
                       onClick={() => setSelectedClassId(cls.id)}
-                      className={`cursor-pointer rounded-xl border p-4 transition-all ${
-                        isSelected
+                      className={`cursor-pointer rounded-xl border p-4 transition-all ${isSelected
                           ? "bg-brand-purple/10 border-brand-purple shadow-sm"
                           : "bg-card border-border hover:border-border/80 hover:bg-secondary/30"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-start justify-between gap-2">
                         <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-secondary text-muted-foreground">
                           {cls.batch?.name || "Batch 7"}
                         </span>
-                        <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-200">
-                          Aktif
-                        </Badge>
+                        {cls.batch?.status === 'active' ? (
+                          <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-200">
+                            Aktif
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-200">
+                            Selesai
+                          </Badge>
+                        )}
                       </div>
                       <h3 className="font-heading font-bold text-base mt-2 text-foreground">
                         {cls.program?.name || "Program Studi"}
@@ -370,7 +480,6 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
             {/* Class Details & Syllabus Progress */}
             <div className="md:col-span-2 space-y-6">
               {(() => {
-                const selectedCls = classes.find((c) => c.id === selectedClassId) || classes[0];
                 if (!selectedCls) return null;
 
                 return (
@@ -441,9 +550,22 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
 
                       {/* Materials Section */}
                       <div className="space-y-3">
-                        <h4 className="font-heading font-bold text-sm text-foreground flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-brand-purple" />
-                          Materi Pembelajaran Terdaftar ({selectedCls.materials?.length || 0})
+                        <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2">
+                            <FileText className="w-4 h-4 text-brand-purple" />
+                            Materi Pembelajaran Terdaftar ({selectedCls.materials?.length || 0})
+                          </span>
+                          {!isReadOnly && (
+                            <Button
+                              onClick={() => setIsAddMaterialModalOpen(true)}
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs flex items-center gap-1.5"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              Tambah Materi
+                            </Button>
+                          )}
                         </h4>
                         <div className="grid gap-2">
                           {selectedCls.materials && selectedCls.materials.length > 0 ? (
@@ -458,9 +580,13 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
                                     <p className="text-[11px] text-muted-foreground">{mat.competency || "Kompetensi Umum"} • Tipe: {mat.type?.toUpperCase()}</p>
                                   </div>
                                 </div>
-                                <span className="text-xs font-medium text-brand-purple flex items-center gap-1 bg-card px-2.5 py-1 rounded border border-border shadow-2xs">
+                                <Link
+                                  href={`/dashboard/class/${selectedCls.id}/material/${mat.id}`}
+                                  target="_blank"
+                                  className="text-xs font-medium text-brand-purple flex items-center gap-1 bg-card px-2.5 py-1 rounded border border-border shadow-2xs hover:bg-brand-purple/5 transition-colors"
+                                >
                                   Lihat Modul
-                                </span>
+                                </Link>
                               </div>
                             ))
                           ) : (
@@ -473,9 +599,22 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
 
                       {/* Assignments Section */}
                       <div className="space-y-3 pt-2">
-                        <h4 className="font-heading font-bold text-sm text-foreground flex items-center gap-2">
-                          <Award className="w-4 h-4 text-emerald-600" />
-                          Tugas & Praktik ({selectedCls.assignments?.length || 0})
+                        <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
+                          <span className="flex items-center gap-2">
+                            <Award className="w-4 h-4 text-emerald-600" />
+                            Tugas & Praktik ({selectedCls.assignments?.length || 0})
+                          </span>
+                          {!isReadOnly && (
+                            <Button
+                              onClick={() => setIsAddAssignmentModalOpen(true)}
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs flex items-center gap-1.5 border-emerald-200 hover:bg-emerald-50 text-emerald-700"
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                              Tambah Tugas
+                            </Button>
+                          )}
                         </h4>
                         <div className="grid gap-2">
                           {selectedCls.assignments && selectedCls.assignments.length > 0 ? (
@@ -710,6 +849,147 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Add Competency Modal */}
+      {isAddCompetencyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
+            <h3 className="font-heading font-bold text-lg mb-4">Tambah Kompetensi Baru</h3>
+            <form onSubmit={handleCreateCompetency} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Nama Kompetensi</label>
+                <Input name="name" required placeholder="Contoh: Intro to React" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Kategori (Pilih salah satu)</label>
+                <select name="category" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="Technical Skill">Technical Skill</option>
+                  <option value="Soft Skills (CCA)">Soft Skills (CCA)</option>
+                  <option value="Capstone Project">Capstone Project</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setIsAddCompetencyModalOpen(false)}>Batal</Button>
+                <Button type="submit">Simpan</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Material Modal */}
+      {isAddMaterialModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
+            <h3 className="font-heading font-bold text-lg mb-4">Tambah Materi Baru</h3>
+            <form onSubmit={handleCreateMaterial} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Judul Materi</label>
+                <Input name="title" required placeholder="Contoh: Fundamental State Management" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Tipe Materi</label>
+                <select
+                  name="type"
+                  required
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  value={materialType}
+                  onChange={(e) => setMaterialType(e.target.value)}
+                >
+                  <option value="pdf">PDF</option>
+                  <option value="video">Video</option>
+                  <option value="link">Tautan Luar</option>
+                  <option value="custom">Custom Editor (HTML Embed)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 flex items-center justify-between">
+                  Kompetensi Terkait
+                  <button type="button" onClick={() => { setIsAddMaterialModalOpen(false); setIsAddCompetencyModalOpen(true); }} className="text-xs text-brand-purple hover:underline">+ Buat Baru</button>
+                </label>
+                <select name="competency" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="">Pilih Kompetensi...</option>
+                  {competencies.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name} ({c.category})</option>
+                  ))}
+                </select>
+              </div>
+              {materialType === "custom" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Kode HTML Embed (Canva, YouTube, dll)</label>
+                    <textarea name="content" required className="w-full p-3 rounded-md border border-input bg-background text-sm font-mono" rows={4} placeholder="<iframe src='...' />"></textarea>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Keterangan / Caption (Opsional)</label>
+                    <textarea name="caption" className="w-full p-3 rounded-md border border-input bg-background text-sm" rows={2} placeholder="Tuliskan instruksi atau keterangan tambahan di sini..."></textarea>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium mb-1">URL / Link Materi</label>
+                  <Input name="url" type="url" required placeholder="https://..." />
+                </div>
+              )}
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setIsAddMaterialModalOpen(false)}>Batal</Button>
+                <Button type="submit">Simpan</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Assignment Modal */}
+      {isAddAssignmentModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
+            <h3 className="font-heading font-bold text-lg mb-4">Tambah Tugas Baru</h3>
+            <form onSubmit={handleCreateAssignment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Judul Tugas</label>
+                <Input name="title" required placeholder="Contoh: Proyek Akhir React" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 flex items-center justify-between">
+                  Kompetensi Terkait
+                  <button type="button" onClick={() => { setIsAddAssignmentModalOpen(false); setIsAddCompetencyModalOpen(true); }} className="text-xs text-brand-purple hover:underline">+ Buat Baru</button>
+                </label>
+                <select name="competency" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="">Pilih Kompetensi...</option>
+                  {competencies.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name} ({c.category})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 flex items-center justify-between">
+                  Tipe Pengumpulan
+                  <span className="text-[10px] text-muted-foreground font-normal bg-secondary px-2 py-0.5 rounded-full">Format Wajib</span>
+                </label>
+                <select name="submissionType" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="github">Link GitHub (Tugas Kode & Automasi)</option>
+                  <option value="figma">Link Figma (Tugas UI/UX)</option>
+                  <option value="drive">Link Google Drive (Gambar/Lainnya)</option>
+                  <option value="any">Link Bebas</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Deskripsi & Instruksi</label>
+                <textarea name="description" required className="w-full p-3 rounded-md border border-input bg-background text-sm" rows={4} placeholder="Jelaskan detail instruksi tugas..."></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Tenggat Waktu (Due Date)</label>
+                <Input name="dueDate" type="datetime-local" required />
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setIsAddAssignmentModalOpen(false)}>Batal</Button>
+                <Button type="submit">Simpan</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -47,6 +47,7 @@ export default function MaterialDetailPage() {
   }
 
   const isVideo = materialData.type === "video";
+  const isCustom = materialData.type === "custom";
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
@@ -80,7 +81,7 @@ export default function MaterialDetailPage() {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="border-brand-purple text-brand-purple bg-brand-purple/5 font-mono text-[10px] tracking-wider uppercase">
-              {isVideo ? "Video" : "PDF / Teks"}
+              {isCustom ? "Materi Interaktif" : isVideo ? "Video" : "PDF / Teks"}
             </Badge>
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
@@ -95,7 +96,14 @@ export default function MaterialDetailPage() {
 
         {/* Content Viewer Placeholder */}
         <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden min-h-[400px] flex flex-col">
-          {isVideo ? (
+          {isCustom ? (
+            <div className="w-full bg-black/5 dark:bg-black/50 border-b border-border p-0 md:p-6 flex justify-center">
+              <div 
+                className="w-full max-w-5xl aspect-video md:rounded-xl overflow-hidden [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
+                dangerouslySetInnerHTML={{ __html: materialData.content }} 
+              />
+            </div>
+          ) : isVideo ? (
             <div className="aspect-video bg-black/5 dark:bg-black/50 flex flex-col items-center justify-center text-muted-foreground border-b border-border">
               <Video className="w-16 h-16 mb-4 opacity-50" />
               <p className="font-heading font-medium">Video Player Placeholder</p>
@@ -113,7 +121,9 @@ export default function MaterialDetailPage() {
               Deskripsi Materi
             </h3>
             <div className="font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line">
-              {materialData.content || "Tidak ada deskripsi tambahan untuk materi ini."}
+              {isCustom 
+                ? materialData.url || "Tidak ada keterangan." 
+                : materialData.content || materialData.url || "Tidak ada deskripsi tambahan untuk materi ini."}
             </div>
           </div>
         </div>
