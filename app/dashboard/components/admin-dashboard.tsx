@@ -39,6 +39,7 @@ export interface UserListItem {
   name: string;
   email: string;
   role: "admin" | "mentor" | "student";
+  roles?: ("admin" | "mentor" | "student")[];
   status: "invited" | "active" | "suspended";
   createdAt: string;
   lastLoginAt: string | null;
@@ -475,6 +476,10 @@ export function AdminDashboard() {
       setError("Nama dan email wajib diisi.");
       return;
     }
+    if ((inviteRole === "student" || inviteRole === "mentor") && !inviteSelectedProgram) {
+      setError("Program pilihan wajib diisi untuk Student dan Mentor.");
+      return;
+    }
 
     setIsSubmittingInvite(true);
     try {
@@ -498,7 +503,42 @@ export function AdminDashboard() {
         throw new Error(data.message || "Gagal mengirim undangan.");
       }
 
-      setSuccessMsg(`Berhasil menambahkan ${data.email} ke dalam database (Silent Whitelist).`);
+      let enrollmentMessage = "";
+      if (inviteSelectedProgram && (inviteRole === "student" || inviteRole === "mentor")) {
+        try {
+          if (inviteRole === "student") {
+            const enrollRes = await fetch("http://localhost:7000/classes/program-enroll", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                studentId: data.id,
+                programName: inviteSelectedProgram,
+              }),
+              credentials: "include",
+            });
+            if (enrollRes.ok) {
+              enrollmentMessage = " & ter-enroll otomatis.";
+            }
+          } else if (inviteRole === "mentor") {
+            const enrollRes = await fetch("http://localhost:7000/classes/program-assign-mentor", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mentorId: data.id,
+                programName: inviteSelectedProgram,
+              }),
+              credentials: "include",
+            });
+            if (enrollRes.ok) {
+              enrollmentMessage = " & ter-assign ke program.";
+            }
+          }
+        } catch (e) {
+          console.error("Gagal auto-enroll:", e);
+        }
+      }
+
+      setSuccessMsg(`Berhasil menambahkan ${data.email} ke dalam database (Silent Whitelist)${enrollmentMessage}`);
       setInviteName("");
       setInviteEmail("");
       setInviteWhatsapp("");
@@ -1015,8 +1055,25 @@ export function AdminDashboard() {
                               {user.selectedProgram || <span className="text-muted-foreground/50">-</span>}
                             </td>
 
-                            <td className="py-3 px-3 capitalize text-2xs">
-                              {user.role}
+                            <td className="py-3 px-3 text-2xs space-y-1">
+                              {user.roles && user.roles.length > 0 ? (
+                                user.roles.map((r) => (
+                                  <span
+                                    key={r}
+                                    className={`inline-block px-1.5 py-0.5 rounded text-3xs font-semibold uppercase mr-1 ${
+                                      r === "admin"
+                                        ? "bg-red-500/10 text-red-500 border border-red-500/20"
+                                        : r === "mentor"
+                                        ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                                        : "bg-purple-500/10 text-purple-600 border border-purple-500/20"
+                                    }`}
+                                  >
+                                    {r}
+                                  </span>
+                                ))
+                              ) : (
+                                <span className="capitalize">{user.role}</span>
+                              )}
                             </td>
 
                             <td className="py-3 px-3">
@@ -1174,6 +1231,7 @@ export function AdminDashboard() {
                           value={inviteSelectedProgram}
                           onChange={(e) => setInviteSelectedProgram(e.target.value)}
                           className="w-full text-xs px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-brand-purple"
+                          required={inviteRole === "student" || inviteRole === "mentor"}
                         >
                           <option value="">-- Pilih Program --</option>
                           <option value="AI Development">AI Development</option>
@@ -1916,7 +1974,6 @@ export function AdminDashboard() {
                     onChange={(e) => setEditingSelectedProgramValue(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-brand-purple"
                   >
-                    <option value="">-- Tanpa Program --</option>
                     <option value="AI Development">AI Development</option>
                     <option value="Web Development and UI/UX Design">Web Development and UI/UX Design</option>
                     <option value="Mobile Development and UI/UX Design">Mobile Development and UI/UX Design</option>
@@ -2240,29 +2297,21 @@ export function AdminDashboard() {
                 <button
                   type="button"
                   onClick={() => setEnrollCase("case1")}
-                  className={`flex-1 py-2 text-xs font-semibold border-b-2 transition-colors ${enrollCase === "case1" ? "border-brand-purple text-brand-purple" : "border-transparent text-muted-foreground hover:text-foreground"}`}
+                  className={`flex-1 py-2 text-xs font-semibold border-b-2 transition-colors ${enrollCase === "case1" || enrollCase === "case2" ? "border-brand-purple text-brand-purple" : "border-transparent text-muted-foreground hover:text-foreground"}`}
                 >
-                  Case 1: Baru
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEnrollCase("case2")}
-                  className={`flex-1 py-2 text-xs font-semibold border-b-2 transition-colors ${enrollCase === "case2" ? "border-brand-purple text-brand-purple" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-                >
-                  Case 2: Standar
+                  Case 1: Distribusi Mentor Personal
                 </button>
                 <button
                   type="button"
                   onClick={() => setEnrollCase("case3")}
                   className={`flex-1 py-2 text-xs font-semibold border-b-2 transition-colors ${enrollCase === "case3" ? "border-red-500 text-red-500" : "border-transparent text-muted-foreground hover:text-foreground"}`}
                 >
-                  Case 3: Transfer
+                  Case 2: Transfer Program (Clean Transfer)
                 </button>
               </div>
 
               <div className="text-2xs text-muted-foreground bg-secondary/20 p-3 rounded-lg border border-border/50">
-                {enrollCase === "case1" && "Pendaftaran siswa tanpa program ke mentor yang belum memiliki program. Sistem akan mengikat program ini pada keduanya."}
-                {enrollCase === "case2" && "Pendaftaran siswa tanpa program ke mentor yang sudah mengampu program ini."}
+                {(enrollCase === "case1" || enrollCase === "case2") && "Pendaftaran ulang siswa (atau distribusi mentor personal) di dalam program ini."}
                 {enrollCase === "case3" && (
                   <span className="text-red-600 dark:text-red-400 font-semibold flex items-center gap-1.5">
                     <ShieldAlert className="w-4 h-4 shrink-0" />
@@ -2274,7 +2323,7 @@ export function AdminDashboard() {
               <form onSubmit={handleEnrollSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
-                    {enrollCase === "case3" ? "Pilih Siswa dari Program Lain" : "Pilih Siswa Tanpa Program"}
+                    {enrollCase === "case3" ? "Pilih Siswa dari Program Lain" : "Pilih Siswa Program Ini"}
                   </label>
                   <select
                     value={selectedStudentToEnroll}
@@ -2291,7 +2340,7 @@ export function AdminDashboard() {
                               {s.name} (asal: {s.selectedProgram})
                             </option>
                           ))
-                      : programsData?.noProgramStudents?.map((s: any) => (
+                      : selectedProgramDetail.students?.map((s: any) => (
                           <option key={s.id} value={s.id}>
                             {s.name} ({s.email})
                           </option>
@@ -2301,25 +2350,19 @@ export function AdminDashboard() {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">
-                    {enrollCase === "case1" ? "Pilih Mentor Tanpa Program" : "Pilih Mentor Program Ini"}
+                    Pilih Mentor Program Ini
                   </label>
                   <select
                     value={selectedMentorForEnroll}
                     onChange={(e) => setSelectedMentorForEnroll(e.target.value)}
                     className="w-full px-3 py-2 rounded-lg bg-background border border-input text-foreground text-xs focus:ring-2 focus:ring-brand-purple outline-hidden"
                   >
-                    <option value="">-- Tanpa Personal Mentor (Opsional) --</option>
-                    {enrollCase === "case1"
-                      ? programsData?.noProgramMentors?.map((m: any) => (
-                          <option key={m.id} value={m.id}>
-                            {m.name} ({m.email})
-                          </option>
-                        ))
-                      : selectedProgramDetail.mentors?.map((m: any) => (
-                          <option key={m.id} value={m.id}>
-                            {m.name} ({m.specialization || "Primary Mentor"})
-                          </option>
-                        ))}
+                    <option value="">-- Tanpa Personal Mentor / Otomatis (Opsional) --</option>
+                    {selectedProgramDetail.mentors?.map((m: any) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} ({m.specialization || "Primary Mentor"})
+                      </option>
+                    ))}
                   </select>
                 </div>
 

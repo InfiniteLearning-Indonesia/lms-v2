@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Graphify temp steps and local files
+step*.ps1
+graphify-out/cost.json

@@ -45,6 +45,7 @@ interface MentorDashboardProps {
     name: string;
     email: string;
     role: string;
+    roles?: string[];
     specialization?: string | null;
     selectedProgram?: string | null;
   };
@@ -57,11 +58,6 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
-  const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
-  const [enrollCase, setEnrollCase] = useState<"case1" | "case2">("case2");
-  const [availableStudents, setAvailableStudents] = useState<any[]>([]);
-  const [selectedStudentId, setSelectedStudentId] = useState("");
-  const [isSubmittingEnroll, setIsSubmittingEnroll] = useState(false);
   const [distributeMessage, setDistributeMessage] = useState<string | null>(null);
   const [isDistributing, setIsDistributing] = useState(false);
 
@@ -70,49 +66,6 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
   const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
   const [isAddAssignmentModalOpen, setIsAddAssignmentModalOpen] = useState(false);
   const [materialType, setMaterialType] = useState("pdf");
-
-  const openEnrollModal = async () => {
-    setIsEnrollModalOpen(true);
-    try {
-      const res = await fetch("http://localhost:7000/classes/programs-list", {
-        headers: { Accept: "application/json" },
-        credentials: "include",
-      });
-      if (res.ok) {
-        const d = await res.json();
-        setAvailableStudents(d.noProgramStudents || []);
-      }
-    } catch (err) {
-      console.error("Gagal memuat siswa tanpa program:", err);
-    }
-  };
-
-  const handleMentorEnroll = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedStudentId) return;
-    setIsSubmittingEnroll(true);
-    const targetProgramName = classes[0]?.program?.name || profile?.selectedProgram || "Web Development";
-    try {
-      const res = await fetch("http://localhost:7000/classes/program-enroll", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          studentId: selectedStudentId,
-          programName: targetProgramName,
-          mentorId: profile?.email ? undefined : undefined,
-        }),
-        credentials: "include",
-      });
-      if (res.ok) {
-        setIsEnrollModalOpen(false);
-        fetchMentorData();
-      }
-    } catch (err) {
-      console.error("Gagal daftarkan siswa:", err);
-    } finally {
-      setIsSubmittingEnroll(false);
-    }
-  };
 
   const handleDistributeModulo = async (progName: string) => {
     setIsDistributing(true);
@@ -673,15 +626,6 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
                       className="pl-9 h-9 text-xs bg-secondary/50"
                     />
                   </div>
-                  {!isReadOnly && (
-                    <Button
-                      onClick={openEnrollModal}
-                      className="bg-brand-purple hover:bg-brand-purple-hover text-white text-xs h-9 px-3 shrink-0 flex items-center gap-1.5"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                      Daftarkan Murid
-                    </Button>
-                  )}
                 </div>
               </div>
             </CardHeader>
@@ -771,85 +715,6 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
           </Card>
         </TabsContent>
       </Tabs>
-      {/* ──────── MODAL STUDENT ENROLLMENT (CASE 1 & CASE 2) ──────── */}
-      <AnimatePresence>
-        {isEnrollModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsEnrollModalOpen(false)}
-              className="absolute inset-0 bg-background/80 backdrop-blur-xs"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative z-10 bg-card border border-border rounded-xl shadow-xl max-w-md w-full p-6 space-y-4"
-            >
-              <div className="flex items-center justify-between border-b border-border pb-3">
-                <h3 className="font-heading font-bold text-base text-foreground">
-                  Student Enrollment (Bimbingan Mentor)
-                </h3>
-                <button onClick={() => setIsEnrollModalOpen(false)} className="text-muted-foreground hover:text-foreground">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="flex border-b border-border">
-                <button
-                  type="button"
-                  onClick={() => setEnrollCase("case2")}
-                  className={`flex-1 py-2 text-xs font-semibold border-b-2 transition-colors ${enrollCase === "case2" ? "border-brand-purple text-brand-purple" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-                >
-                  Case 2: Ke Program Ini
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEnrollCase("case1")}
-                  className={`flex-1 py-2 text-xs font-semibold border-b-2 transition-colors ${enrollCase === "case1" ? "border-brand-purple text-brand-purple" : "border-transparent text-muted-foreground hover:text-foreground"}`}
-                >
-                  Case 1: Murid Baru
-                </button>
-              </div>
-
-              <p className="text-2xs text-muted-foreground">
-                {enrollCase === "case2"
-                  ? "Daftarkan murid tanpa program ke dalam program studi yang Anda ampu saat ini."
-                  : "Daftarkan murid baru yang belum memilih program studi."}
-              </p>
-
-              <form onSubmit={handleMentorEnroll} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">Pilih Siswa Tanpa Program</label>
-                  <select
-                    value={selectedStudentId}
-                    onChange={(e) => setSelectedStudentId(e.target.value)}
-                    required
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-input text-foreground text-xs focus:ring-2 focus:ring-brand-purple outline-hidden"
-                  >
-                    <option value="">-- Pilih Siswa --</option>
-                    {availableStudents.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} ({s.email})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex justify-end gap-2 pt-2 border-t border-border">
-                  <button type="button" onClick={() => setIsEnrollModalOpen(false)} className="px-3 py-1.5 rounded-lg border border-border text-xs font-semibold">Batal</button>
-                  <button type="submit" disabled={isSubmittingEnroll} className="px-4 py-1.5 rounded-lg bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm">
-                    {isSubmittingEnroll && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    Daftarkan
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       {/* Add Competency Modal */}
       {isAddCompetencyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">

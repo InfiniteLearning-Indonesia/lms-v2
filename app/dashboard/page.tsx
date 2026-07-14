@@ -20,6 +20,7 @@ interface UserProfile {
   email: string;
   name: string;
   role: "admin" | "mentor" | "student";
+  roles?: ("admin" | "mentor" | "student")[];
   status: "invited" | "active" | "suspended";
   avatarUrl: string | null;
   createdAt: string;
@@ -148,9 +149,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Views Routing based on Role */}
-          {profile?.role === "student" && <StudentDashboard profile={profile} />}
-          {profile?.role === "mentor" && <MentorDashboard />}
-          {profile?.role === "admin" && <AdminDashboard />}
+          {profile?.roles?.includes("student") && !profile?.roles?.includes("mentor") && !profile?.roles?.includes("admin") && <StudentDashboard profile={profile} />}
+          {profile?.roles?.includes("mentor") && !profile?.roles?.includes("admin") && <MentorDashboard profile={profile} />}
+          {profile?.roles?.includes("admin") && <AdminDashboard />}
 
         </div>
       </main>
