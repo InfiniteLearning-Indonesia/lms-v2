@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ArrowLeft, Loader2, CheckCircle2, Clock, UploadCloud, Link as LinkIcon, AlertCircle } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, Clock, UploadCloud, Link as LinkIcon, AlertCircle, FileSpreadsheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -146,6 +146,21 @@ export default function AssignmentDetailPage() {
                 <div className="bg-brand-purple/10 border border-brand-purple/20 rounded-xl p-6 shadow-sm flex flex-col">
                   <h3 className="font-heading font-bold text-lg mb-2 text-brand-purple">Panel Mentor</h3>
                   <p className="text-xs text-muted-foreground mb-4">Anda sedang dalam mode pratinjau penilaian tugas.</p>
+
+                  <div className="bg-background border border-border rounded-lg p-4 mb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-md bg-brand-purple/10 text-brand-purple flex items-center justify-center">
+                        <FileSpreadsheet className="w-3 h-3" />
+                      </div>
+                      <h4 className="font-heading font-semibold text-sm">Rubrik Penilaian</h4>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-3">Atur patokan nilai dan kriteria yang digunakan oleh AI maupun mentor saat memeriksa tugas.</p>
+                    <Link href={`/dashboard/class/${classId}/assignment/${assignmentId}/rubric`}>
+                      <Button size="sm" variant="default" className="w-full text-xs font-semibold h-8 bg-brand-purple hover:bg-brand-purple/90">
+                        Atur Rubrik
+                      </Button>
+                    </Link>
+                  </div>
 
                   {assignmentData.submissionType === 'github' && (
                     <div className="bg-background border border-border rounded-lg p-4 mb-4">

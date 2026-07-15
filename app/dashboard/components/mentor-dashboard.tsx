@@ -31,6 +31,8 @@ import {
   Sliders,
   X,
   Plus,
+  FileSpreadsheet,
+  ChevronRight,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -582,9 +584,18 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
                                     <p className="text-[11px] text-muted-foreground">Batas Waktu: {ass.dueDate ? new Date(ass.dueDate).toLocaleDateString("id-ID") : "7 Hari"}</p>
                                   </div>
                                 </div>
-                                <span className="text-xs font-medium text-emerald-600 bg-white dark:bg-card px-2.5 py-1 rounded border border-border shadow-2xs">
-                                  Periksa Nilai
-                                </span>
+                                <div className="flex items-center gap-2">
+                                  <Link href={`/dashboard/class/${selectedCls.id}/assignment/${ass.id}/rubric`}>
+                                    <span className="text-[11px] font-medium text-brand-purple bg-brand-purple/10 hover:bg-brand-purple/20 px-2.5 py-1.5 rounded-md border border-brand-purple/20 transition-colors cursor-pointer flex items-center gap-1.5">
+                                      <FileSpreadsheet className="w-3.5 h-3.5" /> Set Rubrik
+                                    </span>
+                                  </Link>
+                                  <Link href={`/dashboard/class/${selectedCls.id}/assignment/${ass.id}`}>
+                                    <span className="text-[11px] font-medium text-emerald-600 bg-white dark:bg-card hover:bg-emerald-50 px-2.5 py-1.5 rounded-md border border-border shadow-sm transition-colors cursor-pointer flex items-center gap-1.5">
+                                      Lihat Detail / Periksa Nilai <ChevronRight className="w-3 h-3" />
+                                    </span>
+                                  </Link>
+                                </div>
                               </div>
                             ))
                           ) : (
