@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Navbar } from "@/components/navbar";
 import {
   LogOut,
   LayoutDashboard,
@@ -26,6 +27,7 @@ interface UserProfile {
   createdAt: string;
   lastLoginAt: string | null;
   selectedProgram?: string | null;
+  specialization?: string | null;
 }
 
 export default function DashboardPage() {
@@ -35,8 +37,7 @@ export default function DashboardPage() {
 
 
 
-  useEffect(() => {
-    // Fetch profile
+  const fetchProfile = () => {
     fetch("http://localhost:7000/auth/me", {
       headers: { Accept: "application/json" },
       credentials: "include",
@@ -55,6 +56,10 @@ export default function DashboardPage() {
         console.error(err);
         router.push("/login?error=" + encodeURIComponent(err.message));
       });
+  };
+
+  useEffect(() => {
+    fetchProfile();
   }, [router]);
 
   async function handleLogout() {
@@ -96,36 +101,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
-      {/* ── Top Header ── */}
-      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center">
-            <img src="/logo-black.png" alt="Infinite Learning Logo" className="dark:hidden h-7 w-auto" />
-            <img src="/logo-white.png" alt="Infinite Learning Logo" className="hidden dark:block h-7 w-auto" />
-          </Link>
-          <span className="text-border font-light text-sm">|</span>
-          <span className="font-heading font-medium text-sm text-muted-foreground flex items-center gap-1.5">
-            <LayoutDashboard className="w-4 h-4 text-brand-purple" />
-            Dasbor Utama
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-
-          <span className="text-xs text-muted-foreground hidden sm:inline-block">
-            Halo, <strong className="text-foreground">{profile?.name}</strong>
-          </span>
-
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground font-sans font-medium text-xs hover:bg-muted/50 transition-colors shadow-sm"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Keluar</span>
-          </button>
-        </div>
-      </header>
+      <Navbar profile={profile} onLogout={handleLogout} title="Dasbor Utama" />
 
       {/* ── Main Content ── */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
@@ -133,25 +109,34 @@ export default function DashboardPage() {
 
           {/* Welcome Panel */}
           <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div className="space-y-1.5">
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-semibold border ${profile ? roleColors[profile.role] : ""}`}>
-                <Shield className="w-3 h-3" />
-                {profile ? roleLabels[profile.role] : ""}
-              </span>
-              <h1 className="font-heading font-bold text-2xl tracking-tight text-foreground">
-                Selamat datang kembali, {profile?.name}!
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                Email Anda: <span className="font-medium text-foreground">{profile?.email}</span>
-              </p>
+            <div className="flex items-center gap-4">
+              {profile && (
+                <img
+                  src={profile.avatarUrl || `/avatars/avatar_${((profile.id ? (profile.id.charCodeAt(0) + profile.id.charCodeAt(profile.id.length - 1)) : 1) % 5) + 1}.png`}
+                  alt={profile.name}
+                  className="w-16 h-16 rounded-full object-cover border-2 border-brand-purple/20 shadow-sm"
+                />
+              )}
+              <div className="space-y-1.5">
+                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border ${profile ? roleColors[profile.role] : ""}`}>
+                  <Shield className="w-2.5 h-2.5" />
+                  {profile ? roleLabels[profile.role] : ""}
+                </span>
+                <h1 className="font-heading font-bold text-2xl tracking-tight text-foreground">
+                  Selamat datang kembali, {profile?.name}!
+                </h1>
+                <p className="text-xs text-muted-foreground">
+                  Email Anda: <span className="font-medium text-foreground">{profile?.email}</span>
+                </p>
+              </div>
             </div>
 
           </div>
 
           {/* Views Routing based on Role */}
-          {profile?.roles?.includes("student") && !profile?.roles?.includes("mentor") && !profile?.roles?.includes("admin") && <StudentDashboard profile={profile} />}
-          {profile?.roles?.includes("mentor") && !profile?.roles?.includes("admin") && <MentorDashboard profile={profile} />}
-          {profile?.roles?.includes("admin") && <AdminDashboard />}
+          {profile?.roles?.includes("student") && !profile?.roles?.includes("mentor") && !profile?.roles?.includes("admin") && <StudentDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+          {profile?.roles?.includes("mentor") && !profile?.roles?.includes("admin") && <MentorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+          {profile?.roles?.includes("admin") && <AdminDashboard profile={profile} onProfileUpdate={fetchProfile} />}
 
         </div>
       </main>

@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ArrowLeft, Loader2, CheckCircle2, Clock, UploadCloud, Link as LinkIcon, AlertCircle } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, Clock, UploadCloud, Link as LinkIcon, AlertCircle, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Navbar } from "@/components/navbar";
 
 export default function AssignmentDetailPage() {
   const router = useRouter();
@@ -27,7 +28,6 @@ export default function AssignmentDetailPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   useEffect(() => {
-    // Fetch both assignment and profile concurrently
     Promise.all([
       fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}`, {
         headers: { Accept: "application/json" },
@@ -36,13 +36,20 @@ export default function AssignmentDetailPage() {
         if (!res.ok) throw new Error("Gagal mengambil data tugas");
         return res.json();
       }),
-      fetch("http://localhost:7000/auth/profile", {
+      fetch(`http://localhost:7000/classes/${classId}`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      }).then((res) => {
+        if (!res.ok) throw new Error("Gagal mengambil data kelas");
+        return res.json();
+      }),
+      fetch("http://localhost:7000/auth/me", {
         headers: { Accept: "application/json" },
         credentials: "include",
       }).then((res) => res.ok ? res.json() : null)
     ])
-      .then(([assignment, userProfile]) => {
-        setAssignmentData(assignment);
+      .then(([assignment, classDetail, userProfile]) => {
+        setAssignmentData({ ...assignment, class: classDetail });
         setProfile(userProfile);
         setIsLoading(false);
       })
@@ -51,6 +58,20 @@ export default function AssignmentDetailPage() {
         setIsLoading(false);
       });
   }, [classId, assignmentId]);
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:7000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        router.push("/login");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   if (isLoading || !assignmentData) {
     return (
@@ -77,30 +98,7 @@ export default function AssignmentDetailPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
-      {/* ── Top Header ── */}
-      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center">
-            <img src="/logo-black.png" alt="Infinite Learning Logo" className="dark:hidden h-7 w-auto" />
-            <img src="/logo-white.png" alt="Infinite Learning Logo" className="hidden dark:block h-7 w-auto" />
-          </Link>
-          <span className="text-border font-light text-sm">|</span>
-          <span className="font-heading font-medium text-sm text-muted-foreground hidden sm:inline-block">
-            Detail Tugas
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Link
-            href={`/dashboard/class/${classId}`}
-            className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors border border-border px-3 py-1.5 rounded-lg shadow-sm"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Kembali
-          </Link>
-        </div>
-      </header>
+      <Navbar profile={profile} onLogout={handleLogout} title="Detail Tugas" showBackButton={true} backUrl={`/dashboard/class/${classId}`} />
 
       {/* ── Main Content ── */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-8 space-y-8">
@@ -141,7 +139,7 @@ export default function AssignmentDetailPage() {
 
           {/* Right Column: Dynamic Form (Mentor vs Mentee) */}
           <div>
-            {profile?.role === 'MENTOR' ? (
+            {profile?.role === 'mentor' || profile?.roles?.includes('mentor') ? (
               <div className="sticky top-24 space-y-4">
                 <div className="bg-brand-purple/10 border border-brand-purple/20 rounded-xl p-6 shadow-sm flex flex-col">
                   <h3 className="font-heading font-bold text-lg mb-2 text-brand-purple">Panel Mentor</h3>
@@ -179,9 +177,19 @@ export default function AssignmentDetailPage() {
             ) : (
               <div className="sticky top-24 bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col">
                 <h3 className="font-heading font-bold text-lg mb-1">Pengumpulan Tugas</h3>
-                <p className="text-xs text-muted-foreground mb-6">Status: {isSubmitted ? <span className="text-emerald-600 font-semibold">Terkumpul</span> : <span className="text-amber-600 font-semibold">Belum Terkumpul</span>}</p>
-
-                {isSubmitted ? (
+                
+                {assignmentData.class?.batch?.status === "completed" ? (
+                  <div className="space-y-4 mt-2">
+                    <p className="text-xs text-muted-foreground">Status: <span className="text-slate-500 font-semibold">Kelas Diarsipkan</span></p>
+                    <Alert className="bg-slate-500/10 border-slate-500/20 text-slate-600 dark:text-slate-400">
+                      <Lock className="h-4 w-4 stroke-current" />
+                      <AlertTitle className="text-sm font-semibold">Tugas Diarsipkan</AlertTitle>
+                      <AlertDescription className="text-xs mt-1">
+                        Cohort/Batch kelas ini telah berakhir. Pengisian atau perubahan pengumpulan tugas sudah ditutup secara permanen.
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                ) : isSubmitted ? (
                   <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                     <CheckCircle2 className="h-4 w-4 stroke-current" />
                     <AlertTitle className="text-sm font-semibold">Tugas Berhasil Dikirim!</AlertTitle>

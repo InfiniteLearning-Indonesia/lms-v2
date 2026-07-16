@@ -14,9 +14,12 @@ import {
   ChevronDown,
   ChevronUp,
   Folder,
+  Lock,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Navbar } from "@/components/navbar";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export default function ClassDetailPage() {
   const router = useRouter();
@@ -26,6 +29,34 @@ export default function ClassDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [classData, setClassData] = useState<any>(null);
   const [expandedCompetencies, setExpandedCompetencies] = useState<string[]>([]);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("http://localhost:7000/auth/me", {
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("Unauthorized");
+      })
+      .then((data) => setProfile(data))
+      .catch((err) => console.error("Gagal memuat profil:", err));
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:7000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        router.push("/login");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     fetch(`http://localhost:7000/classes/${classId}`, {
@@ -84,33 +115,22 @@ export default function ClassDetailPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
-      {/* ── Top Header ── */}
-      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center">
-            <img src="/logo-black.png" alt="Infinite Learning Logo" className="dark:hidden h-7 w-auto" />
-            <img src="/logo-white.png" alt="Infinite Learning Logo" className="hidden dark:block h-7 w-auto" />
-          </Link>
-          <span className="text-border font-light text-sm">|</span>
-          <span className="font-heading font-medium text-sm text-muted-foreground">
-            Ruang Kelas
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Link
-            href="/dashboard"
-            className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors border border-border px-3 py-1.5 rounded-lg shadow-sm"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Kembali ke Dasbor
-          </Link>
-        </div>
-      </header>
+      <Navbar profile={profile} onLogout={handleLogout} title="Ruang Kelas" showBackButton={true} />
 
       {/* ── Main Content ── */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-8 space-y-8">
+        {classData.batch?.status === "completed" && (
+          <Alert className="bg-slate-500/10 border-slate-500/20 text-slate-600 dark:text-slate-400 p-4">
+            <Lock className="w-5 h-5 shrink-0" />
+            <div>
+              <AlertTitle className="font-heading font-semibold text-sm">Kelas Diarsipkan (Read-Only Mode)</AlertTitle>
+              <AlertDescription className="text-2xs mt-0.5">
+                Batch/Cohort ini telah berakhir. Seluruh materi dapat dibaca kembali, namun pengerjaan dan pengumpulan tugas telah ditutup.
+              </AlertDescription>
+            </div>
+          </Alert>
+        )}
+
         {/* Class Hero Banner */}
         <div className="bg-gradient-to-r from-brand-purple to-brand-gradient-end rounded-2xl p-8 text-white shadow-md relative overflow-hidden">
           {/* Decorative Pattern */}
