@@ -30,12 +30,11 @@ interface Rubric {
 export default function AssignmentRubricPage() {
   const router = useRouter();
   const params = useParams();
-  const classId = params.classId as string;
-  const assignmentId = params.assignmentId as string;
+  const competencyId = params.competencyId as string;
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [assignmentData, setAssignmentData] = useState<any>(null);
+  const [competencyData, setCompetencyData] = useState<any>(null);
   
   const [rubric, setRubric] = useState<Rubric>({
     levels: [
@@ -52,15 +51,21 @@ export default function AssignmentRubricPage() {
   });
 
   useEffect(() => {
-    fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}`, {
+    // In a real app we'd fetch the specific competency to display its name
+    // Assuming we have a /competency/:id endpoint, but for now we might just get the list
+    fetch(`http://localhost:7000/classes/competencies`, {
       headers: { Accept: "application/json" },
       credentials: "include",
     })
       .then((res) => res.json())
       .then((data) => {
-        setAssignmentData(data);
-        if (data.rubric) {
-          setRubric(data.rubric);
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid data format received");
+        }
+        const comp = data.find((c: any) => c.id === competencyId);
+        setCompetencyData(comp || { name: 'Kompetensi' });
+        if (comp && comp.rubric) {
+          setRubric(comp.rubric);
         }
         setIsLoading(false);
       })
@@ -68,12 +73,12 @@ export default function AssignmentRubricPage() {
         console.error(err);
         setIsLoading(false);
       });
-  }, [classId, assignmentId]);
+  }, [competencyId]);
 
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}/rubric`, {
+      const res = await fetch(`http://localhost:7000/classes/competency/${competencyId}/rubric`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -155,7 +160,7 @@ export default function AssignmentRubricPage() {
     }));
   };
 
-  if (isLoading || !assignmentData) {
+  if (isLoading || !competencyData) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
         <Loader2 className="w-10 h-10 text-brand-purple animate-spin" />
@@ -184,7 +189,7 @@ export default function AssignmentRubricPage() {
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <Link
-            href={`/dashboard/class/${classId}/assignment/${assignmentId}`}
+            href={`/dashboard?tab=rubric`}
             className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors border border-border px-3 py-1.5 rounded-lg shadow-sm"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -198,10 +203,10 @@ export default function AssignmentRubricPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="font-heading font-black text-2xl md:text-3xl text-foreground">
-              Pengaturan Rubrik
+              Pengaturan Rubrik Global
             </h1>
             <p className="text-sm text-muted-foreground mt-2">
-              Tugas: <span className="font-semibold text-foreground">{assignmentData.title}</span>
+              Kompetensi: <span className="font-semibold text-foreground">{competencyData?.name}</span>
             </p>
           </div>
           <Button 
