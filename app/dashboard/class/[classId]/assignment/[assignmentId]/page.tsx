@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Navbar } from "@/components/navbar";
 
 export default function AssignmentDetailPage() {
   const router = useRouter();
@@ -40,6 +41,20 @@ export default function AssignmentDetailPage() {
   // Bulk AI state
   const [isBulkEvaluating, setIsBulkEvaluating] = useState(false);
   const [bulkProgress, setBulkProgress] = useState({ total: 0, current: 0 });
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:7000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        router.push("/login");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     // Fetch both assignment, profile, and my submission concurrently

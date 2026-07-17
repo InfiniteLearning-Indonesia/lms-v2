@@ -41,6 +41,7 @@ import {
   GraduationCap,
   Upload,
   Save,
+  Settings
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -886,6 +887,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                 })()}
               </div>
             </div>
+          )}
         </TabsContent>
 
         {/* ── TAB 2: SISWA BINAAN ── */}
