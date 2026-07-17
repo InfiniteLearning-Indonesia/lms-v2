@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowLeft, Loader2, Video, BookOpen, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Navbar } from "@/components/navbar";
 
 export default function MaterialDetailPage() {
   const router = useRouter();
@@ -15,6 +16,34 @@ export default function MaterialDetailPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [materialData, setMaterialData] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("http://localhost:7000/auth/me", {
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    })
+      .then((res) => {
+        if (res.ok) return res.json();
+        throw new Error("Unauthorized");
+      })
+      .then((data) => setProfile(data))
+      .catch((err) => console.error("Gagal memuat profil:", err));
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("http://localhost:7000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      if (res.ok) {
+        router.push("/login");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     fetch(`http://localhost:7000/classes/${classId}/material/${materialId}`, {
@@ -51,30 +80,7 @@ export default function MaterialDetailPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
-      {/* ── Top Header ── */}
-      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center">
-            <img src="/logo-black.png" alt="Infinite Learning Logo" className="dark:hidden h-7 w-auto" />
-            <img src="/logo-white.png" alt="Infinite Learning Logo" className="hidden dark:block h-7 w-auto" />
-          </Link>
-          <span className="text-border font-light text-sm">|</span>
-          <span className="font-heading font-medium text-sm text-muted-foreground hidden sm:inline-block">
-            Materi Kelas
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Link
-            href={`/dashboard/class/${classId}`}
-            className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors border border-border px-3 py-1.5 rounded-lg shadow-sm"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Kembali
-          </Link>
-        </div>
-      </header>
+      <Navbar profile={profile} onLogout={handleLogout} title="Materi Kelas" showBackButton={true} backUrl={`/dashboard/class/${classId}`} />
 
       {/* ── Main Content ── */}
       <main className="flex-1 max-w-4xl w-full mx-auto px-6 py-8 space-y-6">

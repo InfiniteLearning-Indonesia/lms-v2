@@ -35,7 +35,12 @@ import {
   ChevronRight,
   Pencil,
   Trash2,
-  Save
+  User,
+  Phone,
+  School,
+  GraduationCap,
+  Upload,
+  Save,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,21 +52,132 @@ import { Progress } from "@/components/ui/progress";
 
 interface MentorDashboardProps {
   profile?: {
+    id: string;
     name: string;
     email: string;
     role: string;
     roles?: string[];
+    whatsapp?: string | null;
+    institution?: string | null;
+    studyProgram?: string | null;
     specialization?: string | null;
     selectedProgram?: string | null;
+    avatarUrl?: string | null;
   };
+  onProfileUpdate?: () => void;
 }
 
-export function MentorDashboard({ profile }: MentorDashboardProps) {
+export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardProps) {
   const [classes, setClasses] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+
+  // Listen to tab query parameter
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get("tab");
+      if (tab === "settings") {
+        setActiveTab("settings");
+      }
+    }
+  }, []);
+
+  // Profile Form States
+  const [myName, setMyName] = useState(profile?.name || "");
+  const [myWhatsapp, setMyWhatsapp] = useState(profile?.whatsapp || "");
+  const [myInstitution, setMyInstitution] = useState(profile?.institution || "");
+  const [myStudyProgram, setMyStudyProgram] = useState(profile?.studyProgram || "");
+  const [myAvatarUrl, setMyAvatarUrl] = useState(profile?.avatarUrl || "");
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState<string | null>(null);
+
+  const defaultAvatars = [
+    "/avatars/avatar_1.png",
+    "/avatars/avatar_2.png",
+    "/avatars/avatar_3.png",
+    "/avatars/avatar_4.png",
+    "/avatars/avatar_5.png",
+  ];
+
+  const getEffectiveAvatar = () => {
+    if (myAvatarUrl) return myAvatarUrl;
+    const code = profile?.id ? profile.id.charCodeAt(0) + profile.id.charCodeAt(profile.id.length - 1) : 1;
+    const index = (code % 5) + 1;
+    return `/avatars/avatar_${index}.png`;
+  };
+
+  // Sync state if profile changes
+  useEffect(() => {
+    if (profile) {
+      setMyName(profile.name || "");
+      setMyWhatsapp(profile.whatsapp || "");
+      setMyInstitution(profile.institution || "");
+      setMyStudyProgram(profile.studyProgram || "");
+      setMyAvatarUrl(profile.avatarUrl || "");
+    }
+  }, [profile]);
+
+  const handleProfileFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setProfileSaveError("Ukuran file foto maksimal 2MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setMyAvatarUrl(event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile?.id) return;
+    setIsSavingProfile(true);
+    setProfileSaveError(null);
+    setProfileSaveSuccess(null);
+
+    try {
+      const res = await fetch(`http://localhost:7000/users/${profile.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: myName,
+          whatsapp: myWhatsapp,
+          institution: myInstitution,
+          studyProgram: myStudyProgram,
+          avatarUrl: myAvatarUrl || null,
+        }),
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Gagal memperbarui profil");
+      }
+
+      setProfileSaveSuccess("Profil Anda berhasil diperbarui!");
+      if (onProfileUpdate) {
+        onProfileUpdate();
+      }
+    } catch (err: any) {
+      console.error(err);
+      setProfileSaveError(err.message || "Terjadi kesalahan saat menyimpan profil.");
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
 
   const [distributeMessage, setDistributeMessage] = useState<string | null>(null);
   const [isDistributing, setIsDistributing] = useState(false);
@@ -317,7 +433,10 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
       if (resClasses.ok) {
         const dataClasses = await resClasses.json();
         setClasses(dataClasses);
-        if (dataClasses.length > 0) {
+        const active = dataClasses.find((cls: any) => cls.batch?.status === "active");
+        if (active) {
+          setSelectedClassId(active.id);
+        } else if (dataClasses.length > 0) {
           setSelectedClassId(dataClasses[0].id);
         }
       }
@@ -328,12 +447,16 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
     }
   };
 
+  const activeClasses = classes.filter((cls) => cls.batch?.status === "active");
+  const pastClasses = classes.filter((cls) => cls.batch?.status === "completed");
+  const hasPastClasses = pastClasses.length > 0;
+
   // Calculate stats
-  const totalClasses = classes.length;
-  const totalStudents = classes.reduce((acc, cls) => acc + (cls.enrolledStudentsCount || 0), 0);
-  const allStudents = classes.flatMap((cls) => cls.enrolledStudents || []);
-  const totalMaterials = classes.reduce((acc, cls) => acc + (cls.materials?.length || 0), 0);
-  const totalAssignments = classes.reduce((acc, cls) => acc + (cls.assignments?.length || 0), 0);
+  const totalClasses = activeClasses.length;
+  const totalStudents = activeClasses.reduce((acc, cls) => acc + (cls.enrolledStudentsCount || 0), 0);
+  const allStudents = activeClasses.flatMap((cls) => cls.enrolledStudents || []);
+  const totalMaterials = activeClasses.reduce((acc, cls) => acc + (cls.materials?.length || 0), 0);
+  const totalAssignments = activeClasses.reduce((acc, cls) => acc + (cls.assignments?.length || 0), 0);
 
   // Filter students based on search query
   const filteredStudents = allStudents.filter((student) => {
@@ -473,7 +596,7 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center gap-3 text-amber-700 dark:text-amber-400">
           <Lock className="w-6 h-6 shrink-0 text-amber-600" />
           <div>
-            <h4 className="font-heading font-bold text-sm">Mode Read-Only Aktif (Rule 21 & 23)</h4>
+            <h4 className="font-heading font-bold text-sm">Mode Read-Only Aktif</h4>
             <p className="text-xs mt-0.5">
               Batch akademik ini telah selesai. Seluruh data kelas, materi, tugas, dan nilai siswa dikunci menjadi arsip historis. Modifikasi data ditiadakan.
             </p>
@@ -483,13 +606,19 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
 
       {/* ── Main Tabs ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="bg-secondary/60 p-1 rounded-xl border border-border/60 grid grid-cols-4 max-w-3xl">
-          <TabsTrigger value="classes" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center gap-2">
-            <BookOpen className="w-4 h-4" />
+        <TabsList className={`bg-secondary/60 p-1.5 rounded-xl border border-border/60 grid w-full min-h-14 ${hasPastClasses ? "grid-cols-4" : "grid-cols-3"}`}>
+          <TabsTrigger value="classes" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
+            <BookOpen className="w-5 h-5 shrink-0" />
             <span>Kelas & Silabus</span>
           </TabsTrigger>
-          <TabsTrigger value="students" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center gap-2">
-            <Users className="w-4 h-4" />
+          {hasPastClasses && (
+            <TabsTrigger value="past-batches" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
+              <GraduationCap className="w-5 h-5 shrink-0" />
+              <span>Batch Lama</span>
+            </TabsTrigger>
+          )}
+          <TabsTrigger value="students" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
+            <Users className="w-5 h-5 shrink-0" />
             <span>Siswa Binaan ({allStudents.length})</span>
           </TabsTrigger>
           <TabsTrigger value="rubric" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center gap-2">
@@ -500,233 +629,263 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
             <Pencil className="w-4 h-4" />
             <span>Assessment</span>
           </TabsTrigger>
+          <TabsTrigger value="settings" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
+            <Settings className="w-5 h-5 shrink-0" />
+            <span>Pengaturan Akun</span>
+          </TabsTrigger>
         </TabsList>
 
         {/* ── TAB 1: KELAS & SILABUS ── */}
         <TabsContent value="classes" className="space-y-6">
-          <div className="grid md:grid-cols-3 gap-6">
-            {/* Class List */}
-            <div className="md:col-span-1 space-y-4">
-
-              <div className="space-y-3">
-                {classes.map((cls) => {
-                  const isSelected = cls.id === selectedClassId;
-                  return (
-                    <div
-                      key={cls.id}
-                      onClick={() => setSelectedClassId(cls.id)}
-                      className={`cursor-pointer rounded-xl border p-4 transition-all ${isSelected
-                        ? "bg-brand-purple/10 border-brand-purple shadow-sm"
-                        : "bg-card border-border hover:border-border/80 hover:bg-secondary/30"
-                        }`}
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-secondary text-muted-foreground">
-                          {cls.batch?.name || "Batch 7"}
-                        </span>
-                        {cls.batch?.status === 'active' ? (
-                          <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-200">
-                            Aktif
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-200">
-                            Selesai
-                          </Badge>
-                        )}
-                      </div>
-                      <h3 className="font-heading font-bold text-base mt-2 text-foreground">
-                        {cls.program?.name || "Program Studi"}
-                      </h3>
-                      <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Users className="w-3.5 h-3.5" />
-                          {cls.enrolledStudentsCount || 0} Siswa
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <FileText className="w-3.5 h-3.5" />
-                          {cls.materials?.length || 0} Materi
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+          {activeClasses.length === 0 ? (
+            <Alert className="border-border bg-card shadow-sm p-6">
+              <Info className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <AlertTitle className="font-heading font-bold text-base text-foreground">
+                  Belum Ada Kelas Aktif
+                </AlertTitle>
+                <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+                  {profile?.selectedProgram ? (
+                    <>
+                      Spesialisasi Anda: <strong>{profile.specialization || "Belum Ditentukan"}</strong>.<br />
+                      Program yang di-assign: <strong>{profile.selectedProgram}</strong>.<br /><br />
+                      Saat ini belum ada kelas ajar aktif untuk Anda di Batch berjalan. Hal ini bisa disebabkan karena:
+                      <ul className="list-disc pl-5 mt-2 space-y-1">
+                        <li>Belum ada Batch Cohort aktif yang didefinisikan/dijalankan oleh Administrator.</li>
+                        <li>Siswa belum terdaftar (atau belum dijalankan alokasi Modulo/pembagian kelas oleh Admin).</li>
+                      </ul>
+                    </>
+                  ) : (
+                    <>
+                      Anda belum dikaitkan dengan Program Studi spesifik apa pun. Hubungi Administrator untuk meng-assign Anda ke Program yang sesuai.
+                    </>
+                  )}
+                </AlertDescription>
               </div>
-            </div>
-
-            {/* Class Details & Syllabus Progress */}
-            <div className="md:col-span-2 space-y-6">
-              {(() => {
-                if (!selectedCls) return null;
-
-                return (
-                  <Card className="border-border bg-card shadow-sm">
-                    <CardHeader className="border-b border-border bg-secondary/20 pb-4">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                          <CardTitle className="text-lg font-heading font-bold text-foreground">
-                            {selectedCls.program?.name}
-                          </CardTitle>
-                          <CardDescription className="text-xs text-muted-foreground mt-1">
-                            {selectedCls.batch?.name} • Dikelola oleh Tim Mentor
-                          </CardDescription>
+            </Alert>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-6">
+              {/* Class List */}
+              <div className="md:col-span-1 space-y-4">
+                <div className="space-y-3">
+                  {classes.map((cls) => {
+                    const isSelected = cls.id === selectedClassId;
+                    return (
+                      <div
+                        key={cls.id}
+                        onClick={() => setSelectedClassId(cls.id)}
+                        className={`cursor-pointer rounded-xl border p-4 transition-all ${isSelected
+                          ? "bg-brand-purple/10 border-brand-purple shadow-sm"
+                          : "bg-card border-border hover:border-border/80 hover:bg-secondary/30"
+                          }`}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-secondary text-muted-foreground">
+                            {cls.batch?.name || "Batch 7"}
+                          </span>
+                          {cls.batch?.status === 'active' ? (
+                            <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-200">
+                              Aktif
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-200">
+                              Selesai
+                            </Badge>
+                          )}
                         </div>
-                        <Badge className="bg-brand-purple text-white hover:bg-brand-purple-hover self-start sm:self-center">
-                          Silabus Berjalan
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="p-6 space-y-6">
-                      {/* Syllabus Progress */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-xs font-semibold">
-                          <span>Progres Pembelajaran Silabus</span>
-                          <span className="text-brand-purple">65%</span>
+                        <h3 className="font-heading font-bold text-base mt-2 text-foreground">
+                          {cls.program?.name || "Program Studi"}
+                        </h3>
+                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3.5 h-3.5" />
+                            {cls.enrolledStudentsCount || 0} Siswa
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <FileText className="w-3.5 h-3.5" />
+                            {cls.materials?.length || 0} Materi
+                          </span>
                         </div>
-                        <Progress value={65} className="h-2 bg-secondary" />
                       </div>
+                    );
+                  })}
+                </div>
+              </div>
 
-                      {/* Otomatisasi Alokasi Murid (Round-Robin & Modulo) */}
-                      {(() => {
-                        const progName = selectedCls.program?.name || "";
-                        const isCollab = progName.toLowerCase().includes("web") || progName.toLowerCase().includes("mobile");
-                        if (!isCollab) return null;
-                        return (
-                          <div className="border border-brand-purple/30 bg-brand-purple/5 rounded-xl p-4 space-y-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <Sliders className="w-4 h-4 text-brand-purple" />
-                                <h4 className="font-heading font-bold text-sm text-foreground">
-                                  Distribusi Alokasi Murid (Round-Robin & Modulo)
-                                </h4>
+              {/* Class Details & Syllabus Progress */}
+              <div className="md:col-span-2 space-y-6">
+                {(() => {
+                  if (!selectedCls) return null;
+
+                  return (
+                    <Card className="border-border bg-card shadow-sm">
+                      <CardHeader className="border-b border-border bg-secondary/20 pb-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                          <div>
+                            <CardTitle className="text-lg font-heading font-bold text-foreground">
+                              {selectedCls.program?.name}
+                            </CardTitle>
+                            <CardDescription className="text-xs text-muted-foreground mt-1">
+                              {selectedCls.batch?.name} • Dikelola oleh Tim Mentor
+                            </CardDescription>
+                          </div>
+                          <Badge className="bg-brand-purple text-white hover:bg-brand-purple-hover self-start sm:self-center">
+                            Silabus Berjalan
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-6 space-y-6">
+                        {/* Syllabus Progress */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs font-semibold">
+                            <span>Progres Pembelajaran Silabus</span>
+                            <span className="text-brand-purple">65%</span>
+                          </div>
+                          <Progress value={65} className="h-2 bg-secondary" />
+                        </div>
+
+                        {/* Otomatisasi Alokasi Murid (Round-Robin & Modulo) */}
+                        {(() => {
+                          const progName = selectedCls.program?.name || "";
+                          const isCollab = progName.toLowerCase().includes("web") || progName.toLowerCase().includes("mobile");
+                          if (!isCollab) return null;
+                          return (
+                            <div className="border border-brand-purple/30 bg-brand-purple/5 rounded-xl p-4 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Sliders className="w-4 h-4 text-brand-purple" />
+                                  <h4 className="font-heading font-bold text-sm text-foreground">
+                                    Distribusi Alokasi Murid (Round-Robin & Modulo)
+                                  </h4>
+                                </div>
+                                {!isReadOnly && (
+                                  <Button
+                                    onClick={() => handleDistributeModulo(progName)}
+                                    disabled={isDistributing}
+                                    size="sm"
+                                    className="bg-brand-purple hover:bg-brand-purple-hover text-white text-xs h-8"
+                                  >
+                                    {isDistributing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
+                                    Jalankan Distribusi
+                                  </Button>
+                                )}
                               </div>
-                              {!isReadOnly && (
-                                <Button
-                                  onClick={() => handleDistributeModulo(progName)}
-                                  disabled={isDistributing}
-                                  size="sm"
-                                  className="bg-brand-purple hover:bg-brand-purple-hover text-white text-xs h-8"
-                                >
-                                  {isDistributing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
-                                  Jalankan Distribusi
-                                </Button>
+                              <p className="text-2xs text-muted-foreground leading-relaxed">
+                                Sesuai Bab 5 & Bab 9 Source of Truth: Sistem akan membagi siswa secara merata ke Primary Mentor. Sisa pembagian (Modulo remainder) akan dialokasikan secara otomatis ke Supporting/Secondary Mentor (UI/UX & Professional).
+                              </p>
+                              {distributeMessage && (
+                                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-medium flex items-center gap-2">
+                                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                  <span>{distributeMessage}</span>
+                                </div>
                               )}
                             </div>
-                            <p className="text-2xs text-muted-foreground leading-relaxed">
-                              Sesuai Bab 5 & Bab 9 Source of Truth: Sistem akan membagi siswa secara merata ke Primary Mentor. Sisa pembagian (Modulo remainder) akan dialokasikan secara otomatis ke Supporting/Secondary Mentor (UI/UX & Professional).
-                            </p>
-                            {distributeMessage && (
-                              <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-medium flex items-center gap-2">
-                                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                                <span>{distributeMessage}</span>
-                              </div>
+                          );
+                        })()}
+
+                        {/* Materials Section */}
+                        <div className="space-y-3">
+                          <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-2">
+                              <FileText className="w-4 h-4 text-brand-purple" />
+                              Materi Pembelajaran Terdaftar ({selectedCls.materials?.length || 0})
+                            </span>
+                            {!isReadOnly && (
+                              <Button
+                                onClick={() => setIsAddMaterialModalOpen(true)}
+                                size="sm"
+                                variant="outline"
+                                className="h-8 text-xs flex items-center gap-1.5"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                Tambah Materi
+                              </Button>
                             )}
-                          </div>
-                        );
-                      })()}
-
-                      {/* Materials Section */}
-                      <div className="space-y-3">
-                        <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
-                          <span className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-brand-purple" />
-                            Materi Pembelajaran Terdaftar ({selectedCls.materials?.length || 0})
-                          </span>
-                          {!isReadOnly && (
-                            <Button
-                              onClick={() => setIsAddMaterialModalOpen(true)}
-                              size="sm"
-                              variant="outline"
-                              className="h-8 text-xs flex items-center gap-1.5"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                              Tambah Materi
-                            </Button>
-                          )}
-                        </h4>
-                        <div className="grid gap-2">
-                          {selectedCls.materials && selectedCls.materials.length > 0 ? (
-                            selectedCls.materials.map((mat: any, idx: number) => (
-                              <div key={mat.id || idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-xs">
-                                    #{idx + 1}
+                          </h4>
+                          <div className="grid gap-2">
+                            {selectedCls.materials && selectedCls.materials.length > 0 ? (
+                              selectedCls.materials.map((mat: any, idx: number) => (
+                                <div key={mat.id || idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-xs">
+                                      #{idx + 1}
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-foreground">{mat.title}</p>
+                                      <p className="text-[11px] text-muted-foreground">{mat.competency || "Kompetensi Umum"} • Tipe: {mat.type?.toUpperCase()}</p>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-foreground">{mat.title}</p>
-                                    <p className="text-[11px] text-muted-foreground">{mat.competency || "Kompetensi Umum"} • Tipe: {mat.type?.toUpperCase()}</p>
-                                  </div>
-                                </div>
-                                <Link
-                                  href={`/dashboard/class/${selectedCls.id}/material/${mat.id}`}
-                                  target="_blank"
-                                  className="text-xs font-medium text-brand-purple flex items-center gap-1 bg-card px-2.5 py-1 rounded border border-border shadow-2xs hover:bg-brand-purple/5 transition-colors"
-                                >
-                                  Lihat Modul
-                                </Link>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-xs text-muted-foreground py-4 text-center border border-dashed rounded-lg">
-                              Belum ada materi pembelajaran untuk kelas ini.
-                            </p>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Assignments Section */}
-                      <div className="space-y-3 pt-2">
-                        <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
-                          <span className="flex items-center gap-2">
-                            <Award className="w-4 h-4 text-emerald-600" />
-                            Tugas & Praktik ({selectedCls.assignments?.length || 0})
-                          </span>
-                          {!isReadOnly && (
-                            <Button
-                              onClick={() => setIsAddAssignmentModalOpen(true)}
-                              size="sm"
-                              variant="outline"
-                              className="h-8 text-xs flex items-center gap-1.5 border-emerald-200 hover:bg-emerald-50 text-emerald-700"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                              Tambah Tugas
-                            </Button>
-                          )}
-                        </h4>
-                        <div className="grid gap-2">
-                          {selectedCls.assignments && selectedCls.assignments.length > 0 ? (
-                            selectedCls.assignments.map((ass: any, idx: number) => (
-                              <div key={ass.id || idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold text-xs">
-                                    T{idx + 1}
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-semibold text-foreground">{ass.title}</p>
-                                    <p className="text-[11px] text-muted-foreground">Batas Waktu: {ass.dueDate ? new Date(ass.dueDate).toLocaleDateString("id-ID") : "7 Hari"}</p>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                  <Link href={`/dashboard/class/${selectedCls.id}/assignment/${ass.id}`}>
-                                    <span className="text-[11px] font-medium text-emerald-600 bg-white dark:bg-card hover:bg-emerald-50 px-2.5 py-1.5 rounded-md border border-border shadow-sm transition-colors cursor-pointer flex items-center gap-1.5">
-                                      Lihat Detail / Periksa Nilai <ChevronRight className="w-3 h-3" />
-                                    </span>
+                                  <Link
+                                    href={`/dashboard/class/${selectedCls.id}/material/${mat.id}`}
+                                    target="_blank"
+                                    className="text-xs font-medium text-brand-purple flex items-center gap-1 bg-card px-2.5 py-1 rounded border border-border shadow-2xs hover:bg-brand-purple/5 transition-colors"
+                                  >
+                                    Lihat Modul
                                   </Link>
                                 </div>
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-xs text-muted-foreground py-4 text-center border border-dashed rounded-lg">
-                              Belum ada tugas praktik untuk kelas ini.
-                            </p>
-                          )}
+                              ))
+                            ) : (
+                              <p className="text-xs text-muted-foreground py-4 text-center border border-dashed rounded-lg">
+                                Belum ada materi pembelajaran untuk kelas ini.
+                              </p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })()}
+
+                        {/* Assignments Section */}
+                        <div className="space-y-3 pt-2">
+                          <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-2">
+                              <Award className="w-4 h-4 text-emerald-600" />
+                              Tugas & Praktik ({selectedCls.assignments?.length || 0})
+                            </span>
+                            {!isReadOnly && (
+                              <Button
+                                onClick={() => setIsAddAssignmentModalOpen(true)}
+                                size="sm"
+                                variant="outline"
+                                className="h-8 text-xs flex items-center gap-1.5 border-emerald-200 hover:bg-emerald-50 text-emerald-700"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                                Tambah Tugas
+                              </Button>
+                            )}
+                          </h4>
+                          <div className="grid gap-2">
+                            {selectedCls.assignments && selectedCls.assignments.length > 0 ? (
+                              selectedCls.assignments.map((ass: any, idx: number) => (
+                                <div key={ass.id || idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold text-xs">
+                                      T{idx + 1}
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-semibold text-foreground">{ass.title}</p>
+                                      <p className="text-[11px] text-muted-foreground">Batas Waktu: {ass.dueDate ? new Date(ass.dueDate).toLocaleDateString("id-ID") : "7 Hari"}</p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Link href={`/dashboard/class/${selectedCls.id}/assignment/${ass.id}`}>
+                                      <span className="text-[11px] font-medium text-emerald-600 bg-white dark:bg-card hover:bg-emerald-50 px-2.5 py-1.5 rounded-md border border-border shadow-sm transition-colors cursor-pointer flex items-center gap-1.5">
+                                        Lihat Detail / Periksa Nilai <ChevronRight className="w-3 h-3" />
+                                      </span>
+                                    </Link>
+                                  </div>
+                                </div>
+                              ))
+                            ) : (
+                              <p className="text-xs text-muted-foreground py-4 text-center border border-dashed rounded-lg">
+                                Belum ada tugas praktik untuk kelas ini.
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })()}
+              </div>
             </div>
-          </div>
         </TabsContent>
 
         {/* ── TAB 2: SISWA BINAAN ── */}
@@ -841,6 +1000,197 @@ export function MentorDashboard({ profile }: MentorDashboardProps) {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ── TAB 3: PENGATURAN AKUN ── */}
+        <TabsContent value="settings" className="space-y-6 outline-hidden">
+          <Card className="border-border bg-card shadow-sm w-full">
+            <CardHeader className="border-b border-border pb-4">
+              <CardTitle className="font-heading font-bold text-lg flex items-center gap-2 text-foreground">
+                <Settings className="w-5 h-5 text-brand-purple" />
+                Edit Profil Saya
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                Perbarui data pribadi Anda yang tersimpan di sistem.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSaveProfile} className="space-y-6">
+                {profileSaveSuccess && (
+                  <Alert className="border-green-500/20 bg-green-500/5 text-green-600 dark:text-green-400">
+                    <AlertDescription className="text-xs font-medium">{profileSaveSuccess}</AlertDescription>
+                  </Alert>
+                )}
+                {profileSaveError && (
+                  <Alert className="border-red-500/20 bg-red-500/5 text-red-600 dark:text-red-400">
+                    <AlertDescription className="text-xs font-medium">{profileSaveError}</AlertDescription>
+                  </Alert>
+                )}
+
+                {/* Avatar Management */}
+                <div className="flex flex-col sm:flex-row items-center gap-6 pb-4 border-b border-border/50">
+                  <div className="relative group shrink-0">
+                    <img
+                      src={getEffectiveAvatar()}
+                      alt="Foto Profil"
+                      className="w-24 h-24 rounded-full object-cover border-2 border-brand-purple/20 shadow-md transition-all group-hover:brightness-90"
+                    />
+                    <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
+                      <Upload className="w-5 h-5" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileFileChange}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+                  <div className="space-y-4 w-full">
+                    <div>
+                      <label className="block text-xs font-bold text-foreground mb-1">Unggah Foto Profil Baru</label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileFileChange}
+                        className="block w-full text-xs text-muted-foreground file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-purple/10 file:text-brand-purple hover:file:bg-brand-purple/20 cursor-pointer"
+                      />
+                      <p className="text-[10px] text-muted-foreground mt-1">Mendukung format PNG, JPG, JPEG. Maksimal 2MB.</p>
+                    </div>
+
+                    {/* Choose from Default Avatars */}
+                    <div className="space-y-2">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pilih dari Avatar Default:</label>
+                      <div className="flex gap-2">
+                        {defaultAvatars.map((url, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setMyAvatarUrl(url)}
+                            className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 hover:shadow-xs ${myAvatarUrl === url ? "border-brand-purple scale-105 shadow-sm" : "border-transparent"
+                              }`}
+                          >
+                            <img src={url} alt={`Avatar default ${idx + 1}`} className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form Fields */}
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                      <User className="w-3.5 h-3.5 text-brand-purple" />
+                      Nama Lengkap
+                    </label>
+                    <Input
+                      value={myName}
+                      onChange={(e) => setMyName(e.target.value)}
+                      required
+                      placeholder="Nama Anda"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                      <Phone className="w-3.5 h-3.5 text-brand-purple" />
+                      Nomor WhatsApp
+                    </label>
+                    <Input
+                      value={myWhatsapp}
+                      onChange={(e) => setMyWhatsapp(e.target.value)}
+                      placeholder="Contoh: 08123456789"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                      <School className="w-3.5 h-3.5 text-brand-purple" />
+                      Asal Institusi / Kampus
+                    </label>
+                    <Input
+                      value={myInstitution}
+                      onChange={(e) => setMyInstitution(e.target.value)}
+                      placeholder="Contoh: Universitas Indonesia"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
+                      <GraduationCap className="w-3.5 h-3.5 text-brand-purple" />
+                      Program Studi
+                    </label>
+                    <Input
+                      value={myStudyProgram}
+                      onChange={(e) => setMyStudyProgram(e.target.value)}
+                      placeholder="Contoh: Teknik Informatika"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
+                  <Button
+                    type="submit"
+                    disabled={isSavingProfile}
+                    className="bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-semibold h-10 px-6 flex items-center gap-1.5"
+                  >
+                    {isSavingProfile ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Menyimpan...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        <span>Simpan Perubahan</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {hasPastClasses && (
+          <TabsContent value="past-batches" className="space-y-6 outline-hidden">
+            <div className="space-y-4 font-sans">
+              <h2 className="font-heading font-bold text-lg flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-brand-purple" />
+                Riwayat Angkatan / Batch Lama Anda
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                Berikut adalah daftar kelas ajar bimbingan Anda di angkatan sebelumnya. Anda tetap dapat mengakses arsip kelas, siswa, materi, dan tugas ini dalam mode baca (Read-Only).
+              </p>
+
+              <div className="grid gap-6 md:grid-cols-2">
+                {pastClasses.map((cls) => (
+                  <Link key={cls.id} href={`/dashboard/class/${cls.id}`} className="block transition-transform hover:-translate-y-1">
+                    <Card className="border-border shadow-sm overflow-hidden bg-card hover:shadow-md transition-shadow">
+                      <div className="bg-slate-800 px-6 py-5 text-white">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-300">
+                          Selesai • {cls.batch?.name}
+                        </p>
+                        <CardTitle className="text-white text-lg mt-1.5">{cls.program?.name}</CardTitle>
+                        <p className="text-2xs text-white/85 mt-1">Total Murid: {cls.enrolledStudentsCount || 0} Siswa</p>
+                      </div>
+                      <CardContent className="py-4 flex justify-between items-center text-xs">
+                        <span className="text-muted-foreground flex items-center gap-1.5">
+                          <span className="w-2 h-2 rounded-full bg-slate-400" />
+                          Ruang kelas diarsipkan
+                        </span>
+                        <span className="text-brand-purple font-semibold hover:underline flex items-center gap-1">
+                          Buka Arsip Kelas
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                        </span>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        )}
 
         {/* ── TAB 3: RUBRIK PENILAIAN ── */}
         <TabsContent value="rubric" className="space-y-6">

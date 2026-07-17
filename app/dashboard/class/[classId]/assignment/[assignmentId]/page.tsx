@@ -199,288 +199,265 @@ export default function AssignmentDetailPage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
-      {/* ── Top Header ── */}
-      <header className="sticky top-0 z-50 bg-background/90 backdrop-blur-md border-b border-border px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link href="/dashboard" className="flex items-center">
-            <img src="/logo-black.png" alt="Infinite Learning Logo" className="dark:hidden h-7 w-auto" />
-            <img src="/logo-white.png" alt="Infinite Learning Logo" className="hidden dark:block h-7 w-auto" />
-          </Link>
-          <span className="text-border font-light text-sm">|</span>
-          <span className="font-heading font-medium text-sm text-muted-foreground hidden sm:inline-block">
-            Detail Tugas
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          <Link
-            href={`/dashboard/class/${classId}`}
-            className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors border border-border px-3 py-1.5 rounded-lg shadow-sm"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Kembali
-          </Link>
-        </div>
-      </header>
+      <Navbar profile={profile} onLogout={handleLogout} title="Detail Tugas" showBackButton={true} backUrl={`/dashboard/class/${classId}`} />
 
       {/* ── Main Content ── */}
       <main className="flex-1 max-w-5xl w-full mx-auto px-6 py-8">
         <div className="space-y-8">
-            <div className="space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="border-brand-yellow text-amber-600 bg-brand-yellow/10 font-mono text-[10px] tracking-wider uppercase">
-                    Tugas Praktik
-                  </Badge>
-                </div>
-
-                <h1 className="font-heading font-black text-3xl md:text-4xl text-foreground">
-                  {assignmentData.title}
-                </h1>
-
-                <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground border-b border-border pb-4">
-                  <div className="flex items-center gap-1.5">
-                    <Clock className="w-4 h-4" />
-                    <span>Dibuat: {assignmentData.createdAt ? new Date(assignmentData.createdAt).toLocaleDateString('id-ID') : "Baru saja"}</span>
-                  </div>
-                  <div className="text-border">•</div>
-                  <div className={`flex items-center gap-1.5 ${isPastDue ? "text-destructive" : ""}`}>
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Tenggat Waktu: {assignmentData.dueDate ? new Date(assignmentData.dueDate).toLocaleDateString('id-ID', { dateStyle: 'long' }) : "Tidak ada tenggat"}</span>
-                  </div>
-                </div>
+          <div className="space-y-6">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Badge variant="outline" className="border-brand-yellow text-amber-600 bg-brand-yellow/10 font-mono text-[10px] tracking-wider uppercase">
+                  Tugas Praktik
+                </Badge>
               </div>
 
-              <div className="font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line bg-card border border-border p-6 rounded-xl shadow-sm">
-                <h3 className="font-heading font-bold text-lg mb-4 text-foreground">Instruksi Tugas</h3>
-                {assignmentData.description || "Tidak ada deskripsi instruksi. Silakan tanyakan kepada mentor Anda."}
+              <h1 className="font-heading font-black text-3xl md:text-4xl text-foreground">
+                {assignmentData.title}
+              </h1>
+
+              <div className="flex flex-wrap items-center gap-4 text-xs font-medium text-muted-foreground border-b border-border pb-4">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4" />
+                  <span>Dibuat: {assignmentData.createdAt ? new Date(assignmentData.createdAt).toLocaleDateString('id-ID') : "Baru saja"}</span>
+                </div>
+                <div className="text-border">•</div>
+                <div className={`flex items-center gap-1.5 ${isPastDue ? "text-destructive" : ""}`}>
+                  <AlertCircle className="w-4 h-4" />
+                  <span>Tenggat Waktu: {assignmentData.dueDate ? new Date(assignmentData.dueDate).toLocaleDateString('id-ID', { dateStyle: 'long' }) : "Tidak ada tenggat"}</span>
+                </div>
               </div>
             </div>
 
-            {profile?.role === 'mentor' ? (
-              <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden mt-8">
-                <div className="p-6 border-b border-border flex items-center justify-between bg-secondary/10">
-                  <div>
-                    <h2 className="font-heading font-bold text-xl">Daftar Pengumpulan Mentee</h2>
-                    <p className="text-xs text-muted-foreground mt-1">Evaluasi pengumpulan mentee secara manual atau gunakan AI secara massal.</p>
-                  </div>
-                  <Button onClick={handleBulkAIEvaluate} disabled={isBulkEvaluating} className="bg-brand-purple hover:bg-brand-purple-hover text-white">
-                    {isBulkEvaluating ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Memproses AI ({bulkProgress.current}/{bulkProgress.total})</>
-                    ) : (
-                      <><Bot className="w-4 h-4 mr-2" /> Evaluasi Massal (AI)</>
-                    )}
-                  </Button>
+            <div className="font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line bg-card border border-border p-6 rounded-xl shadow-sm">
+              <h3 className="font-heading font-bold text-lg mb-4 text-foreground">Instruksi Tugas</h3>
+              {assignmentData.description || "Tidak ada deskripsi instruksi. Silakan tanyakan kepada mentor Anda."}
+            </div>
+          </div>
+
+          {profile?.role === 'mentor' ? (
+            <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden mt-8">
+              <div className="p-6 border-b border-border flex items-center justify-between bg-secondary/10">
+                <div>
+                  <h2 className="font-heading font-bold text-xl">Daftar Pengumpulan Mentee</h2>
+                  <p className="text-xs text-muted-foreground mt-1">Evaluasi pengumpulan mentee secara manual atau gunakan AI secara massal.</p>
                 </div>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase">
+                <Button onClick={handleBulkAIEvaluate} disabled={isBulkEvaluating} className="bg-brand-purple hover:bg-brand-purple-hover text-white">
+                  {isBulkEvaluating ? (
+                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Memproses AI ({bulkProgress.current}/{bulkProgress.total})</>
+                  ) : (
+                    <><Bot className="w-4 h-4 mr-2" /> Evaluasi Massal (AI)</>
+                  )}
+                </Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase">
+                    <tr>
+                      <th className="px-4 py-3">Mentee</th>
+                      <th className="px-4 py-3">Link Tugas</th>
+                      <th className="px-4 py-3">Status / Nilai</th>
+                      <th className="px-4 py-3 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {mentorSubmissions.length === 0 ? (
                       <tr>
-                        <th className="px-4 py-3">Mentee</th>
-                        <th className="px-4 py-3">Link Tugas</th>
-                        <th className="px-4 py-3">Status / Nilai</th>
-                        <th className="px-4 py-3 text-right">Aksi</th>
+                        <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                          Belum ada pengumpulan dari mentee.
+                        </td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {mentorSubmissions.length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
-                            Belum ada pengumpulan dari mentee.
+                    ) : (
+                      mentorSubmissions.map((sub: any) => (
+                        <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
+                          <td className="px-4 py-3 font-medium">{sub.student?.name}</td>
+                          <td className="px-4 py-3">
+                            <a href={sub.link} target="_blank" rel="noreferrer" className="text-brand-purple hover:underline text-xs flex items-center gap-1">
+                              <LinkIcon className="w-3 h-3" /> Buka Tautan
+                            </a>
+                          </td>
+                          <td className="px-4 py-3">
+                            {sub.status === 'ai_draft' ? (
+                              <Badge variant="outline" className="text-amber-600 border-amber-600/30 bg-amber-500/10">Draft AI: {sub.score}</Badge>
+                            ) : sub.status === 'graded' ? (
+                              <Badge className="bg-emerald-500 hover:bg-emerald-600">Dinilai: {sub.score}</Badge>
+                            ) : (
+                              <Badge variant="secondary">Perlu Dinilai</Badge>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-[10px]"
+                              onClick={() => openManualModal(sub)}
+                            >
+                              <Pencil className="w-3 h-3 mr-1" /> Beri Nilai
+                            </Button>
                           </td>
                         </tr>
-                      ) : (
-                        mentorSubmissions.map((sub: any) => (
-                          <tr key={sub.id} className="hover:bg-muted/30 transition-colors">
-                            <td className="px-4 py-3 font-medium">{sub.student?.name}</td>
-                            <td className="px-4 py-3">
-                              <a href={sub.link} target="_blank" rel="noreferrer" className="text-brand-purple hover:underline text-xs flex items-center gap-1">
-                                <LinkIcon className="w-3 h-3" /> Buka Tautan
-                              </a>
-                            </td>
-                            <td className="px-4 py-3">
-                              {sub.status === 'ai_draft' ? (
-                                <Badge variant="outline" className="text-amber-600 border-amber-600/30 bg-amber-500/10">Draft AI: {sub.score}</Badge>
-                              ) : sub.status === 'graded' ? (
-                                <Badge className="bg-emerald-500 hover:bg-emerald-600">Dinilai: {sub.score}</Badge>
-                              ) : (
-                                <Badge variant="secondary">Perlu Dinilai</Badge>
-                              )}
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-[10px]"
-                                onClick={() => openManualModal(sub)}
-                              >
-                                <Pencil className="w-3 h-3 mr-1" /> Beri Nilai
-                              </Button>
-                            </td>
-                          </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col mt-8">
-                <h3 className="font-heading font-bold text-lg mb-1">Pengumpulan Tugas</h3>
-                <p className="text-xs text-muted-foreground mb-6">Status: {isSubmitted ? <span className="text-emerald-600 font-semibold">Terkumpul</span> : <span className="text-amber-600 font-semibold">Belum Terkumpul</span>}</p>
-
-                {isSubmitted ? (
-                  <div className="space-y-4">
-                    <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-4">
-                      <CheckCircle2 className="h-4 w-4 stroke-current" />
-                      <AlertTitle className="text-sm font-semibold">Tugas Berhasil Dikirim!</AlertTitle>
-                      <AlertDescription className="text-xs mt-1">
-                        Mentor Anda akan meninjau hasil tugas Anda. Berikut adalah riwayat pengumpulan Anda.
-                      </AlertDescription>
-                    </Alert>
-
-                    {submissionData && (
-                      <div className="bg-background border border-border rounded-lg overflow-hidden">
-                        <div className="px-4 py-3 bg-secondary/30 border-b border-border flex items-center justify-between">
-                          <h4 className="font-semibold text-sm">Log Pengumpulan</h4>
-                          <Badge variant="outline" className={submissionData.status === 'graded' ? 'bg-brand-purple/10 text-brand-purple' : 'bg-emerald-500/10 text-emerald-600'}>
-                            {submissionData.status === 'graded' ? 'Telah Dinilai' : 'Menunggu Penilaian'}
-                          </Badge>
-                        </div>
-                        <div className="p-4 space-y-4 text-xs">
-                          <div className="grid grid-cols-3 gap-2">
-                            <span className="text-muted-foreground">Waktu Kumpul</span>
-                            <span className="col-span-2 font-medium">{new Date(submissionData.createdAt).toLocaleString('id-ID')}</span>
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-2">
-                            <span className="text-muted-foreground">Tautan Tugas</span>
-                            <a href={submissionData.link} target="_blank" rel="noreferrer" className="col-span-2 text-brand-purple hover:underline font-medium break-all">
-                              {submissionData.link}
-                            </a>
-                          </div>
-
-                          {submissionData.status === 'graded' && (
-                            <>
-                              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/50">
-                                <span className="text-muted-foreground">Nilai Akhir</span>
-                                <span className="col-span-2 font-bold text-lg text-brand-purple">{submissionData.score} / 100</span>
-                              </div>
-                              <div className="pt-2">
-                                <span className="text-muted-foreground block mb-1">Umpan Balik Mentor:</span>
-                                <div className="p-3 bg-secondary/50 rounded-md whitespace-pre-line text-foreground">
-                                  {submissionData.manualFeedback || "-"}
-                                </div>
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </div>
+                      ))
                     )}
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
-                    <div className="space-y-2">
-                      <Label htmlFor="link-input" className="text-xs">
-                        {assignmentData.submissionType === 'github' ? 'Tautan Repository GitHub' :
-                          assignmentData.submissionType === 'figma' ? 'Tautan File Figma' :
-                            assignmentData.submissionType === 'drive' ? 'Tautan Google Drive' :
-                              'Tautan Tugas (Bebas)'}
-                      </Label>
-                      <div className="relative">
-                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                        <Input
-                          id="link-input"
-                          type="url"
-                          required
-                          placeholder={
-                            assignmentData.submissionType === 'github' ? 'https://github.com/username/repo' :
-                              assignmentData.submissionType === 'figma' ? 'https://figma.com/file/...' :
-                                assignmentData.submissionType === 'drive' ? 'https://drive.google.com/...' :
-                                  'https://...'
-                          }
-                          pattern={
-                            assignmentData.submissionType === 'github' ? '.*github\\.com.*' :
-                              assignmentData.submissionType === 'figma' ? '.*figma\\.com.*' :
-                                assignmentData.submissionType === 'drive' ? '.*drive\\.google\\.com.*' :
-                                  undefined
-                          }
-                          className="pl-9 h-10 bg-secondary/50 focus:bg-background transition-colors text-sm"
-                          value={submissionLink}
-                          onChange={(e) => setSubmissionLink(e.target.value)}
-                          disabled={isSubmitting}
-                        />
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col mt-8">
+              <h3 className="font-heading font-bold text-lg mb-1">Pengumpulan Tugas</h3>
+              <p className="text-xs text-muted-foreground mb-6">Status: {isSubmitted ? <span className="text-emerald-600 font-semibold">Terkumpul</span> : <span className="text-amber-600 font-semibold">Belum Terkumpul</span>}</p>
+
+              {isSubmitted ? (
+                <div className="space-y-4">
+                  <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-4">
+                    <CheckCircle2 className="h-4 w-4 stroke-current" />
+                    <AlertTitle className="text-sm font-semibold">Tugas Berhasil Dikirim!</AlertTitle>
+                    <AlertDescription className="text-xs mt-1">
+                      Mentor Anda akan meninjau hasil tugas Anda. Berikut adalah riwayat pengumpulan Anda.
+                    </AlertDescription>
+                  </Alert>
+
+                  {submissionData && (
+                    <div className="bg-background border border-border rounded-lg overflow-hidden">
+                      <div className="px-4 py-3 bg-secondary/30 border-b border-border flex items-center justify-between">
+                        <h4 className="font-semibold text-sm">Log Pengumpulan</h4>
+                        <Badge variant="outline" className={submissionData.status === 'graded' ? 'bg-brand-purple/10 text-brand-purple' : 'bg-emerald-500/10 text-emerald-600'}>
+                          {submissionData.status === 'graded' ? 'Telah Dinilai' : 'Menunggu Penilaian'}
+                        </Badge>
                       </div>
-                      {assignmentData.submissionType === 'github' && (
-                        <p className="text-[10px] text-muted-foreground">
-                          Pastikan repository Anda disetel ke <span className="font-semibold text-foreground">Public</span>.
-                        </p>
-                      )}
+                      <div className="p-4 space-y-4 text-xs">
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="text-muted-foreground">Waktu Kumpul</span>
+                          <span className="col-span-2 font-medium">{new Date(submissionData.createdAt).toLocaleString('id-ID')}</span>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                          <span className="text-muted-foreground">Tautan Tugas</span>
+                          <a href={submissionData.link} target="_blank" rel="noreferrer" className="col-span-2 text-brand-purple hover:underline font-medium break-all">
+                            {submissionData.link}
+                          </a>
+                        </div>
+
+                        {submissionData.status === 'graded' && (
+                          <>
+                            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/50">
+                              <span className="text-muted-foreground">Nilai Akhir</span>
+                              <span className="col-span-2 font-bold text-lg text-brand-purple">{submissionData.score} / 100</span>
+                            </div>
+                            <div className="pt-2">
+                              <span className="text-muted-foreground block mb-1">Umpan Balik Mentor:</span>
+                              <div className="p-3 bg-secondary/50 rounded-md whitespace-pre-line text-foreground">
+                                {submissionData.manualFeedback || "-"}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
                     </div>
-
-                    <Button
-                      type="submit"
-                      className="w-full bg-brand-purple hover:bg-brand-purple-hover text-white transition-all shadow-sm h-10 text-sm font-semibold"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                          Mengirim...
-                        </>
-                      ) : (
-                        "Kirim Tugas"
-                      )}
-                    </Button>
-
-                    {isPastDue && (
-                      <p className="text-[10px] text-amber-600 font-medium text-center mt-2 flex items-center justify-center gap-1.5">
-                        <AlertCircle className="w-3 h-3" />
-                        Terlambat: Poin maksimal akan dikurangi 2 dari nilai akhir.
+                  )}
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
+                  <div className="space-y-2">
+                    <Label htmlFor="link-input" className="text-xs">
+                      {assignmentData.submissionType === 'github' ? 'Tautan Repository GitHub' :
+                        assignmentData.submissionType === 'figma' ? 'Tautan File Figma' :
+                          assignmentData.submissionType === 'drive' ? 'Tautan Google Drive' :
+                            'Tautan Tugas (Bebas)'}
+                    </Label>
+                    <div className="relative">
+                      <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="link-input"
+                        type="url"
+                        required
+                        placeholder={
+                          assignmentData.submissionType === 'github' ? 'https://github.com/username/repo' :
+                            assignmentData.submissionType === 'figma' ? 'https://figma.com/file/...' :
+                              assignmentData.submissionType === 'drive' ? 'https://drive.google.com/...' :
+                                'https://...'
+                        }
+                        pattern={
+                          assignmentData.submissionType === 'github' ? '.*github\\.com.*' :
+                            assignmentData.submissionType === 'figma' ? '.*figma\\.com.*' :
+                              assignmentData.submissionType === 'drive' ? '.*drive\\.google\\.com.*' :
+                                undefined
+                        }
+                        className="pl-9 h-10 bg-secondary/50 focus:bg-background transition-colors text-sm"
+                        value={submissionLink}
+                        onChange={(e) => setSubmissionLink(e.target.value)}
+                        disabled={isSubmitting}
+                      />
+                    </div>
+                    {assignmentData.submissionType === 'github' && (
+                      <p className="text-[10px] text-muted-foreground">
+                        Pastikan repository Anda disetel ke <span className="font-semibold text-foreground">Public</span>.
                       </p>
                     )}
-                  </form>
-                )}
-              </div>
-            )}
-          </div>
-        </main>
+                  </div>
 
-        <Dialog open={isManualModalOpen} onOpenChange={setIsManualModalOpen}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Beri Nilai: {selectedSubmission?.student?.name}</DialogTitle>
-              <DialogDescription>
-                Anda dapat menyimpan penilaian ini secara final. Jika sebelumnya AI telah mengevaluasi, ini akan mengganti nilai draft tersebut.
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleManualGradeSubmit} className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Nilai Akhir (0-100)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  required
-                  value={manualScore}
-                  onChange={(e) => setManualScore(Number(e.target.value))}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Feedback untuk Mentee</Label>
-                <Textarea
-                  className="h-24"
-                  placeholder="Berikan umpan balik yang membangun..."
-                  value={manualFeedback}
-                  onChange={(e) => setManualFeedback(e.target.value)}
-                />
-              </div>
-              <Button type="submit" className="w-full bg-brand-purple hover:bg-brand-purple-hover text-white" disabled={isSubmittingManual}>
-                {isSubmittingManual ? "Menyimpan..." : "Simpan Penilaian"}
-              </Button>
-            </form>
-          </DialogContent>
+                  <Button
+                    type="submit"
+                    className="w-full bg-brand-purple hover:bg-brand-purple-hover text-white transition-all shadow-sm h-10 text-sm font-semibold"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                        Mengirim...
+                      </>
+                    ) : (
+                      "Kirim Tugas"
+                    )}
+                  </Button>
+
+                  {isPastDue && (
+                    <p className="text-[10px] text-amber-600 font-medium text-center mt-2 flex items-center justify-center gap-1.5">
+                      <AlertCircle className="w-3 h-3" />
+                      Terlambat: Poin maksimal akan dikurangi 2 dari nilai akhir.
+                    </p>
+                  )}
+                </form>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+
+      <Dialog open={isManualModalOpen} onOpenChange={setIsManualModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Beri Nilai: {selectedSubmission?.student?.name}</DialogTitle>
+            <DialogDescription>
+              Anda dapat menyimpan penilaian ini secara final. Jika sebelumnya AI telah mengevaluasi, ini akan mengganti nilai draft tersebut.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleManualGradeSubmit} className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nilai Akhir (0-100)</Label>
+              <Input
+                type="number"
+                min="0"
+                max="100"
+                required
+                value={manualScore}
+                onChange={(e) => setManualScore(Number(e.target.value))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Feedback untuk Mentee</Label>
+              <Textarea
+                className="h-24"
+                placeholder="Berikan umpan balik yang membangun..."
+                value={manualFeedback}
+                onChange={(e) => setManualFeedback(e.target.value)}
+              />
+            </div>
+            <Button type="submit" className="w-full bg-brand-purple hover:bg-brand-purple-hover text-white" disabled={isSubmittingManual}>
+              {isSubmittingManual ? "Menyimpan..." : "Simpan Penilaian"}
+            </Button>
+          </form>
+        </DialogContent>
       </Dialog>
     </div>
   );
