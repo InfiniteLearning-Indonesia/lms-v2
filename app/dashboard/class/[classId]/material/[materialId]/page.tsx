@@ -94,7 +94,7 @@ export default function MaterialDetailPage() {
               {materialData.createdAt ? new Date(materialData.createdAt).toLocaleDateString('id-ID') : "Baru saja"}
             </span>
           </div>
-          
+
           <h1 className="font-heading font-black text-3xl md:text-4xl text-foreground">
             {materialData.title}
           </h1>
@@ -103,10 +103,10 @@ export default function MaterialDetailPage() {
         {/* Content Viewer Placeholder */}
         <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden min-h-[400px] flex flex-col">
           {isCustom ? (
-            <div className="w-full bg-black/5 dark:bg-black/50 border-b border-border p-0 md:p-6 flex justify-center">
-              <div 
-                className="w-full max-w-5xl aspect-video md:rounded-xl overflow-hidden [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
-                dangerouslySetInnerHTML={{ __html: materialData.content }} 
+            <div className="w-full bg-black/5 dark:bg-black/50 border-b border-border p-4 flex justify-center">
+              <div
+                className="w-full max-w-5xl aspect-video rounded-xl [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0 [&_iframe]:rounded-lg [&>div]:!mt-0 [&>div]:!mb-0 [&>div]:!mx-auto"
+                dangerouslySetInnerHTML={{ __html: materialData.content }}
               />
             </div>
           ) : isVideo ? (
@@ -121,14 +121,14 @@ export default function MaterialDetailPage() {
               <p className="font-heading font-medium">PDF / Document Viewer Placeholder</p>
             </div>
           )}
-          
+
           <div className="p-6 md:p-8 space-y-4">
             <h3 className="font-heading font-bold text-lg border-b border-border pb-2">
               Deskripsi Materi
             </h3>
             <div className="font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line">
-              {isCustom 
-                ? materialData.url || "Tidak ada keterangan." 
+              {isCustom
+                ? materialData.url || "Tidak ada keterangan."
                 : materialData.content || materialData.url || "Tidak ada deskripsi tambahan untuk materi ini."}
             </div>
           </div>

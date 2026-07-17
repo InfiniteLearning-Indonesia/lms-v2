@@ -31,13 +31,17 @@ import {
   Sliders,
   X,
   Plus,
-  Settings,
+  FileSpreadsheet,
+  ChevronRight,
+  Pencil,
+  Trash2,
   User,
   Phone,
   School,
   GraduationCap,
   Upload,
   Save,
+  Settings
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -185,6 +189,46 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [isAddAssignmentModalOpen, setIsAddAssignmentModalOpen] = useState(false);
   const [materialType, setMaterialType] = useState("pdf");
 
+  const [weightUpdates, setWeightUpdates] = useState<Record<string, number>>({});
+  const [isSavingWeights, setIsSavingWeights] = useState(false);
+
+  const handleWeightChange = (assignmentId: string, val: string) => {
+    setWeightUpdates(prev => ({
+      ...prev,
+      [assignmentId]: parseFloat(val) || 0
+    }));
+  };
+
+  const handleSaveWeights = async () => {
+    const updates = Object.keys(weightUpdates).map(id => ({
+      id,
+      weight: weightUpdates[id]
+    }));
+    if (updates.length === 0) return;
+
+    setIsSavingWeights(true);
+    try {
+      const res = await fetch("http://localhost:7000/classes/assignments/weights", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ updates })
+      });
+      if (res.ok) {
+        alert("Bobot berhasil disimpan!");
+        setWeightUpdates({});
+        fetchMentorData();
+      } else {
+        alert("Gagal menyimpan bobot.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan.");
+    } finally {
+      setIsSavingWeights(false);
+    }
+  };
+
   const handleDistributeModulo = async (progName: string) => {
     setIsDistributing(true);
     setDistributeMessage(null);
@@ -209,12 +253,17 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   useEffect(() => {
     fetchMentorData();
-    fetchCompetencies();
   }, []);
 
-  const fetchCompetencies = async () => {
+  useEffect(() => {
+    if (classes.length > 0 && classes[0]?.program?.id) {
+      fetchCompetencies(classes[0].program.id);
+    }
+  }, [classes]);
+
+  const fetchCompetencies = async (programId: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/competencies`, {
+      const res = await fetch(`http://localhost:7000/classes/competencies?programId=${programId}`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -237,13 +286,78 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         body: JSON.stringify({
           name: formData.get("name"),
           category: formData.get("category"),
+          phase: formData.get("phase"),
           programId: classes[0]?.program?.id,
         }),
         credentials: "include",
       });
       if (res.ok) {
         setIsAddCompetencyModalOpen(false);
-        fetchCompetencies();
+        if (classes[0]?.program?.id) fetchCompetencies(classes[0].program.id);
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const [editingCompetency, setEditingCompetency] = useState<any>(null);
+  const [editingWeightCompetency, setEditingWeightCompetency] = useState<any>(null);
+
+  const calculateCompetencyScore = (studentId: string, compId: string) => {
+    let score = 0;
+    const compAssignments = classes.flatMap((cls: any) =>
+      (cls.assignments || []).filter((a: any) => a.competency === compId)
+    );
+
+    for (const assignment of compAssignments) {
+      const weight = weightUpdates[assignment.id] !== undefined ? weightUpdates[assignment.id] : (assignment.weight || 0.1);
+      const submission = (assignment.submissions || []).find((s: any) => s.studentId === studentId);
+      if (submission && submission.score) {
+        score += submission.score * weight;
+      }
+    }
+    return score;
+  };
+
+  const handleUpdateCompetency = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingCompetency) return;
+    const formData = new FormData(e.currentTarget);
+    try {
+      const res = await fetch(`http://localhost:7000/classes/competencies/${editingCompetency.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.get("name"),
+          category: formData.get("category"),
+          phase: formData.get("phase"),
+        }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        setEditingCompetency(null);
+        if (classes[0]?.program?.id) fetchCompetencies(classes[0].program.id);
+      } else {
+        const error = await res.json();
+        alert(`Error: ${error.message}`);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteCompetency = async (id: string) => {
+    if (!confirm("Yakin ingin menghapus kompetensi ini?")) return;
+    try {
+      const res = await fetch(`http://localhost:7000/classes/competencies/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        if (classes[0]?.program?.id) fetchCompetencies(classes[0].program.id);
       } else {
         const error = await res.json();
         alert(`Error: ${error.message}`);
@@ -493,23 +607,31 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
       {/* ── Main Tabs ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className={`bg-secondary/60 p-1.5 rounded-xl border border-border/60 grid w-full min-h-14 ${hasPastClasses ? "grid-cols-4" : "grid-cols-3"}`}>
-          <TabsTrigger value="classes" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
-            <BookOpen className="w-5 h-5 shrink-0" />
+        <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex flex-wrap min-h-14 w-full gap-1.5 justify-start md:justify-center">
+          <TabsTrigger value="classes" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <BookOpen className="w-4 h-4 shrink-0" />
             <span>Kelas & Silabus</span>
           </TabsTrigger>
           {hasPastClasses && (
-            <TabsTrigger value="past-batches" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
-              <GraduationCap className="w-5 h-5 shrink-0" />
+            <TabsTrigger value="past-batches" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+              <GraduationCap className="w-4 h-4 shrink-0" />
               <span>Batch Lama</span>
             </TabsTrigger>
           )}
-          <TabsTrigger value="students" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
-            <Users className="w-5 h-5 shrink-0" />
-            <span>Siswa Binaan ({allStudents.length})</span>
+          <TabsTrigger value="students" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <Users className="w-4 h-4 shrink-0" />
+            <span>Siswa ({allStudents.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
-            <Settings className="w-5 h-5 shrink-0" />
+          <TabsTrigger value="rubric" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <FileSpreadsheet className="w-4 h-4 shrink-0" />
+            <span>Rubrik Penilaian</span>
+          </TabsTrigger>
+          <TabsTrigger value="assessment" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <Pencil className="w-4 h-4 shrink-0" />
+            <span>Assessment</span>
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <Settings className="w-4 h-4 shrink-0" />
             <span>Pengaturan Akun</span>
           </TabsTrigger>
         </TabsList>
@@ -526,8 +648,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                 <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
                   {profile?.selectedProgram ? (
                     <>
-                      Spesialisasi Anda: <strong>{profile.specialization || "Belum Ditentukan"}</strong>.<br/>
-                      Program yang di-assign: <strong>{profile.selectedProgram}</strong>.<br/><br/>
+                      Spesialisasi Anda: <strong>{profile.specialization || "Belum Ditentukan"}</strong>.<br />
+                      Program yang di-assign: <strong>{profile.selectedProgram}</strong>.<br /><br />
                       Saat ini belum ada kelas ajar aktif untuk Anda di Batch berjalan. Hal ini bisa disebabkan karena:
                       <ul className="list-disc pl-5 mt-2 space-y-1">
                         <li>Belum ada Batch Cohort aktif yang didefinisikan/dijalankan oleh Administrator.</li>
@@ -554,8 +676,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                         key={cls.id}
                         onClick={() => setSelectedClassId(cls.id)}
                         className={`cursor-pointer rounded-xl border p-4 transition-all ${isSelected
-                            ? "bg-brand-purple/10 border-brand-purple shadow-sm"
-                            : "bg-card border-border hover:border-border/80 hover:bg-secondary/30"
+                          ? "bg-brand-purple/10 border-brand-purple shadow-sm"
+                          : "bg-card border-border hover:border-border/80 hover:bg-secondary/30"
                           }`}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -743,9 +865,13 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                                       <p className="text-[11px] text-muted-foreground">Batas Waktu: {ass.dueDate ? new Date(ass.dueDate).toLocaleDateString("id-ID") : "7 Hari"}</p>
                                     </div>
                                   </div>
-                                  <span className="text-xs font-medium text-emerald-600 bg-white dark:bg-card px-2.5 py-1 rounded border border-border shadow-2xs">
-                                    Periksa Nilai
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <Link href={`/dashboard/class/${selectedCls.id}/assignment/${ass.id}`}>
+                                      <span className="text-[11px] font-medium text-emerald-600 bg-white dark:bg-card hover:bg-emerald-50 px-2.5 py-1.5 rounded-md border border-border shadow-sm transition-colors cursor-pointer flex items-center gap-1.5">
+                                        Lihat Detail / Periksa Nilai <ChevronRight className="w-3 h-3" />
+                                      </span>
+                                    </Link>
+                                  </div>
                                 </div>
                               ))
                             ) : (
@@ -941,9 +1067,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                             key={idx}
                             type="button"
                             onClick={() => setMyAvatarUrl(url)}
-                            className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 hover:shadow-xs ${
-                              myAvatarUrl === url ? "border-brand-purple scale-105 shadow-sm" : "border-transparent"
-                            }`}
+                            className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 hover:shadow-xs ${myAvatarUrl === url ? "border-brand-purple scale-105 shadow-sm" : "border-transparent"
+                              }`}
                           >
                             <img src={url} alt={`Avatar default ${idx + 1}`} className="w-full h-full object-cover" />
                           </button>
@@ -1058,7 +1183,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                         </span>
                         <span className="text-brand-purple font-semibold hover:underline flex items-center gap-1">
                           Buka Arsip Kelas
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                         </span>
                       </CardContent>
                     </Card>
@@ -1068,6 +1193,184 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             </div>
           </TabsContent>
         )}
+
+        {/* ── TAB 3: RUBRIK PENILAIAN ── */}
+        <TabsContent value="rubric" className="space-y-6">
+          <Card className="border-border bg-card shadow-sm">
+            <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-heading font-bold text-foreground">
+                  Manajemen Rubrik Kompetensi
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-1">
+                  Atur patokan nilai dan kriteria evaluasi (rubrik) untuk masing-masing kompetensi secara global.
+                </CardDescription>
+              </div>
+              <Button
+                onClick={() => setIsAddCompetencyModalOpen(true)}
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Tambah Kompetensi
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      <th className="py-3 px-4">Nama Kompetensi</th>
+                      <th className="py-3 px-4">Kategori</th>
+                      <th className="py-3 px-4 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60 text-xs">
+                    {competencies.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="py-8 text-center text-muted-foreground">
+                          Belum ada kompetensi.
+                        </td>
+                      </tr>
+                    ) : (
+                      competencies.map((comp: any) => (
+                        <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
+                          <td className="py-3.5 px-4 font-semibold text-foreground">
+                            {comp.name}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
+                              {comp.category}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <Link href={`/dashboard/competency/${comp.id}/rubric`}>
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer">
+                                  <FileSpreadsheet className="w-3.5 h-3.5" /> Atur Rubrik
+                                </span>
+                              </Link>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={() => setEditingCompetency(comp)}
+                              >
+                                <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50"
+                                onClick={() => handleDeleteCompetency(comp.id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        {/* ── TAB 4: ASSESSMENT (GRADEBOOK) ── */}
+        <TabsContent value="assessment" className="space-y-6">
+          <Card className="border-border bg-card shadow-sm">
+            <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-heading font-bold text-foreground">
+                  Assessment (Gradebook)
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-1">
+                  Pantau nilai akhir mentee berdasarkan pencapaian kompetensi. Klik nama kompetensi untuk mengatur bobot tugas.
+                </CardDescription>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <Tabs defaultValue="Micro" className="w-full">
+                <TabsList className="grid w-full max-w-sm grid-cols-2 mb-6">
+                  <TabsTrigger value="Micro">Phase Micro</TabsTrigger>
+                  <TabsTrigger value="Massive">Phase Massive</TabsTrigger>
+                </TabsList>
+
+                {["Micro", "Massive"].map((phase) => {
+                  const microComps = competencies.filter(c => c.phase === "Micro" || (!c.phase && "Micro" === "Micro"));
+                  const massiveComps = competencies.filter(c => c.phase === "Massive");
+                  const displayComps = phase === "Micro" ? microComps : massiveComps;
+
+                  return (
+                    <TabsContent key={phase} value={phase} className="space-y-6">
+                      <div className="overflow-x-auto border border-border rounded-xl">
+                        <table className="w-full text-sm text-left whitespace-nowrap">
+                          <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            <tr>
+                              <th className="px-4 py-3 sticky left-0 z-10 bg-muted/95 backdrop-blur shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">Mentee</th>
+                              {phase === "Massive" && (
+                                <th className="px-4 py-3 bg-brand-purple/10 text-brand-purple border-x border-border text-center">Akumulasi Micro</th>
+                              )}
+                              {displayComps.map(comp => (
+                                <th
+                                  key={comp.id}
+                                  className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
+                                  onClick={() => setEditingWeightCompetency(comp)}
+                                  title="Klik untuk mengatur bobot tugas di kompetensi ini"
+                                >
+                                  {comp.name}
+                                  <Pencil className="w-3 h-3 inline-block ml-1 opacity-50" />
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border">
+                            {allStudents.length === 0 ? (
+                              <tr>
+                                <td colSpan={displayComps.length + (phase === "Massive" ? 2 : 1)} className="px-4 py-8 text-center text-muted-foreground">
+                                  Belum ada mentee yang terdaftar.
+                                </td>
+                              </tr>
+                            ) : (
+                              allStudents.map((student) => {
+                                const microTotal = microComps.reduce((acc, comp) => acc + calculateCompetencyScore(student.id, comp.id), 0);
+                                return (
+                                  <tr key={student.id} className="hover:bg-muted/30 transition-colors">
+                                    <td className="px-4 py-3 sticky left-0 z-10 bg-card shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
+                                      <div className="font-semibold text-foreground text-xs">{student.name}</div>
+                                      <div className="text-[10px] text-muted-foreground">{student.email}</div>
+                                    </td>
+
+                                    {phase === "Massive" && (
+                                      <td className="px-4 py-3 text-center border-x border-border font-bold text-brand-purple bg-brand-purple/5">
+                                        {microTotal.toFixed(1)}
+                                      </td>
+                                    )}
+
+                                    {displayComps.map(comp => {
+                                      const score = calculateCompetencyScore(student.id, comp.id);
+                                      return (
+                                        <td key={comp.id} className="px-4 py-3 text-center border-l border-border text-xs font-medium">
+                                          {score > 0 ? score.toFixed(1) : "-"}
+                                        </td>
+                                      );
+                                    })}
+                                  </tr>
+                                );
+                              })
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </TabsContent>
+                  );
+                })}
+              </Tabs>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
       {/* Add Competency Modal */}
       {isAddCompetencyModalOpen && (
@@ -1087,9 +1390,50 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                   <option value="Capstone Project">Capstone Project</option>
                 </select>
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Fase</label>
+                <select name="phase" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="Micro">Micro</option>
+                  <option value="Massive">Massive</option>
+                </select>
+              </div>
               <div className="flex justify-end gap-2 mt-4">
                 <Button type="button" variant="outline" onClick={() => setIsAddCompetencyModalOpen(false)}>Batal</Button>
                 <Button type="submit">Simpan</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Competency Modal */}
+      {editingCompetency && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
+            <h3 className="font-heading font-bold text-lg mb-4">Edit Kompetensi</h3>
+            <form onSubmit={handleUpdateCompetency} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Nama Kompetensi</label>
+                <Input name="name" required defaultValue={editingCompetency.name} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Kategori</label>
+                <select name="category" required defaultValue={editingCompetency.category} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="Technical Skill">Technical Skill</option>
+                  <option value="Soft Skills (CCA)">Soft Skills (CCA)</option>
+                  <option value="Capstone Project">Capstone Project</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Fase</label>
+                <select name="phase" required defaultValue={editingCompetency.phase || 'Micro'} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="Micro">Micro</option>
+                  <option value="Massive">Massive</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setEditingCompetency(null)}>Batal</Button>
+                <Button type="submit">Simpan Perubahan</Button>
               </div>
             </form>
           </div>
@@ -1209,6 +1553,85 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           </div>
         </div>
       )}
+
+      {/* Edit Weight Modal */}
+      {editingWeightCompetency && (() => {
+        const compAssignments = classes.flatMap((cls: any) => (cls.assignments || []).filter((a: any) => a.competency === editingWeightCompetency.id));
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[600px] max-w-[90vw]">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="font-heading font-bold text-lg">Pengaturan Bobot: {editingWeightCompetency.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Atur bobot tugas untuk kompetensi ini.</p>
+                </div>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => setEditingWeightCompetency(null)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto mb-6 pr-2">
+                {compAssignments.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-muted-foreground bg-muted/20 rounded-lg">Tidak ada tugas di bawah kompetensi ini.</div>
+                ) : (
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <tr>
+                        <th className="px-4 py-2 font-medium">Judul Tugas</th>
+                        <th className="px-4 py-2 font-medium">Kelas</th>
+                        <th className="px-4 py-2 font-medium text-right w-48">Bobot (%)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {compAssignments.map((assignment: any) => {
+                        const currentVal = weightUpdates[assignment.id] !== undefined ? weightUpdates[assignment.id] : assignment.weight || 0.1;
+                        const cls = classes.find((c: any) => c.id === assignment.classId);
+                        return (
+                          <tr key={assignment.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="px-4 py-3">
+                              <span className="font-semibold text-foreground text-xs">{assignment.title}</span>
+                              <div className="text-[10px] text-muted-foreground mt-0.5 max-w-[200px] truncate">{assignment.description}</div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-[10px] text-muted-foreground">{cls?.name}</span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  max="1"
+                                  className="w-16 text-right h-7 text-xs font-medium border-border focus-visible:border-brand-purple"
+                                  value={currentVal}
+                                  onChange={(e) => handleWeightChange(assignment.id, e.target.value)}
+                                />
+                                <span className="text-muted-foreground text-[10px] font-medium w-8 text-left">
+                                  ({(currentVal * 100).toFixed(0)}%)
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+              <div className="flex justify-end gap-2 pt-4 border-t border-border">
+                <Button type="button" variant="outline" onClick={() => setEditingWeightCompetency(null)}>Tutup</Button>
+                <Button
+                  onClick={() => { handleSaveWeights(); setEditingWeightCompetency(null); }}
+                  disabled={isSavingWeights || Object.keys(weightUpdates).length === 0}
+                  className="bg-brand-purple hover:bg-brand-purple-hover text-white"
+                >
+                  {isSavingWeights ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Simpan Perubahan Bobot
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
