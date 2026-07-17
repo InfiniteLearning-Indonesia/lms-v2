@@ -607,31 +607,31 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
       {/* ── Main Tabs ── */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className={`bg-secondary/60 p-1.5 rounded-xl border border-border/60 grid w-full min-h-14 ${hasPastClasses ? "grid-cols-4" : "grid-cols-3"}`}>
-          <TabsTrigger value="classes" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
-            <BookOpen className="w-5 h-5 shrink-0" />
+        <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex flex-wrap min-h-14 w-full gap-1.5 justify-start md:justify-center">
+          <TabsTrigger value="classes" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <BookOpen className="w-4 h-4 shrink-0" />
             <span>Kelas & Silabus</span>
           </TabsTrigger>
           {hasPastClasses && (
-            <TabsTrigger value="past-batches" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
-              <GraduationCap className="w-5 h-5 shrink-0" />
+            <TabsTrigger value="past-batches" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+              <GraduationCap className="w-4 h-4 shrink-0" />
               <span>Batch Lama</span>
             </TabsTrigger>
           )}
-          <TabsTrigger value="students" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
-            <Users className="w-5 h-5 shrink-0" />
-            <span>Siswa Binaan ({allStudents.length})</span>
+          <TabsTrigger value="students" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <Users className="w-4 h-4 shrink-0" />
+            <span>Siswa ({allStudents.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="rubric" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4" />
+          <TabsTrigger value="rubric" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <FileSpreadsheet className="w-4 h-4 shrink-0" />
             <span>Rubrik Penilaian</span>
           </TabsTrigger>
-          <TabsTrigger value="assessment" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center gap-2">
-            <Pencil className="w-4 h-4" />
+          <TabsTrigger value="assessment" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <Pencil className="w-4 h-4 shrink-0" />
             <span>Assessment</span>
           </TabsTrigger>
-          <TabsTrigger value="settings" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
-            <Settings className="w-5 h-5 shrink-0" />
+          <TabsTrigger value="settings" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <Settings className="w-4 h-4 shrink-0" />
             <span>Pengaturan Akun</span>
           </TabsTrigger>
         </TabsList>
