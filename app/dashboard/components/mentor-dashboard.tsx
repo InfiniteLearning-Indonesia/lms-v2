@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { MentorLogbook } from "./mentor-logbook";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -41,7 +43,8 @@ import {
   GraduationCap,
   Upload,
   Save,
-  Settings
+  Settings,
+  Notebook
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -50,6 +53,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 interface MentorDashboardProps {
   profile?: {
@@ -75,16 +87,50 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
-  // Listen to tab query parameter
+  // Suspend Dialog States
+  const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
+  const [selectedStudentForSuspend, setSelectedStudentForSuspend] = useState<any | null>(null);
+  const [isSuspending, setIsSuspending] = useState(false);
+  const [suspendError, setSuspendError] = useState<string | null>(null);
+  const [suspendActionType, setSuspendActionType] = useState<"suspend" | "unsuspend">("suspend");
+  const [countdown, setCountdown] = useState(5);
+
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const tab = params.get("tab");
-      if (tab === "settings") {
-        setActiveTab("settings");
-      }
+    let timer: NodeJS.Timeout;
+    if (isSuspendDialogOpen && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
     }
-  }, []);
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isSuspendDialogOpen, countdown]);
+
+  const searchParams = useSearchParams();
+
+  // Listen to tab query parameter dynamically
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "settings") {
+      setActiveTab("settings");
+    } else if (!tab && activeTab === "settings") {
+      setActiveTab("classes");
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (val: string) => {
+    setActiveTab(val);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (val === "settings") {
+        url.searchParams.set("tab", "settings");
+      } else {
+        url.searchParams.delete("tab");
+      }
+      window.history.pushState({}, "", url.toString());
+    }
+  };
 
   // Profile Form States
   const [myName, setMyName] = useState(profile?.name || "");
@@ -126,8 +172,13 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setProfileSaveError("Ukuran file foto maksimal 2MB.");
+    if (!file.type.startsWith("image/")) {
+      setProfileSaveError("Format file tidak didukung. Harap pilih gambar (PNG, JPG, JPEG, WEBP, dll).");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setProfileSaveError("Ukuran file foto maksimal 5MB.");
       return;
     }
 
@@ -448,8 +499,41 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   };
 
-  const activeClasses = classes.filter((cls) => cls.batch?.status === "active");
-  const pastClasses = classes.filter((cls) => cls.batch?.status === "completed");
+  const handleSuspendStudent = async () => {
+    if (!selectedStudentForSuspend) return;
+    setIsSuspending(true);
+    setSuspendError(null);
+    const endpoint = suspendActionType === "suspend" ? "suspend" : "unsuspend";
+    try {
+      const res = await fetch(`http://localhost:7000/users/${selectedStudentForSuspend.id}/${endpoint}`, {
+        method: "PATCH",
+        credentials: "include",
+      });
+      if (res.ok) {
+        setIsSuspendDialogOpen(false);
+        setSelectedStudentForSuspend(null);
+        fetchMentorData();
+      } else {
+        const errData = await res.json();
+        setSuspendError(errData.message || `Gagal ${suspendActionType === "suspend" ? "menangguhkan" : "mengaktifkan"} siswa.`);
+      }
+    } catch (err) {
+      console.error(err);
+      setSuspendError("Terjadi kesalahan jaringan.");
+    } finally {
+      setIsSuspending(false);
+    }
+  };
+
+  // Find the most recent active batch
+  const activeBatches = classes
+    .map(c => c.batch)
+    .filter(b => b?.status === "active")
+    .sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
+
+  const currentBatch = activeBatches[0];
+  const activeClasses = classes.filter((cls) => cls.batchId === currentBatch?.id);
+  const pastClasses = classes.filter((cls) => cls.batchId !== currentBatch?.id);
   const hasPastClasses = pastClasses.length > 0;
 
   // Calculate stats
@@ -606,21 +690,20 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       )}
 
       {/* ── Main Tabs ── */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex flex-wrap min-h-14 w-full gap-1.5 justify-start md:justify-center">
           <TabsTrigger value="classes" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
             <BookOpen className="w-4 h-4 shrink-0" />
             <span>Kelas & Silabus</span>
           </TabsTrigger>
-          {hasPastClasses && (
-            <TabsTrigger value="past-batches" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
-              <GraduationCap className="w-4 h-4 shrink-0" />
-              <span>Batch Lama</span>
-            </TabsTrigger>
-          )}
+
           <TabsTrigger value="students" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
             <Users className="w-4 h-4 shrink-0" />
             <span>Siswa ({allStudents.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="logbook" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <Notebook className="w-4 h-4 shrink-0" />
+            <span>Logbook Student</span>
           </TabsTrigger>
           <TabsTrigger value="rubric" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
             <FileSpreadsheet className="w-4 h-4 shrink-0" />
@@ -630,6 +713,12 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             <Pencil className="w-4 h-4 shrink-0" />
             <span>Assessment</span>
           </TabsTrigger>
+          {hasPastClasses && (
+            <TabsTrigger value="past-batches" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+              <GraduationCap className="w-4 h-4 shrink-0" />
+              <span>Batch Lama</span>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="settings" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
             <Settings className="w-4 h-4 shrink-0" />
             <span>Pengaturan Akun</span>
@@ -697,6 +786,12 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                         <h3 className="font-heading font-bold text-base mt-2 text-foreground">
                           {cls.program?.name || "Program Studi"}
                         </h3>
+                        {cls.batch?.startDate && cls.batch?.endDate && (
+                          <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted-foreground bg-secondary/50 w-fit px-2 py-1 rounded-md border border-border">
+                            <Calendar className="w-3 h-3" />
+                            <span className="font-semibold">{new Date(cls.batch.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} - {new Date(cls.batch.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
+                          </div>
+                        )}
                         <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
                           <span className="flex items-center gap-1">
                             <Users className="w-3.5 h-3.5" />
@@ -728,6 +823,12 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                             </CardTitle>
                             <CardDescription className="text-xs text-muted-foreground mt-1">
                               {selectedCls.batch?.name} • Dikelola oleh Tim Mentor
+                              {selectedCls.batch?.startDate && selectedCls.batch?.endDate && (
+                                <span className="block mt-1 font-medium text-brand-purple flex items-center gap-1">
+                                  <Calendar className="w-3.5 h-3.5" />
+                                  Durasi: {new Date(selectedCls.batch.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} - {new Date(selectedCls.batch.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                                </span>
+                              )}
                             </CardDescription>
                           </div>
                           <Badge className="bg-brand-purple text-white hover:bg-brand-purple-hover self-start sm:self-center">
@@ -957,17 +1058,28 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                               </span>
                             </td>
                             <td className="py-3.5 px-4 text-center">
-                              {isGmail ? (
-                                <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200 gap-1 text-[10px]">
-                                  <UserCheck className="w-3 h-3" />
-                                  Gmail Aktif
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-300 gap-1 text-[10px]">
-                                  <AlertCircle className="w-3 h-3" />
-                                  Non-Gmail
-                                </Badge>
-                              )}
+                              <div className="flex flex-wrap items-center justify-center gap-1">
+                                {student.status === "suspended" ? (
+                                  <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-200 gap-1 text-[10px]">
+                                    <AlertCircle className="w-3 h-3" />
+                                    Suspended
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200 gap-1 text-[10px]">
+                                    <UserCheck className="w-3 h-3" />
+                                    Aktif
+                                  </Badge>
+                                )}
+                                {isGmail ? (
+                                  <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-200 text-[10px] leading-none py-0.5">
+                                    Gmail
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-300 text-[10px] leading-none py-0.5">
+                                    Non-Gmail
+                                  </Badge>
+                                )}
+                              </div>
                             </td>
                             <td className="py-3.5 px-4 text-right">
                               <div className="flex items-center justify-end gap-2">
@@ -983,12 +1095,33 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                                   </a>
                                 )}
                                 {!isReadOnly && (
-                                  <button
-                                    onClick={() => alert("Sesuai aturan keselamatan (Safety Rule): Penghapusan permanen dilarang. Fitur ini akan menonaktifkan sementara (Suspend) akses murid.")}
-                                    className="px-2 py-1 rounded border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-amber-600 text-[11px] font-medium transition-colors"
-                                  >
-                                    Suspend / Handover
-                                  </button>
+                                  student.status === "suspended" ? (
+                                    <button
+                                      onClick={() => {
+                                        setSelectedStudentForSuspend(student);
+                                        setSuspendError(null);
+                                        setSuspendActionType("unsuspend");
+                                        setCountdown(5);
+                                        setIsSuspendDialogOpen(true);
+                                      }}
+                                      className="px-2 py-1 rounded border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-emerald-600 text-[11px] font-medium transition-colors"
+                                    >
+                                      Aktifkan Kembali
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => {
+                                        setSelectedStudentForSuspend(student);
+                                        setSuspendError(null);
+                                        setSuspendActionType("suspend");
+                                        setCountdown(5);
+                                        setIsSuspendDialogOpen(true);
+                                      }}
+                                      className="px-2 py-1 rounded border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-amber-600 text-[11px] font-medium transition-colors"
+                                    >
+                                      Suspend
+                                    </button>
+                                  )
                                 )}
                               </div>
                             </td>
@@ -1055,7 +1188,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                         onChange={handleProfileFileChange}
                         className="block w-full text-xs text-muted-foreground file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-purple/10 file:text-brand-purple hover:file:bg-brand-purple/20 cursor-pointer"
                       />
-                      <p className="text-[10px] text-muted-foreground mt-1">Mendukung format PNG, JPG, JPEG. Maksimal 2MB.</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">Mendukung format PNG, JPG, JPEG, WEBP, dll. Maksimal 5MB.</p>
                     </div>
 
                     {/* Choose from Default Avatars */}
@@ -1371,6 +1504,19 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* ── TAB LOGBOOK ── */}
+        <TabsContent value="logbook" className="space-y-6 outline-hidden">
+          {activeClasses.length > 0 ? (
+            <MentorLogbook batchId={activeClasses[0].batchId} />
+          ) : (
+            <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600">
+              <AlertCircle className="w-5 h-5" />
+              <AlertTitle>Tidak dapat mengakses logbook</AlertTitle>
+              <AlertDescription>Anda belum terdaftar di kelas/angkatan aktif mana pun pada batch saat ini.</AlertDescription>
+            </Alert>
+          )}
+        </TabsContent>
       </Tabs>
       {/* Add Competency Modal */}
       {isAddCompetencyModalOpen && (
@@ -1632,6 +1778,258 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           </div>
         );
       })()}
+
+      <Dialog open={isSuspendDialogOpen} onOpenChange={setIsSuspendDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-card border border-border">
+          <DialogHeader>
+            <DialogTitle className={`flex items-center gap-2 font-heading font-bold text-base ${suspendActionType === "suspend" ? "text-amber-600" : "text-emerald-600"}`}>
+              <ShieldAlert className="w-5 h-5" />
+              {suspendActionType === "suspend" ? "Tangguhkan Akses Murid" : "Aktifkan Kembali Akses Murid"}
+            </DialogTitle>
+            <DialogDescription className="text-xs pt-1.5 leading-relaxed text-muted-foreground font-sans">
+              {suspendActionType === "suspend"
+                ? "Apakah Anda yakin ingin menangguhkan sementara (Suspend) akses masuk murid ini ke LMS?"
+                : "Apakah Anda yakin ingin memulihkan/mengaktifkan kembali akses masuk murid ini ke LMS?"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedStudentForSuspend && (
+            <div className="bg-secondary/40 border border-border rounded-lg p-3.5 space-y-1.5 text-xs font-sans">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Nama Murid:</span>
+                <span className="font-semibold text-foreground">{selectedStudentForSuspend.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Email:</span>
+                <span className="font-mono text-muted-foreground">{selectedStudentForSuspend.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Program Studi:</span>
+                <span className="font-medium text-brand-purple">{selectedStudentForSuspend.selectedProgram || "Web Development"}</span>
+              </div>
+            </div>
+          )}
+
+          {suspendError && (
+            <Alert variant="destructive" className="py-2.5 px-3">
+              <AlertCircle className="w-4 h-4" />
+              <AlertDescription className="text-2xs font-medium">{suspendError}</AlertDescription>
+            </Alert>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0 font-sans border-t border-border/40 pt-3">
+            <DialogClose render={<Button variant="outline" size="sm" className="text-xs font-semibold">Batal</Button>} />
+            <Button
+              variant={suspendActionType === "suspend" ? "destructive" : "default"}
+              size="sm"
+              disabled={isSuspending || countdown > 0}
+              onClick={handleSuspendStudent}
+              className={`text-xs font-semibold gap-1.5 ${suspendActionType === "unsuspend" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"}`}
+            >
+              {isSuspending ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Memproses...
+                </>
+              ) : (
+                `${suspendActionType === "suspend" ? "Ya, Suspend Akses" : "Ya, Aktifkan Akses"}${countdown > 0 ? ` (${countdown}s)` : ""}`
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Assignment Modal */}
+      {isAddAssignmentModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
+            <h3 className="font-heading font-bold text-lg mb-4">Tambah Tugas Baru</h3>
+            <form onSubmit={handleCreateAssignment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Judul Tugas</label>
+                <Input name="title" required placeholder="Contoh: Proyek Akhir React" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 flex items-center justify-between">
+                  Kompetensi Terkait
+                  <button type="button" onClick={() => { setIsAddAssignmentModalOpen(false); setIsAddCompetencyModalOpen(true); }} className="text-xs text-brand-purple hover:underline">+ Buat Baru</button>
+                </label>
+                <select name="competency" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="">Pilih Kompetensi...</option>
+                  {competencies.map((c) => (
+                    <option key={c.id} value={c.name}>{c.name} ({c.category})</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 flex items-center justify-between">
+                  Tipe Pengumpulan
+                  <span className="text-[10px] text-muted-foreground font-normal bg-secondary px-2 py-0.5 rounded-full">Format Wajib</span>
+                </label>
+                <select name="submissionType" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="github">Link GitHub (Tugas Kode & Automasi)</option>
+                  <option value="figma">Link Figma (Tugas UI/UX)</option>
+                  <option value="drive">Link Google Drive (Gambar/Lainnya)</option>
+                  <option value="any">Link Bebas</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Deskripsi & Instruksi</label>
+                <textarea name="description" required className="w-full p-3 rounded-md border border-input bg-background text-sm" rows={4} placeholder="Jelaskan detail instruksi tugas..."></textarea>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Tenggat Waktu (Due Date)</label>
+                <Input name="dueDate" type="datetime-local" required />
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setIsAddAssignmentModalOpen(false)}>Batal</Button>
+                <Button type="submit">Simpan</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Weight Modal */}
+      {editingWeightCompetency && (() => {
+        const compAssignments = classes.flatMap((cls: any) => (cls.assignments || []).filter((a: any) => a.competency === editingWeightCompetency.id));
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[600px] max-w-[90vw]">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="font-heading font-bold text-lg">Pengaturan Bobot: {editingWeightCompetency.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Atur bobot tugas untuk kompetensi ini.</p>
+                </div>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => setEditingWeightCompetency(null)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto mb-6 pr-2">
+                {compAssignments.length === 0 ? (
+                  <div className="p-4 text-center text-xs text-muted-foreground bg-muted/20 rounded-lg">Tidak ada tugas di bawah kompetensi ini.</div>
+                ) : (
+                  <table className="w-full text-sm text-left">
+                    <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                      <tr>
+                        <th className="px-4 py-2 font-medium">Judul Tugas</th>
+                        <th className="px-4 py-2 font-medium">Kelas</th>
+                        <th className="px-4 py-2 font-medium text-right w-48">Bobot (%)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {compAssignments.map((assignment: any) => {
+                        const currentVal = weightUpdates[assignment.id] !== undefined ? weightUpdates[assignment.id] : assignment.weight || 0.1;
+                        const cls = classes.find((c: any) => c.id === assignment.classId);
+                        return (
+                          <tr key={assignment.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="px-4 py-3">
+                              <span className="font-semibold text-foreground text-xs">{assignment.title}</span>
+                              <div className="text-[10px] text-muted-foreground mt-0.5 max-w-[200px] truncate">{assignment.description}</div>
+                            </td>
+                            <td className="px-4 py-3">
+                              <span className="text-[10px] text-muted-foreground">{cls?.name}</span>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  min="0"
+                                  max="1"
+                                  className="w-16 text-right h-7 text-xs font-medium border-border focus-visible:border-brand-purple"
+                                  value={currentVal}
+                                  onChange={(e) => handleWeightChange(assignment.id, e.target.value)}
+                                />
+                                <span className="text-muted-foreground text-[10px] font-medium w-8 text-left">
+                                  ({(currentVal * 100).toFixed(0)}%)
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+              <div className="flex justify-end gap-2 pt-4 border-t border-border">
+                <Button type="button" variant="outline" onClick={() => setEditingWeightCompetency(null)}>Tutup</Button>
+                <Button
+                  onClick={() => { handleSaveWeights(); setEditingWeightCompetency(null); }}
+                  disabled={isSavingWeights || Object.keys(weightUpdates).length === 0}
+                  className="bg-brand-purple hover:bg-brand-purple-hover text-white"
+                >
+                  {isSavingWeights ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Simpan Perubahan Bobot
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      <Dialog open={isSuspendDialogOpen} onOpenChange={setIsSuspendDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-card border border-border">
+          <DialogHeader>
+            <DialogTitle className={`flex items-center gap-2 font-heading font-bold text-base ${suspendActionType === "suspend" ? "text-amber-600" : "text-emerald-600"}`}>
+              <ShieldAlert className="w-5 h-5" />
+              {suspendActionType === "suspend" ? "Tangguhkan Akses Murid" : "Aktifkan Kembali Akses Murid"}
+            </DialogTitle>
+            <DialogDescription className="text-xs pt-1.5 leading-relaxed text-muted-foreground font-sans">
+              {suspendActionType === "suspend"
+                ? "Apakah Anda yakin ingin menangguhkan sementara (Suspend) akses masuk murid ini ke LMS?"
+                : "Apakah Anda yakin ingin memulihkan/mengaktifkan kembali akses masuk murid ini ke LMS?"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedStudentForSuspend && (
+            <div className="bg-secondary/40 border border-border rounded-lg p-3.5 space-y-1.5 text-xs font-sans">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Nama Murid:</span>
+                <span className="font-semibold text-foreground">{selectedStudentForSuspend.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Email:</span>
+                <span className="font-mono text-muted-foreground">{selectedStudentForSuspend.email}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Program Studi:</span>
+                <span className="font-medium text-brand-purple">{selectedStudentForSuspend.selectedProgram || "Web Development"}</span>
+              </div>
+            </div>
+          )}
+
+          {suspendError && (
+            <Alert variant="destructive" className="py-2.5 px-3">
+              <AlertCircle className="w-4 h-4" />
+              <AlertDescription className="text-2xs font-medium">{suspendError}</AlertDescription>
+            </Alert>
+          )}
+
+          <DialogFooter className="gap-2 sm:gap-0 font-sans border-t border-border/40 pt-3">
+            <DialogClose render={<Button variant="outline" size="sm" className="text-xs font-semibold">Batal</Button>} />
+            <Button
+              variant={suspendActionType === "suspend" ? "destructive" : "default"}
+              size="sm"
+              disabled={isSuspending || countdown > 0}
+              onClick={handleSuspendStudent}
+              className={`text-xs font-semibold gap-1.5 ${suspendActionType === "unsuspend" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"}`}
+            >
+              {isSuspending ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Memproses...
+                </>
+              ) : (
+                `${suspendActionType === "suspend" ? "Ya, Suspend Akses" : "Ya, Aktifkan Akses"}${countdown > 0 ? ` (${countdown}s)` : ""}`
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+
     </div>
   );
 }

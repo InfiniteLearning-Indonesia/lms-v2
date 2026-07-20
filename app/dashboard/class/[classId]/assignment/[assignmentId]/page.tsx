@@ -63,17 +63,32 @@ export default function AssignmentDetailPage() {
         headers: { Accept: "application/json" },
         credentials: "include",
       }).then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          throw new Error("Unauthorized");
+        }
         if (!res.ok) throw new Error("Gagal mengambil data tugas");
         return res.json();
       }),
       fetch("http://localhost:7000/auth/me", {
         headers: { Accept: "application/json" },
         credentials: "include",
-      }).then((res) => res.ok ? res.json() : null),
+      }).then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          throw new Error("Unauthorized");
+        }
+        if (!res.ok) throw new Error("Gagal mengambil data profil");
+        return res.json();
+      }),
       fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}/submissions/me`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       }).then(async (res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          throw new Error("Unauthorized");
+        }
         if (!res.ok) return null;
         const text = await res.text();
         return text ? JSON.parse(text) : null;
@@ -92,7 +107,7 @@ export default function AssignmentDetailPage() {
         console.error(err);
         setIsLoading(false);
       });
-  }, [classId, assignmentId]);
+  }, [classId, assignmentId, router]);
 
   const fetchMentorSubmissions = async () => {
     try {

@@ -41,8 +41,11 @@ export default function ClassDetailPage() {
         throw new Error("Unauthorized");
       })
       .then((data) => setProfile(data))
-      .catch((err) => console.error("Gagal memuat profil:", err));
-  }, []);
+      .catch((err) => {
+        console.error("Gagal memuat profil:", err);
+        router.push("/login");
+      });
+  }, [router]);
 
   const handleLogout = async () => {
     try {
@@ -64,6 +67,10 @@ export default function ClassDetailPage() {
       credentials: "include",
     })
       .then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          throw new Error("Unauthorized");
+        }
         if (!res.ok) throw new Error("Gagal mengambil data kelas");
         return res.json();
       })
@@ -75,7 +82,7 @@ export default function ClassDetailPage() {
         console.error(err);
         setIsLoading(false);
       });
-  }, [classId]);
+  }, [classId, router]);
 
   if (isLoading || !classData) {
     return (
