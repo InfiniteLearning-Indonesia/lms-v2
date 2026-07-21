@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AdminAttendance } from "./admin-attendance";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -1268,6 +1269,10 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
             <Calendar className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Angkatan / Batch</span>
           </TabsTrigger>
+          <TabsTrigger value="attendance" className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md">
+            <Calendar className="w-5 h-5 text-brand-purple shrink-0" />
+            <span>Absensi</span>
+          </TabsTrigger>
           <TabsTrigger value="settings" className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md">
             <Settings className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Pengaturan</span>
@@ -2417,6 +2422,10 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
         </TabsContent>
 
+        {/* ──────── TAB ABSENSI ──────── */}
+        <TabsContent value="attendance" className="space-y-6 outline-hidden">
+          <AdminAttendance batches={batchesList} />
+        </TabsContent>
 
         {/* ──────── TAB 4: PENGATURAN ──────── */}
         <TabsContent value="settings" className="space-y-6 outline-hidden">

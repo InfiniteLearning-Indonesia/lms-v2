@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { MentorLogbook } from "./mentor-logbook";
+import { MentorAttendance } from "./mentor-attendance";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -44,7 +45,8 @@ import {
   Upload,
   Save,
   Settings,
-  Notebook
+  Notebook,
+  CalendarDays
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -705,6 +707,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             <Notebook className="w-4 h-4 shrink-0" />
             <span>Logbook Student</span>
           </TabsTrigger>
+          <TabsTrigger value="attendance" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <CalendarDays className="w-4 h-4 shrink-0" />
+            <span>Absensi</span>
+          </TabsTrigger>
           <TabsTrigger value="rubric" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
             <FileSpreadsheet className="w-4 h-4 shrink-0" />
             <span>Rubrik Penilaian</span>
@@ -1134,6 +1140,14 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* ── TAB ABSENSI ── */}
+        <TabsContent value="attendance" className="space-y-6">
+          <MentorAttendance 
+            batchId={selectedClassId ? classes.find(c => c.id === selectedClassId)?.batchId : ""} 
+            mentorId={profile?.id || ""} 
+          />
         </TabsContent>
 
         {/* ── TAB 3: PENGATURAN AKUN ── */}
