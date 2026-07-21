@@ -184,7 +184,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [isDistributing, setIsDistributing] = useState(false);
 
   const [competencies, setCompetencies] = useState<any[]>([]);
+  const [rubrikAssessments, setRubrikAssessments] = useState<any[]>([]);
   const [isAddCompetencyModalOpen, setIsAddCompetencyModalOpen] = useState(false);
+  const [isAddRubrikAssessmentModalOpen, setIsAddRubrikAssessmentModalOpen] = useState(false);
   const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
   const [isAddAssignmentModalOpen, setIsAddAssignmentModalOpen] = useState(false);
   const [materialType, setMaterialType] = useState("pdf");
@@ -223,9 +225,73 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan.");
+      alert("Terjadi kesalahan sistem.");
     } finally {
       setIsSavingWeights(false);
+    }
+  };
+
+  const handleCreateRubrikAssessment = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    try {
+      const res = await fetch("http://localhost:7000/classes/rubrik-assessments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.get("name"),
+          phase: formData.get("phase"),
+          programId: classes[0].program.id,
+          competencies: [] // Default empty, we will set this in weight modal
+        }),
+        credentials: "include"
+      });
+      if (res.ok) {
+        setIsAddRubrikAssessmentModalOpen(false);
+        fetchRubrikAssessments(classes[0].program.id);
+      } else {
+        alert("Gagal menambahkan Rubrik Assessment");
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleUpdateRubrikAssessment = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    try {
+      const res = await fetch(`http://localhost:7000/classes/rubrik-assessments/${editingRubrikAssessment.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.get("name"),
+          phase: formData.get("phase"),
+        }),
+        credentials: "include"
+      });
+      if (res.ok) {
+        setEditingRubrikAssessment(null);
+        fetchRubrikAssessments(classes[0].program.id);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDeleteRubrikAssessment = async (id: string) => {
+    if (!confirm("Yakin ingin menghapus Rubrik Assessment ini?")) return;
+    try {
+      const res = await fetch(`http://localhost:7000/classes/rubrik-assessments/${id}`, {
+        method: "DELETE",
+        credentials: "include"
+      });
+      if (res.ok) {
+        fetchRubrikAssessments(classes[0].program.id);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Terjadi kesalahan sistem.");
     }
   };
 
@@ -258,6 +324,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   useEffect(() => {
     if (classes.length > 0 && classes[0]?.program?.id) {
       fetchCompetencies(classes[0].program.id);
+      fetchRubrikAssessments(classes[0].program.id);
     }
   }, [classes]);
 
@@ -270,6 +337,21 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       if (res.ok) {
         const data = await res.json();
         setCompetencies(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchRubrikAssessments = async (programId: string) => {
+    try {
+      const res = await fetch(`http://localhost:7000/classes/programs/${programId}/rubrik-assessments`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setRubrikAssessments(data);
       }
     } catch (err) {
       console.error(err);
@@ -304,7 +386,14 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   };
 
   const [editingCompetency, setEditingCompetency] = useState<any>(null);
+  const [editingRubrikAssessment, setEditingRubrikAssessment] = useState<any>(null);
   const [editingWeightCompetency, setEditingWeightCompetency] = useState<any>(null);
+  const [editingWeightRubrikAssessment, setEditingWeightRubrikAssessment] = useState<any>(null);
+  const [activeRubrikTab, setActiveRubrikTab] = useState("kompetensi");
+
+  const clampScore = (val: number) => {
+    return Math.max(65, Math.min(95, val));
+  };
 
   const calculateCompetencyScore = (studentId: string, compId: string) => {
     let score = 0;
@@ -316,10 +405,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       const weight = weightUpdates[assignment.id] !== undefined ? weightUpdates[assignment.id] : (assignment.weight || 0.1);
       const submission = (assignment.submissions || []).find((s: any) => s.studentId === studentId);
       if (submission && submission.score) {
-        score += submission.score * weight;
+        score += clampScore(submission.score) * weight;
       }
     }
-    return score;
+    return clampScore(score);
   };
 
   const handleUpdateCompetency = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -1196,63 +1285,85 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
         {/* ── TAB 3: RUBRIK PENILAIAN ── */}
         <TabsContent value="rubric" className="space-y-6">
-          <Card className="border-border bg-card shadow-sm">
-            <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-heading font-bold text-foreground">
-                  Manajemen Rubrik Kompetensi
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground mt-1">
-                  Atur patokan nilai dan kriteria evaluasi (rubrik) untuk masing-masing kompetensi secara global.
-                </CardDescription>
-              </div>
-              <Button
-                onClick={() => setIsAddCompetencyModalOpen(true)}
-                size="sm"
-                variant="outline"
-                className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                Tambah Kompetensi
-              </Button>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      <th className="py-3 px-4">Nama Kompetensi</th>
-                      <th className="py-3 px-4">Kategori</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/60 text-xs">
-                    {competencies.length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="py-8 text-center text-muted-foreground">
-                          Belum ada kompetensi.
-                        </td>
+          <div className="flex items-center gap-2 mb-4 bg-muted/50 p-1 rounded-xl w-fit border border-border">
+            <button
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "kompetensi" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setActiveRubrikTab("kompetensi")}
+            >
+              Rubrik Kompetensi
+            </button>
+            <button
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "assessment" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
+              onClick={() => setActiveRubrikTab("assessment")}
+            >
+              Rubrik Assessment
+            </button>
+          </div>
+
+          {activeRubrikTab === "kompetensi" ? (
+            <Card className="border-border bg-card shadow-sm">
+              <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-heading font-bold text-foreground">
+                    Manajemen Rubrik Kompetensi
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground mt-1">
+                    Atur patokan nilai dan kriteria evaluasi (rubrik) untuk masing-masing kompetensi secara global.
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={() => setIsAddCompetencyModalOpen(true)}
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Tambah Kompetensi
+                </Button>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                        <th className="py-3 px-4">Nama Kompetensi</th>
+                        <th className="py-3 px-4">Kategori</th>
+                        <th className="py-3 px-4">Fase</th>
+                        <th className="py-3 px-4 text-right">Aksi</th>
                       </tr>
-                    ) : (
-                      competencies.map((comp: any) => (
-                        <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
-                          <td className="py-3.5 px-4 font-semibold text-foreground">
-                            {comp.name}
+                    </thead>
+                    <tbody className="divide-y divide-border/60 text-xs">
+                      {competencies.length === 0 ? (
+                        <tr>
+                          <td colSpan={3} className="py-8 text-center text-muted-foreground">
+                            Belum ada kompetensi.
                           </td>
-                          <td className="py-3.5 px-4">
-                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                              {comp.category}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <Link href={`/dashboard/competency/${comp.id}/rubric`}>
-                                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer">
-                                  <FileSpreadsheet className="w-3.5 h-3.5" /> Atur Rubrik
-                                </span>
-                              </Link>
-                              <Button
-                                variant="outline"
+                        </tr>
+                      ) : (
+                        competencies.map((comp: any) => (
+                          <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
+                            <td className="py-3.5 px-4 font-semibold text-foreground">
+                              {comp.name}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
+                                {comp.category}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
+                                {comp.phase || "Micro"}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <Link href={`/dashboard/competency/${comp.id}/rubric`}>
+                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer">
+                                    <FileSpreadsheet className="w-3.5 h-3.5" /> Atur Rubrik
+                                  </span>
+                                </Link>
+                                <Button
+                                  variant="outline"
                                 size="sm"
                                 className="h-7 w-7 p-0"
                                 onClick={() => setEditingCompetency(comp)}
@@ -1277,6 +1388,90 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
               </div>
             </CardContent>
           </Card>
+          ) : (
+          <Card className="border-border bg-card shadow-sm">
+            <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-heading font-bold text-foreground">
+                  Manajemen Rubrik Assessment
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-1">
+                  Atur Rubrik Assessment yang akan menaungi beberapa Rubrik Kompetensi beserta bobotnya.
+                </CardDescription>
+              </div>
+              <Button
+                onClick={() => setIsAddRubrikAssessmentModalOpen(true)}
+                size="sm"
+                variant="outline"
+                className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Tambah Rubrik Assessment
+              </Button>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      <th className="py-3 px-4">Nama Rubrik Assessment</th>
+                      <th className="py-3 px-4">Fase</th>
+                      <th className="py-3 px-4 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60 text-xs">
+                    {rubrikAssessments.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="py-8 text-center text-muted-foreground">
+                          Belum ada Rubrik Assessment.
+                        </td>
+                      </tr>
+                    ) : (
+                      rubrikAssessments.map((ra: any) => (
+                        <tr key={ra.id} className="hover:bg-secondary/20 transition-colors">
+                          <td className="py-3.5 px-4 font-semibold text-foreground">
+                            {ra.name}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
+                              {ra.phase}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <span 
+                                onClick={() => setEditingWeightRubrikAssessment(ra)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer"
+                              >
+                                <Settings className="w-3.5 h-3.5" /> Atur Bobot Kompetensi
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 w-7 p-0"
+                                onClick={() => setEditingRubrikAssessment(ra)}
+                              >
+                                <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50"
+                                onClick={() => handleDeleteRubrikAssessment(ra.id)}
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+          )}
         </TabsContent>
         {/* ── TAB 4: ASSESSMENT (GRADEBOOK) ── */}
         <TabsContent value="assessment" className="space-y-6">
@@ -1299,9 +1494,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                 </TabsList>
 
                 {["Micro", "Massive"].map((phase) => {
-                  const microComps = competencies.filter(c => c.phase === "Micro" || (!c.phase && "Micro" === "Micro"));
-                  const massiveComps = competencies.filter(c => c.phase === "Massive");
-                  const displayComps = phase === "Micro" ? microComps : massiveComps;
+                  const microRAs = rubrikAssessments.filter(ra => ra.phase === "Micro" || (!ra.phase && "Micro" === "Micro"));
+                  const massiveRAs = rubrikAssessments.filter(ra => ra.phase === "Massive");
+                  const displayRAs = phase === "Micro" ? microRAs : massiveRAs;
 
                   return (
                     <TabsContent key={phase} value={phase} className="space-y-6">
@@ -1310,17 +1505,17 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                           <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                             <tr>
                               <th className="px-4 py-3 sticky left-0 z-10 bg-muted/95 backdrop-blur shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">Mentee</th>
-                              {phase === "Massive" && (
-                                <th className="px-4 py-3 bg-brand-purple/10 text-brand-purple border-x border-border text-center">Akumulasi Micro</th>
-                              )}
-                              {displayComps.map(comp => (
+                              <th className="px-4 py-3 bg-brand-purple/10 text-brand-purple border-x border-border text-center">
+                                {phase === "Micro" ? "Total Micro" : "Total Massive"}
+                              </th>
+                              {displayRAs.map(ra => (
                                 <th
-                                  key={comp.id}
+                                  key={ra.id}
                                   className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
-                                  onClick={() => setEditingWeightCompetency(comp)}
-                                  title="Klik untuk mengatur bobot tugas di kompetensi ini"
+                                  onClick={() => setEditingWeightRubrikAssessment(ra)}
+                                  title="Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini"
                                 >
-                                  {comp.name}
+                                  {ra.name}
                                   <Pencil className="w-3 h-3 inline-block ml-1 opacity-50" />
                                 </th>
                               ))}
@@ -1329,13 +1524,42 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                           <tbody className="divide-y divide-border">
                             {allStudents.length === 0 ? (
                               <tr>
-                                <td colSpan={displayComps.length + (phase === "Massive" ? 2 : 1)} className="px-4 py-8 text-center text-muted-foreground">
+                                <td colSpan={displayRAs.length + 2} className="px-4 py-8 text-center text-muted-foreground">
                                   Belum ada mentee yang terdaftar.
                                 </td>
                               </tr>
                             ) : (
                               allStudents.map((student) => {
-                                const microTotal = microComps.reduce((acc, comp) => acc + calculateCompetencyScore(student.id, comp.id), 0);
+                                const calculateRAScore = (raId: string, visited = new Set<string>()): number => {
+                                  if (visited.has(raId)) return 65;
+                                  visited.add(raId);
+                                  
+                                  const ra = rubrikAssessments.find((r: any) => r.id === raId);
+                                  if (!ra) return 65;
+
+                                  const hasComps = ra.competencies && ra.competencies.length > 0;
+                                  const hasSubs = ra.subAssessments && ra.subAssessments.length > 0;
+                                  if (!hasComps && !hasSubs) return 65;
+
+                                  let totalScore = 0;
+                                  if (hasComps) {
+                                    for (const c of ra.competencies) {
+                                      const compScore = calculateCompetencyScore(student.id, c.competencyId);
+                                      totalScore += compScore * c.weight;
+                                    }
+                                  }
+                                  if (hasSubs) {
+                                    for (const s of ra.subAssessments) {
+                                      const subScore = calculateRAScore(s.assessmentId, visited);
+                                      totalScore += subScore * s.weight;
+                                    }
+                                  }
+                                  return clampScore(totalScore);
+                                };
+
+                                const phaseTotalVal = displayRAs.reduce((acc, ra) => acc + calculateRAScore(ra.id), 0);
+                                const phaseAverage = displayRAs.length > 0 ? phaseTotalVal / displayRAs.length : 65;
+
                                 return (
                                   <tr key={student.id} className="hover:bg-muted/30 transition-colors">
                                     <td className="px-4 py-3 sticky left-0 z-10 bg-card shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
@@ -1343,16 +1567,14 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                                       <div className="text-[10px] text-muted-foreground">{student.email}</div>
                                     </td>
 
-                                    {phase === "Massive" && (
-                                      <td className="px-4 py-3 text-center border-x border-border font-bold text-brand-purple bg-brand-purple/5">
-                                        {microTotal.toFixed(1)}
-                                      </td>
-                                    )}
+                                    <td className="px-4 py-3 text-center border-x border-border font-bold text-brand-purple bg-brand-purple/5">
+                                      {phaseAverage.toFixed(1)}
+                                    </td>
 
-                                    {displayComps.map(comp => {
-                                      const score = calculateCompetencyScore(student.id, comp.id);
+                                    {displayRAs.map(ra => {
+                                      const score = calculateRAScore(ra.id);
                                       return (
-                                        <td key={comp.id} className="px-4 py-3 text-center border-l border-border text-xs font-medium">
+                                        <td key={ra.id} className="px-4 py-3 text-center border-l border-border text-xs font-medium">
                                           {score > 0 ? score.toFixed(1) : "-"}
                                         </td>
                                       );
@@ -1621,6 +1843,228 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                 <Button type="button" variant="outline" onClick={() => setEditingWeightCompetency(null)}>Tutup</Button>
                 <Button
                   onClick={() => { handleSaveWeights(); setEditingWeightCompetency(null); }}
+                  disabled={isSavingWeights || Object.keys(weightUpdates).length === 0}
+                  className="bg-brand-purple hover:bg-brand-purple-hover text-white"
+                >
+                  {isSavingWeights ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                  Simpan Perubahan Bobot
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Add Rubrik Assessment Modal */}
+      {isAddRubrikAssessmentModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
+            <h3 className="font-heading font-bold text-lg mb-4">Tambah Rubrik Assessment Baru</h3>
+            <form onSubmit={handleCreateRubrikAssessment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Nama Rubrik Assessment</label>
+                <Input name="name" required placeholder="Contoh: UI Design" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Fase</label>
+                <select name="phase" className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="Micro">Micro</option>
+                  <option value="Massive">Massive</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setIsAddRubrikAssessmentModalOpen(false)}>Batal</Button>
+                <Button type="submit">Simpan</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Rubrik Assessment Modal */}
+      {editingRubrikAssessment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
+            <h3 className="font-heading font-bold text-lg mb-4">Edit Rubrik Assessment</h3>
+            <form onSubmit={handleUpdateRubrikAssessment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Nama Rubrik Assessment</label>
+                <Input name="name" required defaultValue={editingRubrikAssessment.name} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Fase</label>
+                <select name="phase" defaultValue={editingRubrikAssessment.phase} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
+                  <option value="Micro">Micro</option>
+                  <option value="Massive">Massive</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 mt-4">
+                <Button type="button" variant="outline" onClick={() => setEditingRubrikAssessment(null)}>Batal</Button>
+                <Button type="submit">Simpan</Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Weight Rubrik Assessment Modal */}
+      {editingWeightRubrikAssessment && (() => {
+        // filter competencies based on same phase
+        const phaseComps = competencies.filter(c => c.phase === editingWeightRubrikAssessment.phase || (!c.phase && editingWeightRubrikAssessment.phase === "Micro"));
+        // filter other RAs based on same phase, exclude self
+        const phaseRAs = rubrikAssessments.filter(ra => ra.id !== editingWeightRubrikAssessment.id && (ra.phase === editingWeightRubrikAssessment.phase || (!ra.phase && editingWeightRubrikAssessment.phase === "Micro")));
+        
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[600px] max-w-[90vw]">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="font-heading font-bold text-lg">Pengaturan Bobot Penilaian: {editingWeightRubrikAssessment.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Pilih Rubrik Kompetensi atau Rubrik Assessment lain yang masuk ke Assessment ini, dan atur bobotnya.</p>
+                </div>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => setEditingWeightRubrikAssessment(null)}>
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+              <div className="max-h-[60vh] overflow-y-auto mb-6 pr-2 space-y-6">
+                
+                {/* 1. Rubrik Kompetensi */}
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 text-brand-purple">Daftar Rubrik Kompetensi</h4>
+                  {phaseComps.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-muted-foreground bg-muted/20 rounded-lg">Tidak ada Rubrik Kompetensi di fase ini.</div>
+                  ) : (
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        <tr>
+                          <th className="px-4 py-2 font-medium">Nama Kompetensi</th>
+                          <th className="px-4 py-2 font-medium text-right w-48">Bobot (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {phaseComps.map((comp: any) => {
+                          const raComp = (editingWeightRubrikAssessment.competencies || []).find((c:any) => c.competencyId === comp.id);
+                          const currentVal = weightUpdates[comp.id] !== undefined ? weightUpdates[comp.id] : (raComp ? raComp.weight : 0);
+                          
+                          return (
+                            <tr key={comp.id} className="hover:bg-muted/30 transition-colors">
+                              <td className="px-4 py-3">
+                                <span className="font-semibold text-foreground text-xs">{comp.name}</span>
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
+                                  {comp.category}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max="1"
+                                    className="w-16 text-right h-7 text-xs font-medium border-border focus-visible:border-brand-purple"
+                                    value={currentVal}
+                                    onChange={(e) => handleWeightChange(comp.id, e.target.value)}
+                                  />
+                                  <span className="text-muted-foreground text-[10px] font-medium w-8 text-left">
+                                    ({(currentVal * 100).toFixed(0)}%)
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+
+                {/* 2. Sub Assessments */}
+                <div>
+                  <h4 className="font-semibold text-sm mb-2 text-brand-purple">Daftar Rubrik Assessment Lain</h4>
+                  {phaseRAs.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-muted-foreground bg-muted/20 rounded-lg">Tidak ada Rubrik Assessment lain di fase ini.</div>
+                  ) : (
+                    <table className="w-full text-sm text-left">
+                      <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        <tr>
+                          <th className="px-4 py-2 font-medium">Nama Assessment</th>
+                          <th className="px-4 py-2 font-medium text-right w-48">Bobot (%)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {phaseRAs.map((ra: any) => {
+                          const raSub = (editingWeightRubrikAssessment.subAssessments || []).find((s:any) => s.assessmentId === ra.id);
+                          const currentVal = weightUpdates[ra.id] !== undefined ? weightUpdates[ra.id] : (raSub ? raSub.weight : 0);
+                          
+                          return (
+                            <tr key={ra.id} className="hover:bg-muted/30 transition-colors">
+                              <td className="px-4 py-3">
+                                <span className="font-semibold text-foreground text-xs">{ra.name}</span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Input
+                                    type="number"
+                                    step="0.01"
+                                    min="0"
+                                    max="1"
+                                    className="w-16 text-right h-7 text-xs font-medium border-border focus-visible:border-brand-purple"
+                                    value={currentVal}
+                                    onChange={(e) => handleWeightChange(ra.id, e.target.value)}
+                                  />
+                                  <span className="text-muted-foreground text-[10px] font-medium w-8 text-left">
+                                    ({(currentVal * 100).toFixed(0)}%)
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+
+              </div>
+              <div className="flex justify-end gap-2 pt-4 border-t border-border">
+                <Button type="button" variant="outline" onClick={() => setEditingWeightRubrikAssessment(null)}>Tutup</Button>
+                <Button
+                  onClick={async () => {
+                    // split updates into competencies vs subAssessments
+                    const compIds = new Set(phaseComps.map(c => c.id));
+                    const raIds = new Set(phaseRAs.map(r => r.id));
+
+                    const updatedComps = Object.keys(weightUpdates).filter(id => compIds.has(id)).map(id => ({ competencyId: id, weight: weightUpdates[id] })).filter(c => c.weight > 0);
+                    const updatedRAs = Object.keys(weightUpdates).filter(id => raIds.has(id)).map(id => ({ assessmentId: id, weight: weightUpdates[id] })).filter(c => c.weight > 0);
+
+                    // Combine with existing unchanged ones
+                    const existingComps = editingWeightRubrikAssessment.competencies || [];
+                    const finalComps = [...existingComps.filter((e:any) => weightUpdates[e.competencyId] === undefined), ...updatedComps].filter(c => c.weight > 0);
+
+                    const existingRAs = editingWeightRubrikAssessment.subAssessments || [];
+                    const finalRAs = [...existingRAs.filter((e:any) => weightUpdates[e.assessmentId] === undefined), ...updatedRAs].filter(c => c.weight > 0);
+                    
+                    setIsSavingWeights(true);
+                    try {
+                      const res = await fetch(`http://localhost:7000/classes/rubrik-assessments/${editingWeightRubrikAssessment.id}`, {
+                        method: "PUT",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ competencies: finalComps, subAssessments: finalRAs }),
+                        credentials: "include"
+                      });
+                      if (res.ok) {
+                        alert("Bobot Assessment berhasil disimpan!");
+                        setWeightUpdates({});
+                        setEditingWeightRubrikAssessment(null);
+                        fetchRubrikAssessments(classes[0].program.id);
+                      }
+                    } catch (err) {
+                      console.error(err);
+                      alert("Gagal menyimpan.");
+                    } finally {
+                      setIsSavingWeights(false);
+                    }
+                  }}
                   disabled={isSavingWeights || Object.keys(weightUpdates).length === 0}
                   className="bg-brand-purple hover:bg-brand-purple-hover text-white"
                 >
