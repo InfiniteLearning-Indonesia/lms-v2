@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { StudentLogbook } from "./student-logbook";
+import { StudentAttendance } from "./student-attendance";
 
 interface StudentDashboardProps {
   profile: {
@@ -201,7 +202,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
   const pastClasses = classes.filter((cls) => cls.batchId !== currentBatch?.id);
   const hasPastClasses = pastClasses.length > 0;
 
-  const tabCols = hasPastClasses ? "grid-cols-4" : "grid-cols-3";
+  const tabCols = hasPastClasses ? "grid-cols-5" : "grid-cols-4";
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6 w-full">
@@ -219,6 +220,10 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
         <TabsTrigger value="logbook" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
           <BookOpen className="w-5 h-5 shrink-0" />
           <span>Logbook</span>
+        </TabsTrigger>
+        <TabsTrigger value="attendance" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
+          <Calendar className="w-5 h-5 shrink-0" />
+          <span>Absensi</span>
         </TabsTrigger>
         <TabsTrigger value="settings" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
           <Settings className="w-5 h-5 shrink-0" />
@@ -526,6 +531,22 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
           <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600">
             <Info className="w-5 h-5" />
             <AlertTitle>Tidak dapat mengakses logbook</AlertTitle>
+            <AlertDescription>Anda belum terdaftar di kelas aktif mana pun pada batch saat ini.</AlertDescription>
+          </Alert>
+        )}
+      </TabsContent>
+
+      {/* ── TAB ABSENSI ── */}
+      <TabsContent value="attendance" className="space-y-6 outline-hidden">
+        {activeClasses.length > 0 ? (
+          <StudentAttendance
+            batchId={activeClasses[0].batchId}
+            studentId={profile.id}
+          />
+        ) : (
+          <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600">
+            <Info className="w-5 h-5" />
+            <AlertTitle>Tidak dapat mengakses absensi</AlertTitle>
             <AlertDescription>Anda belum terdaftar di kelas aktif mana pun pada batch saat ini.</AlertDescription>
           </Alert>
         )}
