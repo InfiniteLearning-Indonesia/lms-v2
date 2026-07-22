@@ -278,7 +278,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const fetchProgramsList = async () => {
     setIsLoadingPrograms(true);
     try {
-      const res = await fetch("http://localhost:7000/classes/programs-overview", {
+      const res = await fetch("http://localhost:7000/classes/programs-list", {
         credentials: "include",
       });
       if (res.ok) {
