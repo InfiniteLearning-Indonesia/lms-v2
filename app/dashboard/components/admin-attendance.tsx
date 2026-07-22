@@ -125,6 +125,7 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
 
     const holiday = holidays.find(h => h.date === localDateStr);
     const dayOfWeek = date.getDay();
+    const isFriday = dayOfWeek === 5;
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
     const isActive = activeDays.length > 0 && activeDays.some(d =>
@@ -150,11 +151,23 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
       cellBg = "bg-secondary/20 text-muted-foreground opacity-50 cursor-not-allowed";
       content = <div className="mt-auto text-[10px] text-center w-full">Pilih Batch Spesifik</div>;
     } else if (holiday || isWeekend) {
-      cellBg = "bg-red-50/50 border-dashed text-red-900/60 cursor-not-allowed";
+      // Priority 1: Tanggal Merah (Holiday or Weekend) -> RED
+      const label = holiday ? (holiday.name || "Libur Nasional") : "Weekend (Libur)";
+      cellBg = "bg-red-500/10 border-red-500/30 text-red-600 cursor-not-allowed font-medium";
       content = (
         <div className="mt-auto flex flex-col justify-end w-full">
-          <span className="text-[10px] font-semibold bg-red-100 text-red-700 px-1.5 py-0.5 rounded-sm inline-block self-start leading-tight">
-            {holiday ? holiday.name : "Weekend"}
+          <span className="text-[10px] font-bold bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-200 px-1.5 py-0.5 rounded-sm inline-block self-start leading-tight">
+            {label}
+          </span>
+        </div>
+      );
+    } else if (isFriday) {
+      // Priority 2: Hari Jumat Asynchronous -> GREEN (Libur Absen)
+      cellBg = "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 cursor-not-allowed font-medium";
+      content = (
+        <div className="mt-auto flex flex-col justify-end w-full">
+          <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 px-1.5 py-0.5 rounded-sm inline-block self-start leading-tight">
+            Hari Asynchronous
           </span>
         </div>
       );
@@ -191,7 +204,7 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
       <div
         {...props}
         onClick={(e) => {
-          if (selectedBatch !== "all" && !holiday && !isWeekend && isActive) {
+          if (selectedBatch !== "all" && !holiday && !isFriday && !isWeekend && isActive) {
             handleDateSelect(date);
           } else {
             e.preventDefault();
@@ -247,8 +260,9 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
       const isDayActive = activeDays.some(ad => ad.getDate() === iterDate.getDate() && ad.getMonth() === iterDate.getMonth());
       const isHoliday = holidays.some(h => h.date === iterLocalDateStr);
       const isWeekend = iterDate.getDay() === 0 || iterDate.getDay() === 6;
+      const isFriday = iterDate.getDay() === 5;
 
-      if (isDayActive && !isHoliday && !isWeekend) {
+      if (isDayActive && !isHoliday && !isWeekend && !isFriday) {
         activeDaysMonth++;
 
         const dayAtts = attendances.filter(a => a.date.startsWith(iterLocalDateStr));

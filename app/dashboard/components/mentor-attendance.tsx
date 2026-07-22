@@ -11,6 +11,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { TrendingUp } from "lucide-react";
 
+import { Eye, FileText, Image as ImageIcon, Paperclip, User } from "lucide-react";
+
 export function MentorAttendance({ batchId, mentorId }: { batchId: string, mentorId: string }) {
   const [loading, setLoading] = useState(true);
   const [activeDays, setActiveDays] = useState<Date[]>([]);
@@ -23,6 +25,8 @@ export function MentorAttendance({ batchId, mentorId }: { batchId: string, mento
   const [students, setStudents] = useState<any[]>([]);
   const [allAttendances, setAllAttendances] = useState<any[]>([]);
   const [modalAttendances, setModalAttendances] = useState<Record<string, string>>({});
+  const [permissionRequests, setPermissionRequests] = useState<any[]>([]);
+  const [selectedPermission, setSelectedPermission] = useState<any | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -78,6 +82,16 @@ export function MentorAttendance({ batchId, mentorId }: { batchId: string, mento
       });
       const attData = await attRes.json();
       setAllAttendances(Array.isArray(attData) ? attData : []);
+
+      // Fetch permission requests for this batch
+      const permRes = await fetch(`http://localhost:7000/attendance/permission-requests?batchId=${batchId}`, {
+        headers: { Accept: "application/json" },
+        credentials: "include"
+      });
+      if (permRes.ok) {
+        const permData = await permRes.json();
+        setPermissionRequests(Array.isArray(permData) ? permData : []);
+      }
 
     } catch (err) {
       console.error(err);
@@ -174,6 +188,7 @@ export function MentorAttendance({ batchId, mentorId }: { batchId: string, mento
 
     const holiday = holidays.find(h => h.date === localDateStr);
     const dayOfWeek = date.getDay();
+    const isFriday = dayOfWeek === 5;
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
     const isActive = activeDays.some(d => 
@@ -195,11 +210,23 @@ export function MentorAttendance({ batchId, mentorId }: { batchId: string, mento
     let content = null;
 
     if (holiday || isWeekend) {
-      cellBg = "bg-red-50/50 border-dashed text-red-900/60 cursor-not-allowed";
+      // Priority 1: Tanggal Merah (Holiday or Weekend) -> RED
+      const label = holiday ? (holiday.name || "Libur Nasional") : "Weekend (Libur)";
+      cellBg = "bg-red-500/10 border-red-500/30 text-red-600 cursor-not-allowed font-medium";
       content = (
         <div className="mt-auto flex flex-col justify-end w-full">
-          <span className="text-[10px] font-semibold bg-red-100 text-red-700 px-1.5 py-0.5 rounded-sm inline-block self-start leading-tight">
-            {holiday ? holiday.name : "Weekend"}
+          <span className="text-[10px] font-bold bg-red-100 dark:bg-red-950 text-red-700 dark:text-red-300 border border-red-200 px-1.5 py-0.5 rounded-sm inline-block self-start leading-tight">
+            {label}
+          </span>
+        </div>
+      );
+    } else if (isFriday) {
+      // Priority 2: Hari Jumat Asynchronous -> GREEN (Libur Absen)
+      cellBg = "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 cursor-not-allowed font-medium";
+      content = (
+        <div className="mt-auto flex flex-col justify-end w-full">
+          <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 px-1.5 py-0.5 rounded-sm inline-block self-start leading-tight">
+            Hari Asynchronous
           </span>
         </div>
       );
@@ -232,7 +259,7 @@ export function MentorAttendance({ batchId, mentorId }: { batchId: string, mento
       <div 
         {...props}
         onClick={(e) => {
-          if (!holiday && !isWeekend && isActive) {
+          if (!holiday && !isFriday && !isWeekend && isActive) {
             handleDateSelect(date);
           } else {
             e.preventDefault();
@@ -277,12 +304,13 @@ export function MentorAttendance({ batchId, mentorId }: { batchId: string, mento
     // Format to local date string yyyy-mm-dd safely
     const iterLocalDateStr = new Date(iterDate.getTime() - iterDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
     
-    // Check if it's an active day (not holiday, not weekend, and in activeDays)
+    // Check if it's an active day (not holiday, not weekend, not Friday Asynchronous, and in activeDays)
     const isDayActive = activeDays.some(ad => ad.getDate() === iterDate.getDate() && ad.getMonth() === iterDate.getMonth());
     const isHoliday = holidays.some(h => h.date === iterLocalDateStr);
     const isWeekend = iterDate.getDay() === 0 || iterDate.getDay() === 6;
+    const isFriday = iterDate.getDay() === 5;
 
-    if (isDayActive && !isHoliday && !isWeekend) {
+    if (isDayActive && !isHoliday && !isWeekend && !isFriday) {
       activeDaysMonth++;
       
       const dayAtts = allAttendances.filter(a => a.date.startsWith(iterLocalDateStr));
@@ -415,6 +443,204 @@ export function MentorAttendance({ batchId, mentorId }: { batchId: string, mento
           )}
         </CardContent>
       </Card>
+
+      {/* ── SEKSI DAFTAR PERIZINAN SISWA (FORM IZIN) ── */}
+      {(() => {
+        const monthlyPermissionRequests = permissionRequests.filter((req) => {
+          if (!req.date) return false;
+          const reqDate = new Date(req.date);
+          return (
+            reqDate.getFullYear() === month.getFullYear() &&
+            reqDate.getMonth() === month.getMonth()
+          );
+        });
+
+        const monthName = month.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+
+        return (
+          <Card className="border-border shadow-sm w-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center justify-between font-heading font-bold">
+                <span className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-brand-purple" />
+                  Daftar Pengajuan Form Izin Siswa ({monthName})
+                </span>
+                <Badge variant="outline" className="bg-brand-purple/10 text-brand-purple border-brand-purple/30 text-xs font-semibold">
+                  {monthlyPermissionRequests.length} Permohonan
+                </Badge>
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground">
+                Daftar pengajuan izin/sakit siswa binaan pada bulan {monthName}. Status kehadiran siswa otomatis terisi sebagai Izin/Sakit.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {monthlyPermissionRequests.length === 0 ? (
+                <div className="py-8 text-center border border-dashed rounded-xl bg-secondary/10">
+                  <p className="text-xs text-muted-foreground">
+                    Belum ada siswa yang mengajukan Form Izin pada bulan <strong>{monthName}</strong> ini.
+                  </p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto border border-border rounded-xl">
+                  <table className="w-full text-xs text-left border-collapse">
+                    <thead>
+                      <tr className="bg-secondary/40 border-b border-border text-[10px] uppercase font-bold text-muted-foreground tracking-wider">
+                        <th className="p-3">Siswa Pemohon</th>
+                        <th className="p-3">Tanggal Izin</th>
+                        <th className="p-3">Kategori</th>
+                        <th className="p-3">Alasan Ketidakhadiran</th>
+                        <th className="p-3 text-center">Aksi / Berkas</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {monthlyPermissionRequests.map((req) => (
+                        <tr key={req.id} className="hover:bg-secondary/20 transition-colors">
+                          <td className="p-3">
+                            <div className="font-semibold text-foreground">{req.student?.name || "Siswa"}</div>
+                            <div className="text-[10px] text-muted-foreground font-mono break-all">{req.student?.email}</div>
+                          </td>
+                          <td className="p-3 font-medium">
+                            {new Date(req.date).toLocaleDateString("id-ID", {
+                              weekday: "short",
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </td>
+                          <td className="p-3">
+                            <Badge
+                              variant="outline"
+                              className={
+                                req.category === "Sakit"
+                                  ? "bg-amber-500/10 text-amber-600 border-amber-500/30 text-[10px]"
+                                  : "bg-brand-purple/10 text-brand-purple border-brand-purple/30 text-[10px]"
+                              }
+                            >
+                              {req.category}
+                            </Badge>
+                          </td>
+                          <td className="p-3 max-w-xs truncate text-muted-foreground">{req.reason}</td>
+                          <td className="p-3 text-center">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedPermission(req)}
+                              className="h-8 text-xs text-brand-purple border-brand-purple/30 hover:bg-brand-purple/10 gap-1 px-3"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> Lihat Form Izin
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+      {/* Dialog Preview Form Izin for Mentor */}
+      <Dialog open={!!selectedPermission} onOpenChange={() => setSelectedPermission(null)}>
+        {selectedPermission && (
+          <DialogContent className="w-[95vw] max-w-3xl sm:max-w-3xl max-h-[90vh] overflow-y-auto font-sans p-6">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-heading font-bold text-foreground flex items-center gap-2">
+                <FileText className="w-5 h-5 text-brand-purple" />
+                Form Izin Siswa: {selectedPermission.student?.name}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">
+                Pengajuan {selectedPermission.category} untuk tanggal{" "}
+                <strong>
+                  {new Date(selectedPermission.date).toLocaleDateString("id-ID", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                  })}
+                </strong>
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 pt-2 text-xs">
+              <div className="p-4 rounded-xl bg-secondary/30 border border-border space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-muted-foreground pb-3 border-b border-border/50">
+                  <div>
+                    <span className="text-[10px] text-muted-foreground/70 block">Nama Siswa:</span>
+                    <strong className="text-foreground text-sm">{selectedPermission.student?.name}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground/70 block">Email Siswa:</span>
+                    <span className="font-mono text-foreground break-all">{selectedPermission.student?.email}</span>
+                  </div>
+                </div>
+                <div>
+                  <span className="font-bold text-foreground block text-xs">Alasan Ketidakhadiran:</span>
+                  <p className="text-muted-foreground whitespace-pre-line mt-1 text-xs leading-relaxed">{selectedPermission.reason}</p>
+                </div>
+              </div>
+
+              {/* Bukti Dokumen Preview */}
+              <div className="space-y-2">
+                <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                  <Paperclip className="w-4 h-4 text-brand-purple" /> Bukti Dokumen / Surat Dokter ({selectedPermission.proofFiles?.length || 0})
+                </h4>
+                {selectedPermission.proofFiles && selectedPermission.proofFiles.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {selectedPermission.proofFiles.map((fileData: string, idx: number) => {
+                      const isPdf = fileData.startsWith("data:application/pdf");
+                      return (
+                        <div key={idx} className="border border-border rounded-xl p-3 bg-card space-y-2">
+                          {isPdf ? (
+                            <a
+                              href={fileData}
+                              download={`bukti-izin-${selectedPermission.student?.name}-${idx + 1}.pdf`}
+                              className="text-brand-purple font-semibold flex items-center gap-2 underline p-3 text-xs bg-brand-purple/10 rounded-lg hover:bg-brand-purple/20 transition-colors"
+                            >
+                              <FileText className="w-4 h-4" /> Download PDF #{idx + 1}
+                            </a>
+                          ) : (
+                            <img
+                              src={fileData}
+                              alt={`Bukti #${idx + 1}`}
+                              className="w-full max-h-72 object-contain rounded-lg border border-border/50 bg-black/20"
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground italic text-[11px]">Tidak ada dokumen lampiran.</p>
+                )}
+              </div>
+
+              {/* Bukti Chat Mentor Preview */}
+              <div className="space-y-2">
+                <h4 className="font-bold text-foreground flex items-center gap-1.5">
+                  <ImageIcon className="w-4 h-4 text-emerald-600" /> Tangkapan Layar Chat Mentor ({selectedPermission.mentorChatFiles?.length || 0})
+                </h4>
+                {selectedPermission.mentorChatFiles && selectedPermission.mentorChatFiles.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {selectedPermission.mentorChatFiles.map((fileData: string, idx: number) => (
+                      <div key={idx} className="border border-border rounded-xl p-3 bg-card">
+                        <img
+                          src={fileData}
+                          alt={`Chat #${idx + 1}`}
+                          className="w-full max-h-72 object-contain rounded-lg border border-border/50 bg-black/20"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground italic text-[11px]">Tidak ada bukti chat mentor.</p>
+                )}
+              </div>
+            </div>
+          </DialogContent>
+        )}
+      </Dialog>
 
       {/* Attendance Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

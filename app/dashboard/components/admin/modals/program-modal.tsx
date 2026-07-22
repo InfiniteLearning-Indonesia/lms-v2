@@ -12,6 +12,7 @@ interface ProgramDetail {
   studentsCount: number;
   mentors: { id: string; name: string; email: string; specialization?: string }[];
   students: { id: string; name: string; email: string; mentorName?: string; status: string }[];
+  isReadOnly?: boolean;
 }
 
 interface ProgramModalProps {
@@ -52,15 +53,15 @@ export function ProgramModal({
               <div>
                 <h3 className="font-heading font-bold text-lg text-foreground flex items-center gap-2">
                   <Layers className="w-5 h-5 text-brand-purple" />
-                  Manajemen Program: {program.name}
+                  Manajemen Program: {program.name} {program.isReadOnly && <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20">(Read-Only)</span>}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Atur penugasan tim mentor dan pendaftaran siswa binaan.
+                  {program.isReadOnly ? "Melihat arsip data tim mentor dan siswa binaan batch lama." : "Atur penugasan tim mentor dan pendaftaran siswa binaan."}
                 </p>
               </div>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -70,14 +71,14 @@ export function ProgramModal({
               <TabsList className="grid grid-cols-2 w-full bg-secondary/35 border border-border min-h-14 p-1.5 rounded-lg">
                 <TabsTrigger
                   value="mentors"
-                  className="text-sm font-semibold flex items-center justify-center gap-3 py-2 rounded-md"
+                  className="text-sm font-semibold flex items-center justify-center gap-3 py-2 rounded-md cursor-pointer"
                 >
                   <GraduationCap className="w-5 h-5 text-brand-purple shrink-0" />
                   <span>Tim Mentor ({program.mentorsCount})</span>
                 </TabsTrigger>
                 <TabsTrigger
                   value="students"
-                  className="text-sm font-semibold flex items-center justify-center gap-3 py-2 rounded-md"
+                  className="text-sm font-semibold flex items-center justify-center gap-3 py-2 rounded-md cursor-pointer"
                 >
                   <Users className="w-5 h-5 text-brand-purple shrink-0" />
                   <span>Murid Terdaftar ({program.studentsCount})</span>
@@ -89,12 +90,14 @@ export function ProgramModal({
                   <p className="text-xs text-muted-foreground">
                     Daftar mentor akademik yang ditugaskan ke program ini.
                   </p>
-                  <button
-                    onClick={onOpenAssignMentor}
-                    className="px-3 py-1.5 rounded-lg bg-brand-purple text-white hover:bg-brand-purple-hover text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Assign Mentor Baru
-                  </button>
+                  {!program.isReadOnly && (
+                    <button
+                      onClick={onOpenAssignMentor}
+                      className="px-3 py-1.5 rounded-lg bg-brand-purple text-white hover:bg-brand-purple-hover text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Assign Mentor Baru
+                    </button>
+                  )}
                 </div>
 
                 <div className="border border-border rounded-xl overflow-hidden bg-background max-h-[45vh] overflow-y-auto pr-1">
@@ -139,12 +142,14 @@ export function ProgramModal({
                   <p className="text-xs text-muted-foreground">
                     Daftar seluruh siswa aktif yang terdaftar dalam program ini.
                   </p>
-                  <button
-                    onClick={onOpenAddStudent}
-                    className="px-3 py-1.5 rounded-lg bg-brand-purple text-white hover:bg-brand-purple-hover text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs"
-                  >
-                    <UserPlus className="w-3.5 h-3.5" /> Pendaftaran Murid Baru
-                  </button>
+                  {!program.isReadOnly && (
+                    <button
+                      onClick={onOpenAddStudent}
+                      className="px-3 py-1.5 rounded-lg bg-brand-purple text-white hover:bg-brand-purple-hover text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-xs cursor-pointer"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" /> Pendaftaran Murid Baru
+                    </button>
+                  )}
                 </div>
 
                 <div className="border border-border rounded-xl overflow-hidden bg-background max-h-[45vh] overflow-y-auto pr-1">

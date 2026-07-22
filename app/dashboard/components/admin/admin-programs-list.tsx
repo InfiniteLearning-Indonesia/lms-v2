@@ -212,7 +212,7 @@ export function AdminProgramsList({
                           {prog.mentorsCount || 0} Mentor
                         </span>
                         <button
-                          onClick={() => onOpenProgramDetail(prog)}
+                          onClick={() => onOpenProgramDetail({ ...prog, isReadOnly: true })}
                           className="px-3.5 py-1.5 rounded-lg bg-secondary border border-border text-muted-foreground hover:text-foreground font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer"
                         >
                           Lihat Detail & Murid

@@ -143,12 +143,13 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
     // Check holiday
     const holiday = holidays.find(h => h.date === localDateStr);
     const dayOfWeek = date.getDay();
+    const isFriday = dayOfWeek === 5;
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
     // Check attendance
     const attendance = attendances.find(a => a.date.startsWith(localDateStr));
     
-    // Check if it's an active day (not weekend, not holiday, and within batch range)
+    // Check if it's an active day (not weekend, not holiday, not friday asynchronous, and within batch range)
     const isActive = activeDays.some(d => 
       d.getDate() === date.getDate() && 
       d.getMonth() === date.getMonth() && 
@@ -166,10 +167,24 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
     let statusBadge = null;
 
     if (holiday || isWeekend) {
-      cellBg = "bg-secondary/40 border-dashed text-muted-foreground";
+      // Priority 1: Tanggal Merah (Holiday or Weekend) -> RED
+      const label = holiday ? (holiday.name || "Libur Nasional") : "Weekend (Libur)";
+      cellBg = "bg-red-500/10 border-red-500/30 text-red-600 font-medium";
       statusBadge = (
-        <div className="mt-auto pt-2 text-[10px] font-medium leading-tight opacity-70">
-          {holiday ? holiday.name : "Weekend"}
+        <div className="mt-auto pt-2">
+          <span className="inline-flex items-center rounded-sm bg-red-100 dark:bg-red-950 px-1.5 py-0.5 text-[10px] font-bold text-red-700 dark:text-red-300 border border-red-200">
+            {label}
+          </span>
+        </div>
+      );
+    } else if (isFriday) {
+      // Priority 2: Hari Jumat Asynchronous -> GREEN (Libur Absen)
+      cellBg = "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 font-medium";
+      statusBadge = (
+        <div className="mt-auto pt-2">
+          <span className="inline-flex items-center rounded-sm bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200">
+            Hari Asynchronous
+          </span>
         </div>
       );
     } else if (!isActive) {
