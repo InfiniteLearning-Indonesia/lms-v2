@@ -20,7 +20,8 @@ import { UserListItem, AdminDashboardProps, Program, Batch } from "./admin/types
 // Domain Sub-components
 import { AdminUsersList } from "./admin/admin-users-list";
 import { AdminUserInvite } from "./admin/admin-user-invite";
-import { AdminAcademicManagement } from "./admin/admin-academic-management";
+import { AdminProgramsList } from "./admin/admin-programs-list";
+import { AdminBatchesList } from "./admin/admin-batches-list";
 import { AdminProfileSettings } from "./admin/admin-profile-settings";
 
 // Modal Dialogs
@@ -998,9 +999,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
         {/* ──────── TAB 2: PROGRAM AKADEMIK ──────── */}
         <TabsContent value="programs" className="space-y-6 outline-hidden">
-          <AdminAcademicManagement
+          <AdminProgramsList
             isLoadingPrograms={isLoadingPrograms}
-            isLoadingBatches={isLoadingBatches}
             programsData={programsData}
             batchesList={batchesList}
             selectedOldBatchId={selectedOldBatchId}
@@ -1008,60 +1008,15 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
             onOpenProgramDetail={(prog) => {
               setSelectedProgramDetail(prog);
               setIsProgramModalOpen(true);
-            }}
-            onOpenCreateBatch={() => {
-              setNewBatchName("");
-              setNewBatchStatus("draft");
-              setSelectedProgramIdsForBatch(
-                programsData?.programs?.map((p: any) => p.id) || []
-              );
-              setCustomProgramInput("");
-              setIsCreateBatchModalOpen(true);
-            }}
-            onOpenBatchDetail={(b) => {
-              setSelectedBatchForDetail(b);
-              setIsBatchDetailModalOpen(true);
-            }}
-            onOpenEditBatch={(b) => {
-              setSelectedBatchForEdit(b);
-              setEditBatchName(b.name);
-              setEditBatchIncludedProgramIds(
-                b.includedProgramIds || b.includedPrograms?.map((p: any) => p.id) || []
-              );
-              setEditBatchStartDate(
-                b.startDate ? new Date(b.startDate).toISOString().split("T")[0] : ""
-              );
-              setEditBatchEndDate(
-                b.endDate ? new Date(b.endDate).toISOString().split("T")[0] : ""
-              );
-              setIsEditBatchModalOpen(true);
-            }}
-            onActivateBatch={triggerActivateBatchConfirm}
-            onOpenMentorMatrix={(b) => {
-              setSelectedBatchForMatrix(b);
-              const initialMatrix: Record<string, string[]> = {};
-              b.includedPrograms?.forEach((prog: any) => {
-                initialMatrix[prog.id] = prog.mentors?.map((m: any) => m.id) || [];
-              });
-              setMatrixProgramMentors(initialMatrix);
-              setIsMentorMatrixModalOpen(true);
             }}
           />
         </TabsContent>
 
         {/* ──────── TAB 3: ANGKATAN / BATCH ──────── */}
         <TabsContent value="batches" className="space-y-6 outline-hidden">
-          <AdminAcademicManagement
-            isLoadingPrograms={isLoadingPrograms}
+          <AdminBatchesList
             isLoadingBatches={isLoadingBatches}
-            programsData={programsData}
             batchesList={batchesList}
-            selectedOldBatchId={selectedOldBatchId}
-            setSelectedOldBatchId={setSelectedOldBatchId}
-            onOpenProgramDetail={(prog) => {
-              setSelectedProgramDetail(prog);
-              setIsProgramModalOpen(true);
-            }}
             onOpenCreateBatch={() => {
               setNewBatchName("");
               setNewBatchStatus("draft");
