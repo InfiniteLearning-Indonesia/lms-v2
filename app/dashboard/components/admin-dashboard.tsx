@@ -1256,7 +1256,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
       </AnimatePresence>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-8 min-h-14 p-1.5 bg-secondary border border-border rounded-lg">
+        <TabsList className="grid w-full grid-cols-5 mb-8 min-h-14 p-1.5 bg-secondary border border-border rounded-lg">
           <TabsTrigger value="users" className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md">
             <Users className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Pengguna</span>

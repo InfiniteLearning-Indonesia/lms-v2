@@ -10,17 +10,17 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_dashboard_class_classid_assignment_assignmentid_page",
-      "community": 4,
+      "community": 0,
       "norm_label": "page.tsx"
     },
     {
       "label": "AssignmentDetailPage()",
       "file_type": "code",
       "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
-      "source_location": "L14",
+      "source_location": "L17",
       "_origin": "ast",
       "id": "app_dashboard_class_classid_assignment_assignmentid_page_assignmentdetailpage",
-      "community": 4,
+      "community": 0,
       "norm_label": "assignmentdetailpage()"
     },
     {
@@ -37,7 +37,7 @@
       "label": "MaterialDetailPage()",
       "file_type": "code",
       "source_file": "app/dashboard/class/[classId]/material/[materialId]/page.tsx",
-      "source_location": "L10",
+      "source_location": "L11",
       "_origin": "ast",
       "id": "app_dashboard_class_classid_material_materialid_page_materialdetailpage",
       "community": 4,
@@ -50,18 +50,88 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_dashboard_class_classid_page",
-      "community": 4,
+      "community": 0,
       "norm_label": "page.tsx"
     },
     {
       "label": "ClassDetailPage()",
       "file_type": "code",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
-      "source_location": "L21",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "app_dashboard_class_classid_page_classdetailpage",
-      "community": 4,
+      "community": 0,
       "norm_label": "classdetailpage()"
+    },
+    {
+      "label": "page.tsx",
+      "file_type": "code",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_dashboard_competency_competencyid_rubric_page",
+      "community": 4,
+      "norm_label": "page.tsx"
+    },
+    {
+      "label": "Level",
+      "file_type": "code",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "app_dashboard_competency_competencyid_rubric_page_level",
+      "community": 4,
+      "norm_label": "level"
+    },
+    {
+      "label": "Criterion",
+      "file_type": "code",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "app_dashboard_competency_competencyid_rubric_page_criterion",
+      "community": 4,
+      "norm_label": "criterion"
+    },
+    {
+      "label": "Rubric",
+      "file_type": "code",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L24",
+      "_origin": "ast",
+      "id": "app_dashboard_competency_competencyid_rubric_page_rubric",
+      "community": 4,
+      "norm_label": "rubric"
+    },
+    {
+      "label": "AssignmentRubricPage()",
+      "file_type": "code",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "app_dashboard_competency_competencyid_rubric_page_assignmentrubricpage",
+      "community": 4,
+      "norm_label": "assignmentrubricpage()"
+    },
+    {
+      "label": "admin-attendance.tsx",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_dashboard_components_admin_attendance",
+      "community": 0,
+      "norm_label": "admin-attendance.tsx"
+    },
+    {
+      "label": "AdminAttendance()",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "app_dashboard_components_admin_attendance_adminattendance",
+      "community": 0,
+      "norm_label": "adminattendance()"
     },
     {
       "label": "admin-dashboard.tsx",
@@ -77,41 +147,51 @@
       "label": "UserListItem",
       "file_type": "code",
       "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L37",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "app_dashboard_components_admin_dashboard_userlistitem",
       "community": 0,
       "norm_label": "userlistitem"
     },
     {
+      "label": "AdminDashboardProps",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/admin-dashboard.tsx",
+      "source_location": "L60",
+      "_origin": "ast",
+      "id": "app_dashboard_components_admin_dashboard_admindashboardprops",
+      "community": 0,
+      "norm_label": "admindashboardprops"
+    },
+    {
       "label": "AdminDashboard()",
       "file_type": "code",
       "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L52",
+      "source_location": "L75",
       "_origin": "ast",
       "id": "app_dashboard_components_admin_dashboard_admindashboard",
       "community": 0,
       "norm_label": "admindashboard()"
     },
     {
-      "label": "admin-rules.tsx",
+      "label": "mentor-attendance.tsx",
       "file_type": "code",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "app_dashboard_components_admin_rules",
+      "id": "app_dashboard_components_mentor_attendance",
       "community": 0,
-      "norm_label": "admin-rules.tsx"
+      "norm_label": "mentor-attendance.tsx"
     },
     {
-      "label": "AdminRules()",
+      "label": "MentorAttendance()",
       "file_type": "code",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L35",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L14",
       "_origin": "ast",
-      "id": "app_dashboard_components_admin_rules_adminrules",
+      "id": "app_dashboard_components_mentor_attendance_mentorattendance",
       "community": 0,
-      "norm_label": "adminrules()"
+      "norm_label": "mentorattendance()"
     },
     {
       "label": "mentor-dashboard.tsx",
@@ -127,7 +207,7 @@
       "label": "MentorDashboardProps",
       "file_type": "code",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L43",
+      "source_location": "L68",
       "_origin": "ast",
       "id": "app_dashboard_components_mentor_dashboard_mentordashboardprops",
       "community": 0,
@@ -137,11 +217,61 @@
       "label": "MentorDashboard()",
       "file_type": "code",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L53",
+      "source_location": "L85",
       "_origin": "ast",
       "id": "app_dashboard_components_mentor_dashboard_mentordashboard",
-      "community": 0,
+      "community": 4,
       "norm_label": "mentordashboard()"
+    },
+    {
+      "label": "mentor-logbook.tsx",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_dashboard_components_mentor_logbook",
+      "community": 0,
+      "norm_label": "mentor-logbook.tsx"
+    },
+    {
+      "label": "MentorLogbook()",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "app_dashboard_components_mentor_logbook_mentorlogbook",
+      "community": 0,
+      "norm_label": "mentorlogbook()"
+    },
+    {
+      "label": "UsersIcon()",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L325",
+      "_origin": "ast",
+      "id": "app_dashboard_components_mentor_logbook_usersicon",
+      "community": 0,
+      "norm_label": "usersicon()"
+    },
+    {
+      "label": "student-attendance.tsx",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_dashboard_components_student_attendance",
+      "community": 8,
+      "norm_label": "student-attendance.tsx"
+    },
+    {
+      "label": "StudentAttendance()",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "app_dashboard_components_student_attendance_studentattendance",
+      "community": 8,
+      "norm_label": "studentattendance()"
     },
     {
       "label": "student-dashboard.tsx",
@@ -157,7 +287,7 @@
       "label": "StudentDashboardProps",
       "file_type": "code",
       "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L11",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "app_dashboard_components_student_dashboard_studentdashboardprops",
       "community": 0,
@@ -167,11 +297,41 @@
       "label": "StudentDashboard()",
       "file_type": "code",
       "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L18",
+      "source_location": "L35",
       "_origin": "ast",
       "id": "app_dashboard_components_student_dashboard_studentdashboard",
-      "community": 0,
+      "community": 4,
       "norm_label": "studentdashboard()"
+    },
+    {
+      "label": "student-logbook.tsx",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "app_dashboard_components_student_logbook",
+      "community": 0,
+      "norm_label": "student-logbook.tsx"
+    },
+    {
+      "label": "StudentLogbook()",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "app_dashboard_components_student_logbook_studentlogbook",
+      "community": 0,
+      "norm_label": "studentlogbook()"
+    },
+    {
+      "label": "ClockIcon()",
+      "file_type": "code",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L318",
+      "_origin": "ast",
+      "id": "app_dashboard_components_student_logbook_clockicon",
+      "community": 0,
+      "norm_label": "clockicon()"
     },
     {
       "label": "page.tsx",
@@ -180,27 +340,27 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_dashboard_page",
-      "community": 0,
+      "community": 4,
       "norm_label": "page.tsx"
     },
     {
       "label": "UserProfile",
       "file_type": "code",
       "source_file": "app/dashboard/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "app_dashboard_page_userprofile",
-      "community": 0,
+      "community": 4,
       "norm_label": "userprofile"
     },
     {
       "label": "DashboardPage()",
       "file_type": "code",
       "source_file": "app/dashboard/page.tsx",
-      "source_location": "L30",
+      "source_location": "L33",
       "_origin": "ast",
       "id": "app_dashboard_page_dashboardpage",
-      "community": 0,
+      "community": 4,
       "norm_label": "dashboardpage()"
     },
     {
@@ -350,7 +510,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "app_ui_page",
-      "community": 8,
+      "community": 6,
       "norm_label": "page.tsx"
     },
     {
@@ -360,7 +520,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "app_ui_page_uishowcasepage",
-      "community": 8,
+      "community": 6,
       "norm_label": "uishowcasepage()"
     },
     {
@@ -584,6 +744,46 @@
       "norm_label": "registries"
     },
     {
+      "label": "navbar.tsx",
+      "file_type": "code",
+      "source_file": "components/navbar.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_navbar",
+      "community": 4,
+      "norm_label": "navbar.tsx"
+    },
+    {
+      "label": "UserProfile",
+      "file_type": "code",
+      "source_file": "components/navbar.tsx",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "components_navbar_userprofile",
+      "community": 4,
+      "norm_label": "userprofile"
+    },
+    {
+      "label": "NavbarProps",
+      "file_type": "code",
+      "source_file": "components/navbar.tsx",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "components_navbar_navbarprops",
+      "community": 4,
+      "norm_label": "navbarprops"
+    },
+    {
+      "label": "Navbar()",
+      "file_type": "code",
+      "source_file": "components/navbar.tsx",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "components_navbar_navbar",
+      "community": 4,
+      "norm_label": "navbar()"
+    },
+    {
       "label": "theme-provider.tsx",
       "file_type": "code",
       "source_file": "components/theme-provider.tsx",
@@ -622,6 +822,136 @@
       "id": "components_theme_toggle_themetoggle",
       "community": 4,
       "norm_label": "themetoggle()"
+    },
+    {
+      "label": "alert-dialog.tsx",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog",
+      "community": 8,
+      "norm_label": "alert-dialog.tsx"
+    },
+    {
+      "label": "AlertDialog()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L9",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialog",
+      "community": 8,
+      "norm_label": "alertdialog()"
+    },
+    {
+      "label": "AlertDialogTrigger()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogtrigger",
+      "community": 8,
+      "norm_label": "alertdialogtrigger()"
+    },
+    {
+      "label": "AlertDialogPortal()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L19",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogportal",
+      "community": 8,
+      "norm_label": "alertdialogportal()"
+    },
+    {
+      "label": "AlertDialogOverlay()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogoverlay",
+      "community": 8,
+      "norm_label": "alertdialogoverlay()"
+    },
+    {
+      "label": "AlertDialogContent()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogcontent",
+      "community": 8,
+      "norm_label": "alertdialogcontent()"
+    },
+    {
+      "label": "AlertDialogHeader()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L64",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogheader",
+      "community": 8,
+      "norm_label": "alertdialogheader()"
+    },
+    {
+      "label": "AlertDialogFooter()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogfooter",
+      "community": 8,
+      "norm_label": "alertdialogfooter()"
+    },
+    {
+      "label": "AlertDialogMedia()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L96",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogmedia",
+      "community": 8,
+      "norm_label": "alertdialogmedia()"
+    },
+    {
+      "label": "AlertDialogTitle()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L112",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogtitle",
+      "community": 8,
+      "norm_label": "alertdialogtitle()"
+    },
+    {
+      "label": "AlertDialogDescription()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L128",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogdescription",
+      "community": 8,
+      "norm_label": "alertdialogdescription()"
+    },
+    {
+      "label": "AlertDialogAction()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L144",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogaction",
+      "community": 8,
+      "norm_label": "alertdialogaction()"
+    },
+    {
+      "label": "AlertDialogCancel()",
+      "file_type": "code",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L157",
+      "_origin": "ast",
+      "id": "components_ui_alert_dialog_alertdialogcancel",
+      "community": 8,
+      "norm_label": "alertdialogcancel()"
     },
     {
       "label": "alert.tsx",
@@ -680,7 +1010,7 @@
       "source_location": "L66",
       "_origin": "ast",
       "id": "components_ui_alert_alertaction",
-      "community": 0,
+      "community": 6,
       "norm_label": "alertaction()"
     },
     {
@@ -760,7 +1090,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_badge",
-      "community": 4,
+      "community": 0,
       "norm_label": "badge.tsx"
     },
     {
@@ -770,7 +1100,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "components_ui_badge_badgevariants",
-      "community": 4,
+      "community": 0,
       "norm_label": "badgevariants"
     },
     {
@@ -780,7 +1110,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "components_ui_badge_badge",
-      "community": 4,
+      "community": 0,
       "norm_label": "badge()"
     },
     {
@@ -812,6 +1142,36 @@
       "id": "components_ui_button_button",
       "community": 8,
       "norm_label": "button()"
+    },
+    {
+      "label": "calendar.tsx",
+      "file_type": "code",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_ui_calendar",
+      "community": 8,
+      "norm_label": "calendar.tsx"
+    },
+    {
+      "label": "Calendar()",
+      "file_type": "code",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "components_ui_calendar_calendar",
+      "community": 8,
+      "norm_label": "calendar()"
+    },
+    {
+      "label": "CalendarDayButton()",
+      "file_type": "code",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L183",
+      "_origin": "ast",
+      "id": "components_ui_calendar_calendardaybutton",
+      "community": 7,
+      "norm_label": "calendardaybutton()"
     },
     {
       "label": "card.tsx",
@@ -870,7 +1230,7 @@
       "source_location": "L59",
       "_origin": "ast",
       "id": "components_ui_card_cardaction",
-      "community": 0,
+      "community": 6,
       "norm_label": "cardaction()"
     },
     {
@@ -890,8 +1250,138 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "components_ui_card_cardfooter",
-      "community": 0,
+      "community": 6,
       "norm_label": "cardfooter()"
+    },
+    {
+      "label": "chart.tsx",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_ui_chart",
+      "community": 7,
+      "norm_label": "chart.tsx"
+    },
+    {
+      "label": "THEMES",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "components_ui_chart_themes",
+      "community": 7,
+      "norm_label": "themes"
+    },
+    {
+      "label": "INITIAL_DIMENSION",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "components_ui_chart_initial_dimension",
+      "community": 7,
+      "norm_label": "initial_dimension"
+    },
+    {
+      "label": "TooltipNameType",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "components_ui_chart_tooltipnametype",
+      "community": 7,
+      "norm_label": "tooltipnametype"
+    },
+    {
+      "label": "ChartConfig",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "components_ui_chart_chartconfig",
+      "community": 7,
+      "norm_label": "chartconfig"
+    },
+    {
+      "label": "ChartContextProps",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "components_ui_chart_chartcontextprops",
+      "community": 7,
+      "norm_label": "chartcontextprops"
+    },
+    {
+      "label": "ChartContext",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L30",
+      "_origin": "ast",
+      "id": "components_ui_chart_chartcontext",
+      "community": 7,
+      "norm_label": "chartcontext"
+    },
+    {
+      "label": "useChart()",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "components_ui_chart_usechart",
+      "community": 7,
+      "norm_label": "usechart()"
+    },
+    {
+      "label": "ChartContainer()",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "components_ui_chart_chartcontainer",
+      "community": 7,
+      "norm_label": "chartcontainer()"
+    },
+    {
+      "label": "ChartStyle()",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "components_ui_chart_chartstyle",
+      "community": 7,
+      "norm_label": "chartstyle()"
+    },
+    {
+      "label": "ChartTooltipContent()",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L119",
+      "_origin": "ast",
+      "id": "components_ui_chart_charttooltipcontent",
+      "community": 7,
+      "norm_label": "charttooltipcontent()"
+    },
+    {
+      "label": "ChartLegendContent()",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L275",
+      "_origin": "ast",
+      "id": "components_ui_chart_chartlegendcontent",
+      "community": 7,
+      "norm_label": "chartlegendcontent()"
+    },
+    {
+      "label": "getPayloadConfigFromPayload()",
+      "file_type": "code",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L330",
+      "_origin": "ast",
+      "id": "components_ui_chart_getpayloadconfigfrompayload",
+      "community": 7,
+      "norm_label": "getpayloadconfigfrompayload()"
     },
     {
       "label": "checkbox.tsx",
@@ -900,7 +1390,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_checkbox",
-      "community": 11,
+      "community": 6,
       "norm_label": "checkbox.tsx"
     },
     {
@@ -910,7 +1400,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "components_ui_checkbox_checkbox",
-      "community": 11,
+      "community": 6,
       "norm_label": "checkbox()"
     },
     {
@@ -920,7 +1410,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_dialog",
-      "community": 8,
+      "community": 0,
       "norm_label": "dialog.tsx"
     },
     {
@@ -930,7 +1420,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "components_ui_dialog_dialog",
-      "community": 8,
+      "community": 0,
       "norm_label": "dialog()"
     },
     {
@@ -940,7 +1430,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogtrigger",
-      "community": 8,
+      "community": 6,
       "norm_label": "dialogtrigger()"
     },
     {
@@ -950,7 +1440,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogportal",
-      "community": 8,
+      "community": 0,
       "norm_label": "dialogportal()"
     },
     {
@@ -960,7 +1450,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogclose",
-      "community": 8,
+      "community": 0,
       "norm_label": "dialogclose()"
     },
     {
@@ -970,7 +1460,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogoverlay",
-      "community": 6,
+      "community": 0,
       "norm_label": "dialogoverlay()"
     },
     {
@@ -980,7 +1470,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogcontent",
-      "community": 8,
+      "community": 0,
       "norm_label": "dialogcontent()"
     },
     {
@@ -990,7 +1480,7 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogheader",
-      "community": 8,
+      "community": 0,
       "norm_label": "dialogheader()"
     },
     {
@@ -1000,7 +1490,7 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogfooter",
-      "community": 8,
+      "community": 0,
       "norm_label": "dialogfooter()"
     },
     {
@@ -1010,7 +1500,7 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogtitle",
-      "community": 8,
+      "community": 0,
       "norm_label": "dialogtitle()"
     },
     {
@@ -1020,7 +1510,7 @@
       "source_location": "L133",
       "_origin": "ast",
       "id": "components_ui_dialog_dialogdescription",
-      "community": 8,
+      "community": 0,
       "norm_label": "dialogdescription()"
     },
     {
@@ -1030,7 +1520,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdown-menu.tsx"
     },
     {
@@ -1040,7 +1530,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenu",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenu()"
     },
     {
@@ -1050,7 +1540,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenuportal",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenuportal()"
     },
     {
@@ -1060,7 +1550,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenutrigger",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenutrigger()"
     },
     {
@@ -1070,7 +1560,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenucontent",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenucontent()"
     },
     {
@@ -1080,7 +1570,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenugroup",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenugroup()"
     },
     {
@@ -1090,7 +1580,7 @@
       "source_location": "L56",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenulabel",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenulabel()"
     },
     {
@@ -1100,7 +1590,7 @@
       "source_location": "L76",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenuitem",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenuitem()"
     },
     {
@@ -1110,7 +1600,7 @@
       "source_location": "L99",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenusub",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenusub()"
     },
     {
@@ -1120,7 +1610,7 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenusubtrigger",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenusubtrigger()"
     },
     {
@@ -1130,7 +1620,7 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenusubcontent",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenusubcontent()"
     },
     {
@@ -1140,7 +1630,7 @@
       "source_location": "L148",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenucheckboxitem",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenucheckboxitem()"
     },
     {
@@ -1150,7 +1640,7 @@
       "source_location": "L182",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenuradiogroup",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenuradiogroup()"
     },
     {
@@ -1160,7 +1650,7 @@
       "source_location": "L191",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenuradioitem",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenuradioitem()"
     },
     {
@@ -1170,7 +1660,7 @@
       "source_location": "L223",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenuseparator",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenuseparator()"
     },
     {
@@ -1180,7 +1670,7 @@
       "source_location": "L236",
       "_origin": "ast",
       "id": "components_ui_dropdown_menu_dropdownmenushortcut",
-      "community": 7,
+      "community": 6,
       "norm_label": "dropdownmenushortcut()"
     },
     {
@@ -1210,7 +1700,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_label",
-      "community": 4,
+      "community": 6,
       "norm_label": "label.tsx"
     },
     {
@@ -1220,7 +1710,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "components_ui_label_label",
-      "community": 4,
+      "community": 6,
       "norm_label": "label()"
     },
     {
@@ -1314,13 +1804,113 @@
       "norm_label": "scrollbar()"
     },
     {
+      "label": "select.tsx",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_ui_select",
+      "community": 6,
+      "norm_label": "select.tsx"
+    },
+    {
+      "label": "SelectGroup()",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "components_ui_select_selectgroup",
+      "community": 6,
+      "norm_label": "selectgroup()"
+    },
+    {
+      "label": "SelectValue()",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "components_ui_select_selectvalue",
+      "community": 6,
+      "norm_label": "selectvalue()"
+    },
+    {
+      "label": "SelectTrigger()",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "components_ui_select_selecttrigger",
+      "community": 6,
+      "norm_label": "selecttrigger()"
+    },
+    {
+      "label": "SelectContent()",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "components_ui_select_selectcontent",
+      "community": 6,
+      "norm_label": "selectcontent()"
+    },
+    {
+      "label": "SelectLabel()",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L98",
+      "_origin": "ast",
+      "id": "components_ui_select_selectlabel",
+      "community": 6,
+      "norm_label": "selectlabel()"
+    },
+    {
+      "label": "SelectItem()",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L111",
+      "_origin": "ast",
+      "id": "components_ui_select_selectitem",
+      "community": 6,
+      "norm_label": "selectitem()"
+    },
+    {
+      "label": "SelectSeparator()",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L139",
+      "_origin": "ast",
+      "id": "components_ui_select_selectseparator",
+      "community": 6,
+      "norm_label": "selectseparator()"
+    },
+    {
+      "label": "SelectScrollUpButton()",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L152",
+      "_origin": "ast",
+      "id": "components_ui_select_selectscrollupbutton",
+      "community": 6,
+      "norm_label": "selectscrollupbutton()"
+    },
+    {
+      "label": "SelectScrollDownButton()",
+      "file_type": "code",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L171",
+      "_origin": "ast",
+      "id": "components_ui_select_selectscrolldownbutton",
+      "community": 6,
+      "norm_label": "selectscrolldownbutton()"
+    },
+    {
       "label": "sheet.tsx",
       "file_type": "code",
       "source_file": "components/ui/sheet.tsx",
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_sheet",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheet.tsx"
     },
     {
@@ -1330,7 +1920,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "components_ui_sheet_sheet",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheet()"
     },
     {
@@ -1340,7 +1930,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "components_ui_sheet_sheettrigger",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheettrigger()"
     },
     {
@@ -1350,7 +1940,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "components_ui_sheet_sheetclose",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheetclose()"
     },
     {
@@ -1360,7 +1950,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "components_ui_sheet_sheetportal",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheetportal()"
     },
     {
@@ -1370,7 +1960,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "components_ui_sheet_sheetoverlay",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheetoverlay()"
     },
     {
@@ -1380,7 +1970,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "components_ui_sheet_sheetcontent",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheetcontent()"
     },
     {
@@ -1390,7 +1980,7 @@
       "source_location": "L83",
       "_origin": "ast",
       "id": "components_ui_sheet_sheetheader",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheetheader()"
     },
     {
@@ -1400,7 +1990,7 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "components_ui_sheet_sheetfooter",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheetfooter()"
     },
     {
@@ -1410,7 +2000,7 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "components_ui_sheet_sheettitle",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheettitle()"
     },
     {
@@ -1420,7 +2010,7 @@
       "source_location": "L116",
       "_origin": "ast",
       "id": "components_ui_sheet_sheetdescription",
-      "community": 10,
+      "community": 6,
       "norm_label": "sheetdescription()"
     },
     {
@@ -1430,7 +2020,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_skeleton",
-      "community": 11,
+      "community": 6,
       "norm_label": "skeleton.tsx"
     },
     {
@@ -1440,7 +2030,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "components_ui_skeleton_skeleton",
-      "community": 11,
+      "community": 6,
       "norm_label": "skeleton()"
     },
     {
@@ -1470,7 +2060,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_switch",
-      "community": 11,
+      "community": 6,
       "norm_label": "switch.tsx"
     },
     {
@@ -1480,7 +2070,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "components_ui_switch_switch",
-      "community": 11,
+      "community": 6,
       "norm_label": "switch()"
     },
     {
@@ -1544,13 +2134,33 @@
       "norm_label": "tabscontent()"
     },
     {
+      "label": "textarea.tsx",
+      "file_type": "code",
+      "source_file": "components/ui/textarea.tsx",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "components_ui_textarea",
+      "community": 6,
+      "norm_label": "textarea.tsx"
+    },
+    {
+      "label": "Textarea()",
+      "file_type": "code",
+      "source_file": "components/ui/textarea.tsx",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "components_ui_textarea_textarea",
+      "community": 6,
+      "norm_label": "textarea()"
+    },
+    {
       "label": "tooltip.tsx",
       "file_type": "code",
       "source_file": "components/ui/tooltip.tsx",
       "source_location": "L1",
       "_origin": "ast",
       "id": "components_ui_tooltip",
-      "community": 9,
+      "community": 6,
       "norm_label": "tooltip.tsx"
     },
     {
@@ -1570,7 +2180,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "components_ui_tooltip_tooltip",
-      "community": 9,
+      "community": 6,
       "norm_label": "tooltip()"
     },
     {
@@ -1580,7 +2190,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "components_ui_tooltip_tooltiptrigger",
-      "community": 9,
+      "community": 6,
       "norm_label": "tooltiptrigger()"
     },
     {
@@ -1590,7 +2200,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "components_ui_tooltip_tooltipcontent",
-      "community": 9,
+      "community": 6,
       "norm_label": "tooltipcontent()"
     },
     {
@@ -1620,7 +2230,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "lib_utils",
-      "community": 11,
+      "community": 8,
       "norm_label": "utils.ts"
     },
     {
@@ -1900,7 +2510,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "package_dependencies_react",
-      "community": 2,
+      "community": 7,
       "norm_label": "react"
     },
     {
@@ -1910,7 +2520,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "react",
-      "community": 2,
+      "community": 7,
       "norm_label": "react"
     },
     {
@@ -2512,6 +3122,526 @@
       "id": "ref_node_modules",
       "community": 1,
       "norm_label": "node_modules"
+    },
+    {
+      "label": "graphify.md",
+      "file_type": "document",
+      "source_file": ".agents/rules/graphify.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents_rules_graphify",
+      "community": 20,
+      "norm_label": "graphify.md"
+    },
+    {
+      "label": "graphify",
+      "file_type": "document",
+      "source_file": ".agents/rules/graphify.md",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "agents_rules_graphify_graphify",
+      "community": 20,
+      "norm_label": "graphify"
+    },
+    {
+      "label": "SKILL.md",
+      "file_type": "document",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents_skills_frontend_design_skill",
+      "community": 15,
+      "norm_label": "skill.md"
+    },
+    {
+      "label": "Frontend Design",
+      "file_type": "document",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "agents_skills_frontend_design_skill_frontend_design",
+      "community": 15,
+      "norm_label": "frontend design"
+    },
+    {
+      "label": "Ground it in the subject",
+      "file_type": "document",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L11",
+      "_origin": "ast",
+      "id": "agents_skills_frontend_design_skill_ground_it_in_the_subject",
+      "community": 15,
+      "norm_label": "ground it in the subject"
+    },
+    {
+      "label": "Design principles",
+      "file_type": "document",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "agents_skills_frontend_design_skill_design_principles",
+      "community": 15,
+      "norm_label": "design principles"
+    },
+    {
+      "label": "Process: brainstorm, explore, plan, critique, build, critique again",
+      "file_type": "document",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L29",
+      "_origin": "ast",
+      "id": "agents_skills_frontend_design_skill_process_brainstorm_explore_plan_critique_build_critique_again",
+      "community": 15,
+      "norm_label": "process: brainstorm, explore, plan, critique, build, critique again"
+    },
+    {
+      "label": "Restraint and self-critique",
+      "file_type": "document",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "agents_skills_frontend_design_skill_restraint_and_self_critique",
+      "community": 15,
+      "norm_label": "restraint and self-critique"
+    },
+    {
+      "label": "More on writing in design",
+      "file_type": "document",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "agents_skills_frontend_design_skill_more_on_writing_in_design",
+      "community": 15,
+      "norm_label": "more on writing in design"
+    },
+    {
+      "label": "SKILL.md",
+      "file_type": "document",
+      "source_file": ".agents/skills/web-design-guidelines/SKILL.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents_skills_web_design_guidelines_skill",
+      "community": 16,
+      "norm_label": "skill.md"
+    },
+    {
+      "label": "Web Interface Guidelines",
+      "file_type": "document",
+      "source_file": ".agents/skills/web-design-guidelines/SKILL.md",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "agents_skills_web_design_guidelines_skill_web_interface_guidelines",
+      "community": 16,
+      "norm_label": "web interface guidelines"
+    },
+    {
+      "label": "How It Works",
+      "file_type": "document",
+      "source_file": ".agents/skills/web-design-guidelines/SKILL.md",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "agents_skills_web_design_guidelines_skill_how_it_works",
+      "community": 16,
+      "norm_label": "how it works"
+    },
+    {
+      "label": "Guidelines Source",
+      "file_type": "document",
+      "source_file": ".agents/skills/web-design-guidelines/SKILL.md",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "agents_skills_web_design_guidelines_skill_guidelines_source",
+      "community": 16,
+      "norm_label": "guidelines source"
+    },
+    {
+      "label": "Usage",
+      "file_type": "document",
+      "source_file": ".agents/skills/web-design-guidelines/SKILL.md",
+      "source_location": "L31",
+      "_origin": "ast",
+      "id": "agents_skills_web_design_guidelines_skill_usage",
+      "community": 16,
+      "norm_label": "usage"
+    },
+    {
+      "label": "graphify.md",
+      "file_type": "document",
+      "source_file": ".agents/workflows/graphify.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents_workflows_graphify",
+      "community": 21,
+      "norm_label": "graphify.md"
+    },
+    {
+      "label": "Workflow: graphify",
+      "file_type": "document",
+      "source_file": ".agents/workflows/graphify.md",
+      "source_location": "L6",
+      "_origin": "ast",
+      "id": "agents_workflows_graphify_workflow_graphify",
+      "community": 21,
+      "norm_label": "workflow: graphify"
+    },
+    {
+      "label": "AGENTS.md",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "agents",
+      "community": 19,
+      "norm_label": "agents.md"
+    },
+    {
+      "label": "This is NOT the Next.js you know",
+      "file_type": "document",
+      "source_file": "AGENTS.md",
+      "source_location": "L2",
+      "_origin": "ast",
+      "id": "agents_this_is_not_the_next_js_you_know",
+      "community": 19,
+      "norm_label": "this is not the next.js you know"
+    },
+    {
+      "label": "CLAUDE.md",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "claude",
+      "community": 22,
+      "norm_label": "claude.md"
+    },
+    {
+      "label": "DESIGN.MD",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "design",
+      "community": 10,
+      "norm_label": "design.md"
+    },
+    {
+      "label": "Infinite Learning LMS v2 - Design System & Guide (DESIGN.MD)",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "design_infinite_learning_lms_v2_design_system_guide_design_md",
+      "community": 10,
+      "norm_label": "infinite learning lms v2 - design system & guide (design.md)"
+    },
+    {
+      "label": "1. Filosofi Desain",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "design_1_filosofi_desain",
+      "community": 10,
+      "norm_label": "1. filosofi desain"
+    },
+    {
+      "label": "2. Panduan Gaya (Style Guide)",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "design_2_panduan_gaya_style_guide",
+      "community": 10,
+      "norm_label": "2. panduan gaya (style guide)"
+    },
+    {
+      "label": "A. Tipografi",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "design_a_tipografi",
+      "community": 10,
+      "norm_label": "a. tipografi"
+    },
+    {
+      "label": "B. Palet Warna (Color Palette)",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "design_b_palet_warna_color_palette",
+      "community": 10,
+      "norm_label": "b. palet warna (color palette)"
+    },
+    {
+      "label": "3. Komponen Desain & Spesifikasi",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L39",
+      "_origin": "ast",
+      "id": "design_3_komponen_desain_spesifikasi",
+      "community": 10,
+      "norm_label": "3. komponen desain & spesifikasi"
+    },
+    {
+      "label": "A. Tombol (Buttons)",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L41",
+      "_origin": "ast",
+      "id": "design_a_tombol_buttons",
+      "community": 10,
+      "norm_label": "a. tombol (buttons)"
+    },
+    {
+      "label": "B. Bidang Isian Form (Inputs & Labels)",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "design_b_bidang_isian_form_inputs_labels",
+      "community": 10,
+      "norm_label": "b. bidang isian form (inputs & labels)"
+    },
+    {
+      "label": "C. Tabel Pengguna (CRUD Table)",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L57",
+      "_origin": "ast",
+      "id": "design_c_tabel_pengguna_crud_table",
+      "community": 10,
+      "norm_label": "c. tabel pengguna (crud table)"
+    },
+    {
+      "label": "D. Dialog Konfirmasi (Custom Alert Dialog)",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L62",
+      "_origin": "ast",
+      "id": "design_d_dialog_konfirmasi_custom_alert_dialog",
+      "community": 10,
+      "norm_label": "d. dialog konfirmasi (custom alert dialog)"
+    },
+    {
+      "label": "4. Struktur & Aturan Tata Letak Halaman",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L68",
+      "_origin": "ast",
+      "id": "design_4_struktur_aturan_tata_letak_halaman",
+      "community": 10,
+      "norm_label": "4. struktur & aturan tata letak halaman"
+    },
+    {
+      "label": "A. Landing Page",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L70",
+      "_origin": "ast",
+      "id": "design_a_landing_page",
+      "community": 10,
+      "norm_label": "a. landing page"
+    },
+    {
+      "label": "B. Login Page",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L74",
+      "_origin": "ast",
+      "id": "design_b_login_page",
+      "community": 10,
+      "norm_label": "b. login page"
+    },
+    {
+      "label": "C. Dasbor Admin (Dashboard)",
+      "file_type": "document",
+      "source_file": "DESIGN.MD",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "design_c_dasbor_admin_dashboard",
+      "community": 10,
+      "norm_label": "c. dasbor admin (dashboard)"
+    },
+    {
+      "label": "Graphify_Tutorial.MD",
+      "file_type": "document",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "graphify_tutorial",
+      "community": 11,
+      "norm_label": "graphify_tutorial.md"
+    },
+    {
+      "label": "\ud83d\ude80 Tutorial Graphify \u2014 Tim Frontend (LMS V2)",
+      "file_type": "document",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "graphify_tutorial_tutorial_graphify_tim_frontend_lms_v2",
+      "community": 11,
+      "norm_label": "\ud83d\ude80 tutorial graphify \u2014 tim frontend (lms v2)"
+    },
+    {
+      "label": "\ud83d\udccb Persyaratan Awal (Prerequisites)",
+      "file_type": "document",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "graphify_tutorial_persyaratan_awal_prerequisites",
+      "community": 11,
+      "norm_label": "\ud83d\udccb persyaratan awal (prerequisites)"
+    },
+    {
+      "label": "\ud83d\udee0\ufe0f Langkah Instalasi (Satu Kali Saja)",
+      "file_type": "document",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "graphify_tutorial_langkah_instalasi_satu_kali_saja",
+      "community": 11,
+      "norm_label": "\ud83d\udee0\ufe0f langkah instalasi (satu kali saja)"
+    },
+    {
+      "label": "\ud83d\udd04 Cara Melanjutkan & Memperbarui Grafik",
+      "file_type": "document",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L47",
+      "_origin": "ast",
+      "id": "graphify_tutorial_cara_melanjutkan_memperbarui_grafik",
+      "community": 11,
+      "norm_label": "\ud83d\udd04 cara melanjutkan & memperbarui grafik"
+    },
+    {
+      "label": "Metode 1: Lewat Chat Google Antigravity (Rekomendasi)",
+      "file_type": "document",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L53",
+      "_origin": "ast",
+      "id": "graphify_tutorial_metode_1_lewat_chat_google_antigravity_rekomendasi",
+      "community": 11,
+      "norm_label": "metode 1: lewat chat google antigravity (rekomendasi)"
+    },
+    {
+      "label": "Metode 2: Lewat Terminal CLI (Headless / Offline)",
+      "file_type": "document",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "graphify_tutorial_metode_2_lewat_terminal_cli_headless_offline",
+      "community": 11,
+      "norm_label": "metode 2: lewat terminal cli (headless / offline)"
+    },
+    {
+      "label": "\ud83d\udd0d Cara Bertanya & Kueri Grafik",
+      "file_type": "document",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L67",
+      "_origin": "ast",
+      "id": "graphify_tutorial_cara_bertanya_kueri_grafik",
+      "community": 11,
+      "norm_label": "\ud83d\udd0d cara bertanya & kueri grafik"
+    },
+    {
+      "label": "\ud83d\udcca Visualisasi Interaktif",
+      "file_type": "document",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L84",
+      "_origin": "ast",
+      "id": "graphify_tutorial_visualisasi_interaktif",
+      "community": 11,
+      "norm_label": "\ud83d\udcca visualisasi interaktif"
+    },
+    {
+      "label": "README.md",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "readme",
+      "community": 18,
+      "norm_label": "readme.md"
+    },
+    {
+      "label": "Getting Started",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L3",
+      "_origin": "ast",
+      "id": "readme_getting_started",
+      "community": 18,
+      "norm_label": "getting started"
+    },
+    {
+      "label": "Learn More",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "readme_learn_more",
+      "community": 18,
+      "norm_label": "learn more"
+    },
+    {
+      "label": "Deploy on Vercel",
+      "file_type": "document",
+      "source_file": "README.md",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "readme_deploy_on_vercel",
+      "community": 18,
+      "norm_label": "deploy on vercel"
+    },
+    {
+      "label": "query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "file_type": "document",
+      "source_file": "graphify-out/memory/query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb",
+      "community": 17,
+      "norm_label": "query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md"
+    },
+    {
+      "label": "Q: komponen apa saja yang dipakai untuk merender dasbor admin?",
+      "file_type": "document",
+      "source_file": "graphify-out/memory/query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "source_location": "L10",
+      "_origin": "ast",
+      "id": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_q_komponen_apa_saja_yang_dipakai_untuk_merender_dasbor_admin",
+      "community": 17,
+      "norm_label": "q: komponen apa saja yang dipakai untuk merender dasbor admin?"
+    },
+    {
+      "label": "Answer",
+      "file_type": "document",
+      "source_file": "graphify-out/memory/query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "source_location": "L12",
+      "_origin": "ast",
+      "id": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_answer",
+      "community": 17,
+      "norm_label": "answer"
+    },
+    {
+      "label": "Outcome",
+      "file_type": "document",
+      "source_file": "graphify-out/memory/query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "source_location": "L23",
+      "_origin": "ast",
+      "id": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_outcome",
+      "community": 17,
+      "norm_label": "outcome"
+    },
+    {
+      "label": "Source Nodes",
+      "file_type": "document",
+      "source_file": "graphify-out/memory/query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "source_location": "L27",
+      "_origin": "ast",
+      "id": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_source_nodes",
+      "community": 17,
+      "norm_label": "source nodes"
     }
   ],
   "links": [
@@ -2519,10 +3649,32 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
-      "source_location": "L14",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_assignment_assignmentid_page",
       "target": "app_dashboard_class_classid_assignment_assignmentid_page_assignmentdetailpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_navbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_navbar_navbar",
       "confidence_score": 1.0
     },
     {
@@ -2633,6 +3785,72 @@
       "weight": 1.0,
       "source": "app_dashboard_class_classid_assignment_assignmentid_page",
       "target": "components_ui_button_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_ui_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_ui_dialog_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_ui_dialog_dialogcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_ui_dialog_dialogdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_ui_dialog_dialogheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_ui_dialog_dialogtitle",
       "confidence_score": 1.0
     },
     {
@@ -2680,10 +3898,32 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_ui_textarea",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/assignment/[assignmentId]/page.tsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_assignment_assignmentid_page",
+      "target": "components_ui_textarea_textarea",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/material/[materialId]/page.tsx",
-      "source_location": "L10",
+      "source_location": "L11",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_material_materialid_page",
       "target": "app_dashboard_class_classid_material_materialid_page_materialdetailpage",
@@ -2694,6 +3934,28 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/material/[materialId]/page.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_material_materialid_page",
+      "target": "components_navbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/material/[materialId]/page.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_material_materialid_page",
+      "target": "components_navbar_navbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/material/[materialId]/page.tsx",
       "source_location": "L6",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_material_materialid_page",
@@ -2737,7 +3999,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
-      "source_location": "L21",
+      "source_location": "L24",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_page",
       "target": "app_dashboard_class_classid_page_classdetailpage",
@@ -2748,6 +4010,28 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_page",
+      "target": "components_navbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/page.tsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_page",
+      "target": "components_navbar_navbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/page.tsx",
       "source_location": "L6",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_page",
@@ -2770,7 +4054,51 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
-      "source_location": "L19",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_page",
+      "target": "components_ui_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/page.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_page",
+      "target": "components_ui_alert_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/page.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_page",
+      "target": "components_ui_alert_alertdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/page.tsx",
+      "source_location": "L22",
+      "weight": 1.0,
+      "source": "app_dashboard_class_classid_page",
+      "target": "components_ui_alert_alerttitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/class/[classId]/page.tsx",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_page",
       "target": "components_ui_badge",
@@ -2781,7 +4109,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_page",
       "target": "components_ui_badge_badge",
@@ -2792,7 +4120,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_page",
       "target": "components_ui_tabs",
@@ -2803,7 +4131,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_page",
       "target": "components_ui_tabs_tabs",
@@ -2814,7 +4142,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_page",
       "target": "components_ui_tabs_tabscontent",
@@ -2825,7 +4153,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_page",
       "target": "components_ui_tabs_tabslist",
@@ -2836,7 +4164,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/class/[classId]/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "app_dashboard_class_classid_page",
       "target": "components_ui_tabs_tabstrigger",
@@ -2845,8 +4173,476 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "app_dashboard_competency_competencyid_rubric_page_assignmentrubricpage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "app_dashboard_competency_competencyid_rubric_page_criterion",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "app_dashboard_competency_competencyid_rubric_page_level",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L24",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "app_dashboard_competency_competencyid_rubric_page_rubric",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "components_theme_toggle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "components_theme_toggle_themetoggle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "components_ui_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "components_ui_button_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "components_ui_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/competency/[competencyId]/rubric/page.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_competency_competencyid_rubric_page",
+      "target": "components_ui_input_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "app_dashboard_components_admin_attendance_adminattendance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_alert_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_alert_alertdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_alert_alerttitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_badge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_badge_badge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_calendar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_calendar_calendar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_card_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_card_cardcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_card_carddescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_card_cardheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_card_cardtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_chart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_chart_chartcontainer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_chart_charttooltipcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_dialog_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_dialog_dialogcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_dialog_dialogdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_dialog_dialogheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_dialog_dialogtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_input_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_select",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_select_selectcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_select_selectitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_select_selecttrigger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-attendance.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_attendance",
+      "target": "components_ui_select_selectvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L52",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_dashboard",
+      "target": "app_dashboard_components_admin_attendance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-dashboard.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_dashboard",
+      "target": "app_dashboard_components_admin_attendance_adminattendance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-dashboard.tsx",
+      "source_location": "L75",
       "weight": 1.0,
       "source": "app_dashboard_components_admin_dashboard",
       "target": "app_dashboard_components_admin_dashboard_admindashboard",
@@ -2856,7 +4652,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L37",
+      "source_location": "L60",
+      "weight": 1.0,
+      "source": "app_dashboard_components_admin_dashboard",
+      "target": "app_dashboard_components_admin_dashboard_admindashboardprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/admin-dashboard.tsx",
+      "source_location": "L43",
       "weight": 1.0,
       "source": "app_dashboard_components_admin_dashboard",
       "target": "app_dashboard_components_admin_dashboard_userlistitem",
@@ -2867,29 +4673,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L35",
-      "weight": 1.0,
-      "source": "app_dashboard_components_admin_dashboard",
-      "target": "app_dashboard_components_admin_rules",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L35",
-      "weight": 1.0,
-      "source": "app_dashboard_components_admin_dashboard",
-      "target": "app_dashboard_components_admin_rules_adminrules",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L34",
+      "source_location": "L41",
       "weight": 1.0,
       "source": "app_dashboard_components_admin_dashboard",
       "target": "components_ui_tabs",
@@ -2900,7 +4684,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L34",
+      "source_location": "L41",
       "weight": 1.0,
       "source": "app_dashboard_components_admin_dashboard",
       "target": "components_ui_tabs_tabs",
@@ -2911,7 +4695,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L34",
+      "source_location": "L41",
       "weight": 1.0,
       "source": "app_dashboard_components_admin_dashboard",
       "target": "components_ui_tabs_tabscontent",
@@ -2922,7 +4706,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L34",
+      "source_location": "L41",
       "weight": 1.0,
       "source": "app_dashboard_components_admin_dashboard",
       "target": "components_ui_tabs_tabslist",
@@ -2933,7 +4717,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/admin-dashboard.tsx",
-      "source_location": "L34",
+      "source_location": "L41",
       "weight": 1.0,
       "source": "app_dashboard_components_admin_dashboard",
       "target": "components_ui_tabs_tabstrigger",
@@ -2944,7 +4728,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/page.tsx",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "app_dashboard_page",
       "target": "app_dashboard_components_admin_dashboard",
@@ -2955,7 +4739,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/page.tsx",
-      "source_location": "L16",
+      "source_location": "L17",
       "weight": 1.0,
       "source": "app_dashboard_page",
       "target": "app_dashboard_components_admin_dashboard_admindashboard",
@@ -2964,21 +4748,65 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L35",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L14",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
-      "target": "app_dashboard_components_admin_rules_adminrules",
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "app_dashboard_components_mentor_attendance_mentorattendance",
       "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L31",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L5",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_alert_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_alert_alertdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_alert_alerttitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_badge",
       "confidence_score": 1.0
     },
@@ -2986,10 +4814,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L31",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L7",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_badge_badge",
       "confidence_score": 1.0
     },
@@ -2997,10 +4825,10 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L32",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L4",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_button",
       "confidence_score": 1.0
     },
@@ -3008,10 +4836,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L32",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L4",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_button_button",
       "confidence_score": 1.0
     },
@@ -3019,10 +4847,32 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L30",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L8",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_calendar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_calendar_calendar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_card",
       "confidence_score": 1.0
     },
@@ -3030,10 +4880,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L30",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L3",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_card_card",
       "confidence_score": 1.0
     },
@@ -3041,10 +4891,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L30",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L3",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_card_cardcontent",
       "confidence_score": 1.0
     },
@@ -3052,10 +4902,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L30",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L3",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_card_carddescription",
       "confidence_score": 1.0
     },
@@ -3063,10 +4913,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L30",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L3",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_card_cardheader",
       "confidence_score": 1.0
     },
@@ -3074,10 +4924,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L30",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L3",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
+      "source": "app_dashboard_components_mentor_attendance",
       "target": "components_ui_card_cardtitle",
       "confidence_score": 1.0
     },
@@ -3085,29 +4935,194 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L33",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L11",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
-      "target": "components_ui_input",
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_chart",
       "confidence_score": 1.0
     },
     {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/admin-rules.tsx",
-      "source_location": "L33",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L11",
       "weight": 1.0,
-      "source": "app_dashboard_components_admin_rules",
-      "target": "components_ui_input_input",
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_chart_chartcontainer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_chart_charttooltipcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_dialog_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_dialog_dialogcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_dialog_dialogdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_dialog_dialogfooter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_dialog_dialogheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_dialog_dialogtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_select",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_select_selectcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_select_selectitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_select_selecttrigger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-attendance.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_attendance",
+      "target": "components_ui_select_selectvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "app_dashboard_components_mentor_attendance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "app_dashboard_components_mentor_attendance_mentorattendance",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L53",
+      "source_location": "L85",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "app_dashboard_components_mentor_dashboard_mentordashboard",
@@ -3117,7 +5132,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L43",
+      "source_location": "L68",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "app_dashboard_components_mentor_dashboard_mentordashboardprops",
@@ -3128,7 +5143,29 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L37",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "app_dashboard_components_mentor_logbook",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "app_dashboard_components_mentor_logbook_mentorlogbook",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L53",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_alert",
@@ -3139,7 +5176,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L37",
+      "source_location": "L53",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_alert_alert",
@@ -3150,7 +5187,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L37",
+      "source_location": "L53",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_alert_alertdescription",
@@ -3161,7 +5198,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L37",
+      "source_location": "L53",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_alert_alerttitle",
@@ -3172,7 +5209,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L38",
+      "source_location": "L54",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_badge",
@@ -3183,7 +5220,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L38",
+      "source_location": "L54",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_badge_badge",
@@ -3194,7 +5231,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L39",
+      "source_location": "L55",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_button",
@@ -3205,7 +5242,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L39",
+      "source_location": "L55",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_button_button",
@@ -3216,7 +5253,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L35",
+      "source_location": "L51",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_card",
@@ -3227,7 +5264,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L35",
+      "source_location": "L51",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_card_card",
@@ -3238,7 +5275,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L35",
+      "source_location": "L51",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_card_cardcontent",
@@ -3249,7 +5286,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L35",
+      "source_location": "L51",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_card_carddescription",
@@ -3260,7 +5297,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L35",
+      "source_location": "L51",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_card_cardheader",
@@ -3271,7 +5308,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L35",
+      "source_location": "L51",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_card_cardtitle",
@@ -3282,7 +5319,95 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L40",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "components_ui_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "components_ui_dialog_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "components_ui_dialog_dialogclose",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "components_ui_dialog_dialogcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "components_ui_dialog_dialogdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "components_ui_dialog_dialogfooter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "components_ui_dialog_dialogheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_dashboard",
+      "target": "components_ui_dialog_dialogtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-dashboard.tsx",
+      "source_location": "L56",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_input",
@@ -3293,7 +5418,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L40",
+      "source_location": "L56",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_input_input",
@@ -3304,7 +5429,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L41",
+      "source_location": "L57",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_progress",
@@ -3315,7 +5440,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L41",
+      "source_location": "L57",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_progress_progress",
@@ -3326,7 +5451,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L36",
+      "source_location": "L52",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_tabs",
@@ -3337,7 +5462,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L36",
+      "source_location": "L52",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_tabs_tabs",
@@ -3348,7 +5473,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L36",
+      "source_location": "L52",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_tabs_tabscontent",
@@ -3359,7 +5484,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L36",
+      "source_location": "L52",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
       "target": "components_ui_tabs_tabslist",
@@ -3370,9 +5495,609 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/components/mentor-dashboard.tsx",
-      "source_location": "L36",
+      "source_location": "L52",
       "weight": 1.0,
       "source": "app_dashboard_components_mentor_dashboard",
+      "target": "components_ui_tabs_tabstrigger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "app_dashboard_page",
+      "target": "app_dashboard_components_mentor_dashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/page.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "app_dashboard_page",
+      "target": "app_dashboard_components_mentor_dashboard_mentordashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "app_dashboard_components_mentor_logbook_mentorlogbook",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L325",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "app_dashboard_components_mentor_logbook_usersicon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_alert_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_alert_alertdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_alert_alerttitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_card_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_card_cardcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_card_carddescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_card_cardheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_card_cardtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/mentor-logbook.tsx",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "app_dashboard_components_mentor_logbook",
+      "target": "components_ui_input_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "app_dashboard_components_student_attendance_studentattendance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_alert_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_alert_dialog_alertdialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_alert_dialog_alertdialogaction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_alert_dialog_alertdialogcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_alert_dialog_alertdialogfooter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_calendar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_calendar_calendar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_card_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_card_cardcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_card_carddescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_card_cardheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-attendance.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_attendance",
+      "target": "components_ui_card_cardtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "app_dashboard_components_student_attendance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "app_dashboard_components_student_attendance_studentattendance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "app_dashboard_components_student_dashboard_studentdashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "app_dashboard_components_student_dashboard_studentdashboardprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "app_dashboard_components_student_logbook",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "app_dashboard_components_student_logbook_studentlogbook",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_alert_alert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_alert_alertdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_alert_alerttitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_button_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_card_card",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_card_cardcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_card_carddescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_card_cardheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_card_cardtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_input_input",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_tabs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_tabs_tabs",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_tabs_tabscontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
+      "target": "components_ui_tabs_tabslist",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-dashboard.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_dashboard",
       "target": "components_ui_tabs_tabstrigger",
       "confidence_score": 1.0
     },
@@ -3384,7 +6109,7 @@
       "source_location": "L15",
       "weight": 1.0,
       "source": "app_dashboard_page",
-      "target": "app_dashboard_components_mentor_dashboard",
+      "target": "app_dashboard_components_student_dashboard",
       "confidence_score": 1.0
     },
     {
@@ -3395,37 +6120,37 @@
       "source_location": "L15",
       "weight": 1.0,
       "source": "app_dashboard_page",
-      "target": "app_dashboard_components_mentor_dashboard_mentordashboard",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L18",
-      "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
       "target": "app_dashboard_components_student_dashboard_studentdashboard",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L11",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L318",
       "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
-      "target": "app_dashboard_components_student_dashboard_studentdashboardprops",
+      "source": "app_dashboard_components_student_logbook",
+      "target": "app_dashboard_components_student_logbook_clockicon",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_logbook",
+      "target": "app_dashboard_components_student_logbook_studentlogbook",
       "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L8",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L7",
       "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
+      "source": "app_dashboard_components_student_logbook",
       "target": "components_ui_alert",
       "confidence_score": 1.0
     },
@@ -3433,10 +6158,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L8",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L7",
       "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
+      "source": "app_dashboard_components_student_logbook",
       "target": "components_ui_alert_alert",
       "confidence_score": 1.0
     },
@@ -3444,10 +6169,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L8",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L7",
       "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
+      "source": "app_dashboard_components_student_logbook",
       "target": "components_ui_alert_alertdescription",
       "confidence_score": 1.0
     },
@@ -3455,10 +6180,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L8",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L7",
       "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
+      "source": "app_dashboard_components_student_logbook",
       "target": "components_ui_alert_alerttitle",
       "confidence_score": 1.0
     },
@@ -3466,10 +6191,10 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L3",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L6",
       "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
+      "source": "app_dashboard_components_student_logbook",
       "target": "components_ui_card",
       "confidence_score": 1.0
     },
@@ -3477,10 +6202,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L3",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L6",
       "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
+      "source": "app_dashboard_components_student_logbook",
       "target": "components_ui_card_card",
       "confidence_score": 1.0
     },
@@ -3488,10 +6213,10 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L3",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L6",
       "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
+      "source": "app_dashboard_components_student_logbook",
       "target": "components_ui_card_cardcontent",
       "confidence_score": 1.0
     },
@@ -3499,40 +6224,40 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/components/student-dashboard.tsx",
-      "source_location": "L3",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L6",
       "weight": 1.0,
-      "source": "app_dashboard_components_student_dashboard",
-      "target": "components_ui_card_cardtitle",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/page.tsx",
-      "source_location": "L14",
-      "weight": 1.0,
-      "source": "app_dashboard_page",
-      "target": "app_dashboard_components_student_dashboard",
+      "source": "app_dashboard_components_student_logbook",
+      "target": "components_ui_card_carddescription",
       "confidence_score": 1.0
     },
     {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
-      "source_file": "app/dashboard/page.tsx",
-      "source_location": "L14",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L6",
       "weight": 1.0,
-      "source": "app_dashboard_page",
-      "target": "app_dashboard_components_student_dashboard_studentdashboard",
+      "source": "app_dashboard_components_student_logbook",
+      "target": "components_ui_card_cardheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/components/student-logbook.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "app_dashboard_components_student_logbook",
+      "target": "components_ui_card_cardtitle",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/page.tsx",
-      "source_location": "L30",
+      "source_location": "L33",
       "weight": 1.0,
       "source": "app_dashboard_page",
       "target": "app_dashboard_page_dashboardpage",
@@ -3542,10 +6267,32 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "app/dashboard/page.tsx",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "source": "app_dashboard_page",
       "target": "app_dashboard_page_userprofile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_page",
+      "target": "components_navbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "app/dashboard/page.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "app_dashboard_page",
+      "target": "components_navbar_navbar",
       "confidence_score": 1.0
     },
     {
@@ -4773,6 +7520,58 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "components/navbar.tsx",
+      "source_location": "L37",
+      "weight": 1.0,
+      "source": "components_navbar",
+      "target": "components_navbar_navbar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/navbar.tsx",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "components_navbar",
+      "target": "components_navbar_navbarprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/navbar.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "components_navbar",
+      "target": "components_navbar_userprofile",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/navbar.tsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "components_navbar",
+      "target": "components_theme_toggle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/navbar.tsx",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "components_navbar",
+      "target": "components_theme_toggle_themetoggle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "components/theme-provider.tsx",
       "source_location": "L6",
       "weight": 1.0,
@@ -4811,6 +7610,269 @@
       "source": "components_theme_toggle",
       "target": "components_ui_button_button",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L144",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogaction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L157",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogcancel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L128",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogdescription",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogfooter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L64",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogheader",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L96",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogmedia",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogoverlay",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L19",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogportal",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L112",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogtitle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_alert_dialog_alertdialogtrigger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "components_ui_button_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "lib_utils",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog",
+      "target": "lib_utils_cn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog_alertdialogoverlay",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L54",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog_alertdialogcontent",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog_alertdialogheader",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L87",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog_alertdialogfooter",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L103",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog_alertdialogmedia",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L119",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog_alertdialogtitle",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L135",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog_alertdialogdescription",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L151",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog_alertdialogaction",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/alert-dialog.tsx",
+      "source_location": "L167",
+      "weight": 1.0,
+      "source": "components_ui_alert_dialog_alertdialogcancel",
+      "target": "lib_utils_cn"
     },
     {
       "relation": "contains",
@@ -5197,6 +8259,17 @@
       "relation": "imports_from",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "components_ui_calendar",
+      "target": "components_ui_button",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "components/ui/dialog.tsx",
       "source_location": "L7",
       "weight": 1.0,
@@ -5227,6 +8300,28 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "components_ui_calendar",
+      "target": "components_ui_button_buttonvariants",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "components_ui_calendar_calendar",
+      "target": "components_ui_button_buttonvariants"
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -5236,6 +8331,17 @@
       "weight": 1.0,
       "source": "components_ui_button_button",
       "target": "lib_utils_cn"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "components_ui_calendar",
+      "target": "components_ui_button_button",
+      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -5258,6 +8364,81 @@
       "source": "components_ui_sheet",
       "target": "components_ui_button_button",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "components_ui_calendar",
+      "target": "components_ui_calendar_calendar",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L183",
+      "weight": 1.0,
+      "source": "components_ui_calendar",
+      "target": "components_ui_calendar_calendardaybutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "components_ui_calendar",
+      "target": "lib_utils",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "components_ui_calendar",
+      "target": "lib_utils_cn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "components_ui_calendar_calendar",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L211",
+      "weight": 1.0,
+      "source": "components_ui_calendar_calendardaybutton",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/calendar.tsx",
+      "source_location": "L192",
+      "weight": 1.0,
+      "source": "components_ui_calendar_calendardaybutton",
+      "target": "package_dependencies_react"
     },
     {
       "relation": "contains",
@@ -5426,6 +8607,258 @@
       "source_location": "L86",
       "weight": 1.0,
       "source": "components_ui_card_cardfooter",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_chartconfig",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_chartcontainer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L30",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_chartcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L26",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_chartcontextprops",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L275",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_chartlegendcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_chartstyle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L119",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_charttooltipcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L330",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_getpayloadconfigfrompayload",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_initial_dimension",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_themes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_tooltipnametype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "components_ui_chart_usechart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "lib_utils",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "components_ui_chart",
+      "target": "lib_utils_cn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L285",
+      "weight": 1.0,
+      "source": "components_ui_chart_chartlegendcontent",
+      "target": "components_ui_chart_usechart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L147",
+      "weight": 1.0,
+      "source": "components_ui_chart_charttooltipcontent",
+      "target": "components_ui_chart_usechart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L33",
+      "weight": 1.0,
+      "source": "components_ui_chart_usechart",
+      "target": "package_dependencies_react"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "components_ui_chart_chartcontainer",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "components_ui_chart_chartcontainer",
+      "target": "package_dependencies_react"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L156",
+      "weight": 1.0,
+      "source": "components_ui_chart_charttooltipcontent",
+      "target": "components_ui_chart_getpayloadconfigfrompayload",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L164",
+      "weight": 1.0,
+      "source": "components_ui_chart_charttooltipcontent",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "references",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L149",
+      "weight": 1.0,
+      "source": "components_ui_chart_charttooltipcontent",
+      "target": "package_dependencies_react"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L303",
+      "weight": 1.0,
+      "source": "components_ui_chart_chartlegendcontent",
+      "target": "components_ui_chart_getpayloadconfigfrompayload",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/chart.tsx",
+      "source_location": "L293",
+      "weight": 1.0,
+      "source": "components_ui_chart_chartlegendcontent",
       "target": "lib_utils_cn"
     },
     {
@@ -6210,6 +9643,217 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "components_ui_select_selectcontent",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "components_ui_select_selectgroup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "components_ui_select_selectitem",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L98",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "components_ui_select_selectlabel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "components_ui_select_selectscrolldownbutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L152",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "components_ui_select_selectscrollupbutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L139",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "components_ui_select_selectseparator",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "components_ui_select_selecttrigger",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "components_ui_select_selectvalue",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "lib_utils",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "components_ui_select",
+      "target": "lib_utils_cn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "components_ui_select_selectgroup",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "components_ui_select_selectvalue",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L43",
+      "weight": 1.0,
+      "source": "components_ui_select_selecttrigger",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L86",
+      "weight": 1.0,
+      "source": "components_ui_select_selectcontent",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L105",
+      "weight": 1.0,
+      "source": "components_ui_select_selectlabel",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L119",
+      "weight": 1.0,
+      "source": "components_ui_select_selectitem",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L146",
+      "weight": 1.0,
+      "source": "components_ui_select_selectseparator",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L159",
+      "weight": 1.0,
+      "source": "components_ui_select_selectscrollupbutton",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/select.tsx",
+      "source_location": "L178",
+      "weight": 1.0,
+      "source": "components_ui_select_selectscrolldownbutton",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "components/ui/sheet.tsx",
       "source_location": "L10",
       "weight": 1.0,
@@ -6616,6 +10260,49 @@
       "source_location": "L76",
       "weight": 1.0,
       "source": "components_ui_tabs_tabscontent",
+      "target": "lib_utils_cn"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/textarea.tsx",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "components_ui_textarea",
+      "target": "components_ui_textarea_textarea",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/textarea.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "components_ui_textarea",
+      "target": "lib_utils",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "components/ui/textarea.tsx",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "components_ui_textarea",
+      "target": "lib_utils_cn",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "components/ui/textarea.tsx",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "components_ui_textarea_textarea",
       "target": "lib_utils_cn"
     },
     {
@@ -7582,8 +11269,428 @@
       "source": "tsconfig_exclude",
       "target": "ref_node_modules",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/rules/graphify.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "agents_rules_graphify",
+      "target": "agents_rules_graphify_graphify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "agents_skills_frontend_design_skill",
+      "target": "agents_skills_frontend_design_skill_frontend_design",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "agents_skills_frontend_design_skill_frontend_design",
+      "target": "agents_skills_frontend_design_skill_design_principles",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L11",
+      "weight": 1.0,
+      "source": "agents_skills_frontend_design_skill_frontend_design",
+      "target": "agents_skills_frontend_design_skill_ground_it_in_the_subject",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "agents_skills_frontend_design_skill_frontend_design",
+      "target": "agents_skills_frontend_design_skill_more_on_writing_in_design",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "agents_skills_frontend_design_skill_frontend_design",
+      "target": "agents_skills_frontend_design_skill_process_brainstorm_explore_plan_critique_build_critique_again",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/frontend-design/SKILL.md",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "agents_skills_frontend_design_skill_frontend_design",
+      "target": "agents_skills_frontend_design_skill_restraint_and_self_critique",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/web-design-guidelines/SKILL.md",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "agents_skills_web_design_guidelines_skill",
+      "target": "agents_skills_web_design_guidelines_skill_web_interface_guidelines",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/web-design-guidelines/SKILL.md",
+      "source_location": "L21",
+      "weight": 1.0,
+      "source": "agents_skills_web_design_guidelines_skill_web_interface_guidelines",
+      "target": "agents_skills_web_design_guidelines_skill_guidelines_source",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/web-design-guidelines/SKILL.md",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "agents_skills_web_design_guidelines_skill_web_interface_guidelines",
+      "target": "agents_skills_web_design_guidelines_skill_how_it_works",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/skills/web-design-guidelines/SKILL.md",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "agents_skills_web_design_guidelines_skill_web_interface_guidelines",
+      "target": "agents_skills_web_design_guidelines_skill_usage",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".agents/workflows/graphify.md",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "agents_workflows_graphify",
+      "target": "agents_workflows_graphify_workflow_graphify",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "AGENTS.md",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "agents",
+      "target": "agents_this_is_not_the_next_js_you_know",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "design",
+      "target": "design_infinite_learning_lms_v2_design_system_guide_design_md",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "design_infinite_learning_lms_v2_design_system_guide_design_md",
+      "target": "design_1_filosofi_desain",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L15",
+      "weight": 1.0,
+      "source": "design_infinite_learning_lms_v2_design_system_guide_design_md",
+      "target": "design_2_panduan_gaya_style_guide",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L39",
+      "weight": 1.0,
+      "source": "design_infinite_learning_lms_v2_design_system_guide_design_md",
+      "target": "design_3_komponen_desain_spesifikasi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L68",
+      "weight": 1.0,
+      "source": "design_infinite_learning_lms_v2_design_system_guide_design_md",
+      "target": "design_4_struktur_aturan_tata_letak_halaman",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "design_2_panduan_gaya_style_guide",
+      "target": "design_a_tipografi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "design_2_panduan_gaya_style_guide",
+      "target": "design_b_palet_warna_color_palette",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L41",
+      "weight": 1.0,
+      "source": "design_3_komponen_desain_spesifikasi",
+      "target": "design_a_tombol_buttons",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L50",
+      "weight": 1.0,
+      "source": "design_3_komponen_desain_spesifikasi",
+      "target": "design_b_bidang_isian_form_inputs_labels",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L57",
+      "weight": 1.0,
+      "source": "design_3_komponen_desain_spesifikasi",
+      "target": "design_c_tabel_pengguna_crud_table",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L62",
+      "weight": 1.0,
+      "source": "design_3_komponen_desain_spesifikasi",
+      "target": "design_d_dialog_konfirmasi_custom_alert_dialog",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L70",
+      "weight": 1.0,
+      "source": "design_4_struktur_aturan_tata_letak_halaman",
+      "target": "design_a_landing_page",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L74",
+      "weight": 1.0,
+      "source": "design_4_struktur_aturan_tata_letak_halaman",
+      "target": "design_b_login_page",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "DESIGN.MD",
+      "source_location": "L80",
+      "weight": 1.0,
+      "source": "design_4_struktur_aturan_tata_letak_halaman",
+      "target": "design_c_dasbor_admin_dashboard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "graphify_tutorial",
+      "target": "graphify_tutorial_tutorial_graphify_tim_frontend_lms_v2",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L67",
+      "weight": 1.0,
+      "source": "graphify_tutorial_tutorial_graphify_tim_frontend_lms_v2",
+      "target": "graphify_tutorial_cara_bertanya_kueri_grafik",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L47",
+      "weight": 1.0,
+      "source": "graphify_tutorial_tutorial_graphify_tim_frontend_lms_v2",
+      "target": "graphify_tutorial_cara_melanjutkan_memperbarui_grafik",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L17",
+      "weight": 1.0,
+      "source": "graphify_tutorial_tutorial_graphify_tim_frontend_lms_v2",
+      "target": "graphify_tutorial_langkah_instalasi_satu_kali_saja",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "graphify_tutorial_tutorial_graphify_tim_frontend_lms_v2",
+      "target": "graphify_tutorial_persyaratan_awal_prerequisites",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L53",
+      "weight": 1.0,
+      "source": "graphify_tutorial_cara_melanjutkan_memperbarui_grafik",
+      "target": "graphify_tutorial_metode_1_lewat_chat_google_antigravity_rekomendasi",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "graphify_tutorial_cara_melanjutkan_memperbarui_grafik",
+      "target": "graphify_tutorial_metode_2_lewat_terminal_cli_headless_offline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "Graphify_Tutorial.MD",
+      "source_location": "L84",
+      "weight": 1.0,
+      "source": "graphify_tutorial_cara_bertanya_kueri_grafik",
+      "target": "graphify_tutorial_visualisasi_interaktif",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "source": "readme",
+      "target": "readme_deploy_on_vercel",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "readme",
+      "target": "readme_getting_started",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "README.md",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "readme",
+      "target": "readme_learn_more",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphify-out/memory/query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "source_location": "L10",
+      "weight": 1.0,
+      "source": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb",
+      "target": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_q_komponen_apa_saja_yang_dipakai_untuk_merender_dasbor_admin",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphify-out/memory/query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "source_location": "L12",
+      "weight": 1.0,
+      "source": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_q_komponen_apa_saja_yang_dipakai_untuk_merender_dasbor_admin",
+      "target": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_answer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphify-out/memory/query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "source_location": "L23",
+      "weight": 1.0,
+      "source": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_q_komponen_apa_saja_yang_dipakai_untuk_merender_dasbor_admin",
+      "target": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_outcome",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "graphify-out/memory/query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb.md",
+      "source_location": "L27",
+      "weight": 1.0,
+      "source": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_q_komponen_apa_saja_yang_dipakai_untuk_merender_dasbor_admin",
+      "target": "graphify_out_memory_query_20260715_072122_komponen_apa_saja_yang_dipakai_untuk_merender_dasb_source_nodes",
+      "confidence_score": 1.0
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "b6b71c4a984df82b64c2a2676c7ac12c42648617"
+  "built_at_commit": "597f7aa86a79319dd343e08232a8c1e99c721b06"
 }
