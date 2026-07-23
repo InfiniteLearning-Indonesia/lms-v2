@@ -589,7 +589,10 @@ export function MentorAttendance({ batchId, mentorId }: { batchId: string, mento
                 {selectedPermission.proofFiles && selectedPermission.proofFiles.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {selectedPermission.proofFiles.map((fileData: string, idx: number) => {
-                      const isPdf = fileData.startsWith("data:application/pdf");
+                      const isPdf =
+                        fileData.startsWith("data:application/pdf") ||
+                        fileData.toLowerCase().endsWith(".pdf") ||
+                        fileData.toLowerCase().includes(".pdf");
                       return (
                         <div key={idx} className="border border-border rounded-xl p-3 bg-card space-y-2">
                           {isPdf ? (

@@ -263,7 +263,7 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
               {/* Auto-filled Student Info Summary */}
               <div className="bg-secondary/30 border border-border/80 rounded-xl p-4 space-y-2 text-xs">
                 <p className="font-semibold text-foreground flex items-center gap-1.5 border-b border-border/50 pb-2">
-                  <User className="w-4 h-4 text-brand-purple" /> Data Pemohon (Terisi Otomatis)
+                  <User className="w-4 h-4 text-brand-purple" /> Data Pemohon
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-muted-foreground pt-1">
                   <div>
@@ -556,7 +556,10 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
                 {selectedRequest.proofFiles && selectedRequest.proofFiles.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {selectedRequest.proofFiles.map((fileData: string, idx: number) => {
-                      const isPdf = fileData.startsWith("data:application/pdf");
+                      const isPdf =
+                        fileData.startsWith("data:application/pdf") ||
+                        fileData.toLowerCase().endsWith(".pdf") ||
+                        fileData.toLowerCase().includes(".pdf");
                       return (
                         <div key={idx} className="border border-border rounded-xl p-3 bg-card space-y-2">
                           {isPdf ? (
