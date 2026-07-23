@@ -987,12 +987,26 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           <MentorAssessmentView
             activeSubTab="rubric"
             competencies={competencies}
+            rubrikAssessments={rubrikAssessments}
             allStudents={allStudents}
             onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
+            onOpenAddRubrikAssessment={() => setIsAddRubrikAssessmentModalOpen(true)}
             setEditingCompetency={setEditingCompetency}
             handleDeleteCompetency={handleDeleteCompetency}
             setEditingWeightCompetency={setEditingWeightCompetency}
+            setEditingRubrikAssessment={setEditingRubrikAssessment}
+            handleDeleteRubrikAssessment={handleDeleteRubrikAssessment}
+            setEditingWeightRubrikAssessment={setEditingWeightRubrikAssessment}
             calculateCompetencyScore={calculateCompetencyScore}
+            externalScores={externalScores}
+            activeRubrikTab={activeRubrikTab}
+            setActiveRubrikTab={setActiveRubrikTab}
+            uniquePrograms={uniquePrograms}
+            selectedProgramId={selectedProgramId}
+            setSelectedProgramId={setSelectedProgramId}
+            csvInputRef={csvInputRef}
+            handleImportCSV={handleImportCSV}
+            isImportingCSV={isImportingCSV}
           />
         </TabsContent>
 
@@ -1001,12 +1015,26 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           <MentorAssessmentView
             activeSubTab="assessment"
             competencies={competencies}
+            rubrikAssessments={rubrikAssessments}
             allStudents={allStudents}
             onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
+            onOpenAddRubrikAssessment={() => setIsAddRubrikAssessmentModalOpen(true)}
             setEditingCompetency={setEditingCompetency}
             handleDeleteCompetency={handleDeleteCompetency}
             setEditingWeightCompetency={setEditingWeightCompetency}
+            setEditingRubrikAssessment={setEditingRubrikAssessment}
+            handleDeleteRubrikAssessment={handleDeleteRubrikAssessment}
+            setEditingWeightRubrikAssessment={setEditingWeightRubrikAssessment}
             calculateCompetencyScore={calculateCompetencyScore}
+            externalScores={externalScores}
+            activeRubrikTab={activeRubrikTab}
+            setActiveRubrikTab={setActiveRubrikTab}
+            uniquePrograms={uniquePrograms}
+            selectedProgramId={selectedProgramId}
+            setSelectedProgramId={setSelectedProgramId}
+            csvInputRef={csvInputRef}
+            handleImportCSV={handleImportCSV}
+            isImportingCSV={isImportingCSV}
           />
         </TabsContent>
 
