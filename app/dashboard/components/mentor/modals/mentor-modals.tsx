@@ -57,6 +57,17 @@ interface MentorModalsProps {
   isSuspending: boolean;
   countdown: number;
   handleSuspendStudent: () => void;
+
+  // Rubrik Assessment Modals
+  editingRubrikAssessment?: any;
+  setEditingRubrikAssessment?: (v: any) => void;
+  handleUpdateRubrikAssessment?: (e: React.FormEvent<HTMLFormElement>) => void;
+  isAddRubrikAssessmentModalOpen?: boolean;
+  setIsAddRubrikAssessmentModalOpen?: (v: boolean) => void;
+  handleCreateRubrikAssessment?: (e: React.FormEvent<HTMLFormElement>) => void;
+  editingWeightRubrikAssessment?: any;
+  setEditingWeightRubrikAssessment?: (v: any) => void;
+  rubrikAssessments?: any[];
 }
 
 export function MentorModals({

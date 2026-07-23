@@ -26,7 +26,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 
-import { MentorLogbook } from "./mentor-logbook";
 import { MentorAttendance } from "./mentor-attendance";
 
 // Modular Sub-components & Types
@@ -47,7 +46,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
 
   const uniquePrograms = Array.from(new Map(
-    classes.filter(c => c.program).map(c => [c.program.id, c.program])
+    classes.filter(c => c.program).map(c => [c.program!.id, c.program!])
   ).values());
 
   // Suspend Dialog States
@@ -259,7 +258,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       });
       if (res.ok) {
         setIsAddRubrikAssessmentModalOpen(false);
-        fetchRubrikAssessments(classes[0].program.id);
+        const progId = selectedProgramId || classes[0]?.program?.id;
+        if (progId) fetchRubrikAssessments(progId);
       } else {
         alert("Gagal menambahkan Rubrik Assessment");
       }
@@ -283,7 +283,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       });
       if (res.ok) {
         setEditingRubrikAssessment(null);
-        fetchRubrikAssessments(classes[0].program.id);
+        const progId = selectedProgramId || classes[0]?.program?.id;
+        if (progId) fetchRubrikAssessments(progId);
       }
     } catch (err) {
       console.error(err);
@@ -298,7 +299,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         credentials: "include"
       });
       if (res.ok) {
-        fetchRubrikAssessments(classes[0].program.id);
+        const progId = selectedProgramId || classes[0]?.program?.id;
+        if (progId) fetchRubrikAssessments(progId);
       }
     } catch (err) {
       console.error(err);
@@ -448,7 +450,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             return;
           }
 
-          const res = await fetch(`http://localhost:7000/classes/programs/${classes[0].program.id}/rubrik-assessments/import-scores`, {
+          const progId = selectedProgramId || classes[0]?.program?.id;
+          if (!progId) return;
+
+          const res = await fetch(`http://localhost:7000/classes/programs/${progId}/rubrik-assessments/import-scores`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ scores: scoresToImport }),
@@ -458,7 +463,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           if (res.ok) {
             const resData = await res.json();
             alert(`Berhasil import ${resData.importedCount} nilai.`);
-            fetchExternalScores(classes[0].program.id);
+            fetchExternalScores(progId);
           } else {
             alert("Gagal melakukan import data.");
           }
@@ -682,7 +687,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         const errData = await res.json();
         setSuspendError(
           errData.message ||
-            `Gagal ${suspendActionType === "suspend" ? "menangguhkan" : "mengaktifkan"} siswa.`
+          `Gagal ${suspendActionType === "suspend" ? "menangguhkan" : "mengaktifkan"} siswa.`
         );
       }
     } catch (err) {
