@@ -101,6 +101,15 @@ export function MentorModals({
   isSuspending,
   countdown,
   handleSuspendStudent,
+  editingRubrikAssessment,
+  setEditingRubrikAssessment,
+  handleUpdateRubrikAssessment,
+  isAddRubrikAssessmentModalOpen,
+  setIsAddRubrikAssessmentModalOpen,
+  handleCreateRubrikAssessment,
+  editingWeightRubrikAssessment,
+  setEditingWeightRubrikAssessment,
+  rubrikAssessments = [],
 }: MentorModalsProps) {
   return (
     <>
@@ -636,6 +645,101 @@ export function MentorModals({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Rubrik Assessment Modal */}
+      {isAddRubrikAssessmentModalOpen && handleCreateRubrikAssessment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[420px]">
+            <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
+              Tambah Rubrik Assessment Baru
+            </h3>
+            <form onSubmit={handleCreateRubrikAssessment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Nama Rubrik Assessment
+                </label>
+                <Input name="name" required placeholder="Contoh: Career Coaching / Capstone Project" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Fase Assessment
+                </label>
+                <select
+                  name="phase"
+                  required
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
+                >
+                  <option value="Micro">Phase Micro</option>
+                  <option value="Massive">Phase Massive</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsAddRubrikAssessmentModalOpen?.(false)}
+                >
+                  Batal
+                </Button>
+                <Button type="submit" size="sm" className="bg-brand-purple hover:bg-brand-purple/90 text-white">
+                  Simpan Rubrik
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Rubrik Assessment Modal */}
+      {editingRubrikAssessment && handleUpdateRubrikAssessment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[420px]">
+            <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
+              Edit Rubrik Assessment
+            </h3>
+            <form onSubmit={handleUpdateRubrikAssessment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Nama Rubrik Assessment
+                </label>
+                <Input
+                  name="name"
+                  defaultValue={editingRubrikAssessment.name}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Fase Assessment
+                </label>
+                <select
+                  name="phase"
+                  defaultValue={editingRubrikAssessment.phase || "Micro"}
+                  required
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
+                >
+                  <option value="Micro">Phase Micro</option>
+                  <option value="Massive">Phase Massive</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditingRubrikAssessment?.(null)}
+                >
+                  Batal
+                </Button>
+                <Button type="submit" size="sm" className="bg-brand-purple hover:bg-brand-purple/90 text-white">
+                  Simpan Perubahan
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
