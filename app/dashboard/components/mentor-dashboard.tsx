@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Papa from "papaparse";
 import {
   BookOpen,
   Users,
@@ -74,6 +75,11 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+
+  const uniquePrograms = Array.from(new Map(
+    classes.filter(c => c.program).map(c => [c.program.id, c.program])
+  ).values());
 
   // Listen to tab query parameter
   useEffect(() => {
@@ -85,6 +91,16 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       }
     }
   }, []);
+
+  // Automatically switch program context when clicking a class card
+  useEffect(() => {
+    if (selectedClassId) {
+      const cls = classes.find(c => c.id === selectedClassId);
+      if (cls && cls.program?.id) {
+        setSelectedProgramId(cls.program.id);
+      }
+    }
+  }, [selectedClassId, classes]);
 
   // Profile Form States
   const [myName, setMyName] = useState(profile?.name || "");
@@ -185,6 +201,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const [competencies, setCompetencies] = useState<any[]>([]);
   const [rubrikAssessments, setRubrikAssessments] = useState<any[]>([]);
+  const [externalScores, setExternalScores] = useState<any[]>([]);
+  const [isImportingCSV, setIsImportingCSV] = useState(false);
+  const csvInputRef = useRef<HTMLInputElement>(null);
   const [isAddCompetencyModalOpen, setIsAddCompetencyModalOpen] = useState(false);
   const [isAddRubrikAssessmentModalOpen, setIsAddRubrikAssessmentModalOpen] = useState(false);
   const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
@@ -241,7 +260,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         body: JSON.stringify({
           name: formData.get("name"),
           phase: formData.get("phase"),
-          programId: classes[0].program.id,
+          programId: selectedProgramId,
+          isGlobal: activeRubrikTab === "professional",
           competencies: [] // Default empty, we will set this in weight modal
         }),
         credentials: "include"
@@ -322,11 +342,18 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   }, []);
 
   useEffect(() => {
-    if (classes.length > 0 && classes[0]?.program?.id) {
-      fetchCompetencies(classes[0].program.id);
-      fetchRubrikAssessments(classes[0].program.id);
+    if (classes.length > 0 && !selectedProgramId) {
+      setSelectedProgramId(classes[0]?.program?.id || null);
     }
   }, [classes]);
+
+  useEffect(() => {
+    if (selectedProgramId) {
+      fetchCompetencies(selectedProgramId);
+      fetchRubrikAssessments(selectedProgramId);
+      fetchExternalScores(selectedProgramId);
+    }
+  }, [selectedProgramId]);
 
   const fetchCompetencies = async (programId: string) => {
     try {
@@ -358,6 +385,109 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   };
 
+  const fetchExternalScores = async (programId: string) => {
+    try {
+      const res = await fetch(`http://localhost:7000/classes/programs/${programId}/rubrik-assessments/scores`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setExternalScores(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImportingCSV(true);
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        try {
+          const data = results.data as any[];
+          const scoresToImport: any[] = [];
+
+          const headerToRaId: Record<string, string> = {};
+          if (results.meta.fields) {
+            for (const field of results.meta.fields) {
+              const ra = rubrikAssessments.find(r => r.name.toLowerCase() === field.toLowerCase());
+              if (ra) {
+                headerToRaId[field] = ra.id;
+              }
+            }
+          }
+
+          if (Object.keys(headerToRaId).length === 0) {
+            alert("Tidak ada nama kolom CSV yang cocok dengan Rubrik Assessment.");
+            setIsImportingCSV(false);
+            if (csvInputRef.current) csvInputRef.current.value = "";
+            return;
+          }
+
+          for (const row of data) {
+            const email = row["Email"] || row["email"] || "";
+            const name = row["Name"] || row["name"] || row["Nama"] || row["nama"] || "";
+            if (!email && !name) continue;
+
+            for (const field of Object.keys(row)) {
+              if (headerToRaId[field]) {
+                const score = parseFloat(row[field]);
+                if (!isNaN(score)) {
+                  scoresToImport.push({
+                    email,
+                    name,
+                    rubrikAssessmentId: headerToRaId[field],
+                    score
+                  });
+                }
+              }
+            }
+          }
+
+          if (scoresToImport.length === 0) {
+            alert("Tidak ada nilai yang valid untuk di-import.");
+            setIsImportingCSV(false);
+            if (csvInputRef.current) csvInputRef.current.value = "";
+            return;
+          }
+
+          const res = await fetch(`http://localhost:7000/classes/programs/${classes[0].program.id}/rubrik-assessments/import-scores`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ scores: scoresToImport }),
+            credentials: "include"
+          });
+
+          if (res.ok) {
+            const resData = await res.json();
+            alert(`Berhasil import ${resData.importedCount} nilai.`);
+            fetchExternalScores(classes[0].program.id);
+          } else {
+            alert("Gagal melakukan import data.");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Terjadi kesalahan saat memproses CSV.");
+        } finally {
+          setIsImportingCSV(false);
+          if (csvInputRef.current) csvInputRef.current.value = "";
+        }
+      },
+      error: (err) => {
+        console.error(err);
+        alert("Gagal membaca file CSV.");
+        setIsImportingCSV(false);
+        if (csvInputRef.current) csvInputRef.current.value = "";
+      }
+    });
+  };
+
   const handleCreateCompetency = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
@@ -369,7 +499,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           name: formData.get("name"),
           category: formData.get("category"),
           phase: formData.get("phase"),
-          programId: classes[0]?.program?.id,
+          programId: selectedProgramId,
+          isGlobal: activeRubrikTab === "professional"
         }),
         credentials: "include",
       });
@@ -544,7 +675,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   // Calculate stats
   const totalClasses = activeClasses.length;
   const totalStudents = activeClasses.reduce((acc, cls) => acc + (cls.enrolledStudentsCount || 0), 0);
-  const allStudents = activeClasses.flatMap((cls) => cls.enrolledStudents || []);
+  const allStudents = activeClasses
+    .filter((cls) => cls.program?.id === selectedProgramId)
+    .flatMap((cls) => cls.enrolledStudents || []);
   const totalMaterials = activeClasses.reduce((acc, cls) => acc + (cls.materials?.length || 0), 0);
   const totalAssignments = activeClasses.reduce((acc, cls) => acc + (cls.assignments?.length || 0), 0);
 
@@ -1285,27 +1418,49 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
         {/* ── TAB 3: RUBRIK PENILAIAN ── */}
         <TabsContent value="rubric" className="space-y-6">
-          <div className="flex items-center gap-2 mb-4 bg-muted/50 p-1 rounded-xl w-fit border border-border">
-            <button
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "kompetensi" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
-              onClick={() => setActiveRubrikTab("kompetensi")}
-            >
-              Rubrik Kompetensi
-            </button>
-            <button
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "assessment" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
-              onClick={() => setActiveRubrikTab("assessment")}
-            >
-              Rubrik Assessment
-            </button>
+          <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-xl w-fit border border-border">
+              <button
+                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "kompetensi" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
+                onClick={() => setActiveRubrikTab("kompetensi")}
+              >
+                Rubrik Kompetensi
+              </button>
+              <button
+                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "assessment" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
+                onClick={() => setActiveRubrikTab("assessment")}
+              >
+                Rubrik Assessment
+              </button>
+              <button
+                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "professional" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
+                onClick={() => setActiveRubrikTab("professional")}
+              >
+                Rubrik Professional
+              </button>
+            </div>
+            {uniquePrograms.length > 1 && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground font-medium text-xs">Program:</span>
+                <select
+                  value={selectedProgramId || ""}
+                  onChange={(e) => setSelectedProgramId(e.target.value)}
+                  className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[200px] truncate"
+                >
+                  {uniquePrograms.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
-          {activeRubrikTab === "kompetensi" ? (
-            <Card className="border-border bg-card shadow-sm">
+          {(activeRubrikTab === "kompetensi" || activeRubrikTab === "professional") && (
+            <Card className="border-border bg-card shadow-sm mb-6">
               <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
                 <div>
                   <CardTitle className="text-lg font-heading font-bold text-foreground">
-                    Manajemen Rubrik Kompetensi
+                    {activeRubrikTab === "kompetensi" ? "Manajemen Rubrik Kompetensi" : "Manajemen Kompetensi Professional (Global)"}
                   </CardTitle>
                   <CardDescription className="text-xs text-muted-foreground mt-1">
                     Atur patokan nilai dan kriteria evaluasi (rubrik) untuk masing-masing kompetensi secara global.
@@ -1333,14 +1488,16 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/60 text-xs">
-                      {competencies.length === 0 ? (
+                      {competencies.filter((c: any) => activeRubrikTab === "professional" ? c.isGlobal : !c.isGlobal).length === 0 ? (
                         <tr>
-                          <td colSpan={3} className="py-8 text-center text-muted-foreground">
+                          <td colSpan={4} className="py-8 text-center text-muted-foreground">
                             Belum ada kompetensi.
                           </td>
                         </tr>
                       ) : (
-                        competencies.map((comp: any) => (
+                        competencies
+                          .filter((c: any) => activeRubrikTab === "professional" ? c.isGlobal : !c.isGlobal)
+                          .map((comp: any) => (
                           <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
                             <td className="py-3.5 px-4 font-semibold text-foreground">
                               {comp.name}
@@ -1388,12 +1545,14 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
               </div>
             </CardContent>
           </Card>
-          ) : (
+          )}
+
+          {(activeRubrikTab === "assessment" || activeRubrikTab === "professional") && (
           <Card className="border-border bg-card shadow-sm">
             <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-heading font-bold text-foreground">
-                  Manajemen Rubrik Assessment
+                  {activeRubrikTab === "assessment" ? "Manajemen Rubrik Assessment" : "Manajemen Rubrik Assessment Professional (Global)"}
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground mt-1">
                   Atur Rubrik Assessment yang akan menaungi beberapa Rubrik Kompetensi beserta bobotnya.
@@ -1420,14 +1579,16 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60 text-xs">
-                    {rubrikAssessments.length === 0 ? (
+                    {rubrikAssessments.filter((r: any) => activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal).length === 0 ? (
                       <tr>
                         <td colSpan={3} className="py-8 text-center text-muted-foreground">
                           Belum ada Rubrik Assessment.
                         </td>
                       </tr>
                     ) : (
-                      rubrikAssessments.map((ra: any) => (
+                      rubrikAssessments
+                        .filter((r: any) => activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal)
+                        .map((ra: any) => (
                         <tr key={ra.id} className="hover:bg-secondary/20 transition-colors">
                           <td className="py-3.5 px-4 font-semibold text-foreground">
                             {ra.name}
@@ -1485,13 +1646,49 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                   Pantau nilai akhir mentee berdasarkan pencapaian kompetensi. Klik nama kompetensi untuk mengatur bobot tugas.
                 </CardDescription>
               </div>
+              {uniquePrograms.length > 1 && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground font-medium text-xs">Program:</span>
+                  <select
+                    value={selectedProgramId || ""}
+                    onChange={(e) => setSelectedProgramId(e.target.value)}
+                    className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[200px] truncate"
+                  >
+                    {uniquePrograms.map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="pt-6">
               <Tabs defaultValue="Micro" className="w-full">
-                <TabsList className="grid w-full max-w-sm grid-cols-2 mb-6">
-                  <TabsTrigger value="Micro">Phase Micro</TabsTrigger>
-                  <TabsTrigger value="Massive">Phase Massive</TabsTrigger>
-                </TabsList>
+                <div className="flex justify-between items-center mb-6">
+                  <TabsList className="grid w-full max-w-sm grid-cols-2">
+                    <TabsTrigger value="Micro">Phase Micro</TabsTrigger>
+                    <TabsTrigger value="Massive">Phase Massive</TabsTrigger>
+                  </TabsList>
+
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="file"
+                      accept=".csv"
+                      className="hidden"
+                      ref={csvInputRef}
+                      onChange={handleImportCSV}
+                    />
+                    <Button
+                      onClick={() => csvInputRef.current?.click()}
+                      size="sm"
+                      variant="outline"
+                      className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple"
+                      disabled={isImportingCSV}
+                    >
+                      {isImportingCSV ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                      Import CSV
+                    </Button>
+                  </div>
+                </div>
 
                 {["Micro", "Massive"].map((phase) => {
                   const microRAs = rubrikAssessments.filter(ra => ra.phase === "Micro" || (!ra.phase && "Micro" === "Micro"));
@@ -1536,6 +1733,11 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                                   
                                   const ra = rubrikAssessments.find((r: any) => r.id === raId);
                                   if (!ra) return 65;
+
+                                  const ext = externalScores.find((es: any) => es.studentId === student.id && es.rubrikAssessmentId === raId);
+                                  if (ext && ext.score !== undefined) {
+                                    return clampScore(ext.score);
+                                  }
 
                                   const hasComps = ra.competencies && ra.competencies.length > 0;
                                   const hasSubs = ra.subAssessments && ra.subAssessments.length > 0;
