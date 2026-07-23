@@ -1,88 +1,45 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { MentorLogbook } from "./mentor-logbook";
-
 import { useEffect, useState, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Papa from "papaparse";
+import { MentorLogbook } from "./mentor-logbook";
 import {
-  BookOpen,
-  Users,
   Award,
-  CheckCircle2,
-  AlertCircle,
-  Search,
-  ExternalLink,
-  Loader2,
-  FileText,
-  Calendar,
-  Layers,
-  Sparkles,
-  ShieldAlert,
-  Mail,
-  UserCheck,
-  MessageSquare,
-  BookMarked,
-  HelpCircle,
-  Info,
-  Lock,
-  Play,
-  UserPlus,
-  RefreshCw,
-  Sliders,
-  X,
-  Plus,
+  BookOpen,
+  CalendarDays,
   FileSpreadsheet,
-  ChevronRight,
-  Pencil,
-  Trash2,
-  User,
-  Phone,
-  School,
   GraduationCap,
-  Upload,
-  Save,
+  Layers,
+  Loader2,
+  Lock,
+  Notebook,
+  Pencil,
   Settings,
-  Notebook
+  Sparkles,
+  Users,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
 
-interface MentorDashboardProps {
-  profile?: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    roles?: string[];
-    whatsapp?: string | null;
-    institution?: string | null;
-    studyProgram?: string | null;
-    specialization?: string | null;
-    selectedProgram?: string | null;
-    avatarUrl?: string | null;
-  };
-  onProfileUpdate?: () => void;
-}
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+
+import { MentorLogbook } from "./mentor-logbook";
+import { MentorAttendance } from "./mentor-attendance";
+
+// Modular Sub-components & Types
+import { CompetencyItem, MentorClass, MentorDashboardProps } from "./mentor/types";
+import { MentorClassesView } from "./mentor/mentor-classes-view";
+import { MentorStudentsView } from "./mentor/mentor-students-view";
+import { MentorAssessmentView } from "./mentor/mentor-assessment-view";
+import { MentorProfileSettings } from "./mentor/mentor-profile-settings";
+import { MentorPastBatches } from "./mentor/mentor-past-batches";
+import { MentorModals } from "./mentor/modals/mentor-modals";
 
 export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardProps) {
-  const [classes, setClasses] = useState<any[]>([]);
+  const [classes, setClasses] = useState<MentorClass[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("classes");
@@ -158,21 +115,6 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [profileSaveError, setProfileSaveError] = useState<string | null>(null);
   const [profileSaveSuccess, setProfileSaveSuccess] = useState<string | null>(null);
 
-  const defaultAvatars = [
-    "/avatars/avatar_1.png",
-    "/avatars/avatar_2.png",
-    "/avatars/avatar_3.png",
-    "/avatars/avatar_4.png",
-    "/avatars/avatar_5.png",
-  ];
-
-  const getEffectiveAvatar = () => {
-    if (myAvatarUrl) return myAvatarUrl;
-    const code = profile?.id ? profile.id.charCodeAt(0) + profile.id.charCodeAt(profile.id.length - 1) : 1;
-    const index = (code % 5) + 1;
-    return `/avatars/avatar_${index}.png`;
-  };
-
   // Sync state if profile changes
   useEffect(() => {
     if (profile) {
@@ -217,9 +159,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     try {
       const res = await fetch(`http://localhost:7000/users/${profile.id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: myName,
           whatsapp: myWhatsapp,
@@ -265,16 +205,16 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [isSavingWeights, setIsSavingWeights] = useState(false);
 
   const handleWeightChange = (assignmentId: string, val: string) => {
-    setWeightUpdates(prev => ({
+    setWeightUpdates((prev) => ({
       ...prev,
-      [assignmentId]: parseFloat(val) || 0
+      [assignmentId]: parseFloat(val) || 0,
     }));
   };
 
   const handleSaveWeights = async () => {
-    const updates = Object.keys(weightUpdates).map(id => ({
+    const updates = Object.keys(weightUpdates).map((id) => ({
       id,
-      weight: weightUpdates[id]
+      weight: weightUpdates[id],
     }));
     if (updates.length === 0) return;
 
@@ -284,7 +224,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ updates })
+        body: JSON.stringify({ updates }),
       });
       if (res.ok) {
         alert("Bobot berhasil disimpan!");
@@ -584,8 +524,13 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     );
 
     for (const assignment of compAssignments) {
-      const weight = weightUpdates[assignment.id] !== undefined ? weightUpdates[assignment.id] : (assignment.weight || 0.1);
-      const submission = (assignment.submissions || []).find((s: any) => s.studentId === studentId);
+      const weight =
+        weightUpdates[assignment.id] !== undefined
+          ? weightUpdates[assignment.id]
+          : assignment.weight || 0.1;
+      const submission = (assignment.submissions || []).find(
+        (s: any) => s.studentId === studentId
+      );
       if (submission && submission.score) {
         score += clampScore(submission.score) * weight;
       }
@@ -735,7 +680,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         fetchMentorData();
       } else {
         const errData = await res.json();
-        setSuspendError(errData.message || `Gagal ${suspendActionType === "suspend" ? "menangguhkan" : "mengaktifkan"} siswa.`);
+        setSuspendError(
+          errData.message ||
+            `Gagal ${suspendActionType === "suspend" ? "menangguhkan" : "mengaktifkan"} siswa.`
+        );
       }
     } catch (err) {
       console.error(err);
@@ -747,8 +695,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   // Find the most recent active batch
   const activeBatches = classes
-    .map(c => c.batch)
-    .filter(b => b?.status === "active")
+    .map((c) => c.batch)
+    .filter((b) => b?.status === "active")
     .sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
 
   const currentBatch = activeBatches[0];
@@ -790,8 +738,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   }
 
   return (
-    <div className="space-y-8">
-      {/* ── Banner / Welcome Mentor ── */}
+    <div className="space-y-8 font-sans">
+      {/* Banner / Welcome Mentor */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -810,7 +758,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
               Manajemen Pembelajaran & Siswa Binaan
             </h1>
             <p className="text-sm text-white/80 leading-relaxed">
-              Pantau progres kelas, kelola materi kompetensi, serta bimbing siswa sesuai dengan filosofi dan aturan kepemilikan program (<strong className="text-white">Source of Truth v2.0</strong>).
+              Pantau progres kelas, kelola materi kompetensi, serta bimbing siswa sesuai
+              dengan filosofi dan aturan kepemilikan program (
+              <strong className="text-white">Source of Truth v2.0</strong>).
             </p>
           </div>
 
@@ -818,7 +768,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             <Button
               onClick={fetchMentorData}
               variant="outline"
-              className="bg-white/10 hover:bg-white/20 text-white border-white/20 hover:text-white transition-all text-xs shadow-sm"
+              className="bg-white/10 hover:bg-white/20 text-white border-white/20 hover:text-white transition-all text-xs shadow-sm cursor-pointer"
             >
               <Loader2 className={`w-3.5 h-3.5 mr-2 ${isLoading ? "animate-spin" : "hidden"}`} />
               Segarkan Data
@@ -827,7 +777,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         </div>
       </motion.div>
 
-      {/* ── Ringkasan Statistik ── */}
+      {/* Ringkasan Statistik */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <Card className="border-border bg-card shadow-sm hover:shadow-md transition-all">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -898,50 +848,79 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         </Card>
       </div>
 
-      {/* ── Read-Only / Status Banner ── */}
+      {/* Read-Only / Status Banner */}
       {isReadOnly && (
         <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 flex items-center gap-3 text-amber-700 dark:text-amber-400">
           <Lock className="w-6 h-6 shrink-0 text-amber-600" />
           <div>
             <h4 className="font-heading font-bold text-sm">Mode Read-Only Aktif</h4>
             <p className="text-xs mt-0.5">
-              Batch akademik ini telah selesai. Seluruh data kelas, materi, tugas, dan nilai siswa dikunci menjadi arsip historis. Modifikasi data ditiadakan.
+              Batch akademik ini telah selesai. Seluruh data kelas, materi, tugas, dan nilai
+              siswa dikunci menjadi arsip historis. Modifikasi data ditiadakan.
             </p>
           </div>
         </div>
       )}
 
-      {/* ── Main Tabs ── */}
+      {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex flex-wrap min-h-14 w-full gap-1.5 justify-start md:justify-center">
-          <TabsTrigger value="classes" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+          <TabsTrigger
+            value="classes"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+          >
             <BookOpen className="w-4 h-4 shrink-0" />
             <span>Kelas & Silabus</span>
           </TabsTrigger>
 
-          <TabsTrigger value="students" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+          <TabsTrigger
+            value="students"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+          >
             <Users className="w-4 h-4 shrink-0" />
             <span>Siswa ({allStudents.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="logbook" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+          <TabsTrigger
+            value="logbook"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+          >
             <Notebook className="w-4 h-4 shrink-0" />
             <span>Logbook Student</span>
           </TabsTrigger>
-          <TabsTrigger value="rubric" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+          <TabsTrigger
+            value="attendance"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+          >
+            <CalendarDays className="w-4 h-4 shrink-0" />
+            <span>Absensi</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="rubric"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+          >
             <FileSpreadsheet className="w-4 h-4 shrink-0" />
             <span>Rubrik Penilaian</span>
           </TabsTrigger>
-          <TabsTrigger value="assessment" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+          <TabsTrigger
+            value="assessment"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+          >
             <Pencil className="w-4 h-4 shrink-0" />
             <span>Assessment</span>
           </TabsTrigger>
           {hasPastClasses && (
-            <TabsTrigger value="past-batches" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+            <TabsTrigger
+              value="past-batches"
+              className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+            >
               <GraduationCap className="w-4 h-4 shrink-0" />
               <span>Batch Lama</span>
             </TabsTrigger>
           )}
-          <TabsTrigger value="settings" className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2">
+          <TabsTrigger
+            value="settings"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+          >
             <Settings className="w-4 h-4 shrink-0" />
             <span>Pengaturan Akun</span>
           </TabsTrigger>
@@ -949,1733 +928,160 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
         {/* ── TAB 1: KELAS & SILABUS ── */}
         <TabsContent value="classes" className="space-y-6">
-          {activeClasses.length === 0 ? (
-            <Alert className="border-border bg-card shadow-sm p-6">
-              <Info className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
-              <div className="space-y-2">
-                <AlertTitle className="font-heading font-bold text-base text-foreground">
-                  Belum Ada Kelas Aktif
-                </AlertTitle>
-                <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
-                  {profile?.selectedProgram ? (
-                    <>
-                      Spesialisasi Anda: <strong>{profile.specialization || "Belum Ditentukan"}</strong>.<br />
-                      Program yang di-assign: <strong>{profile.selectedProgram}</strong>.<br /><br />
-                      Saat ini belum ada kelas ajar aktif untuk Anda di Batch berjalan. Hal ini bisa disebabkan karena:
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li>Belum ada Batch Cohort aktif yang didefinisikan/dijalankan oleh Administrator.</li>
-                        <li>Siswa belum terdaftar (atau belum dijalankan alokasi Modulo/pembagian kelas oleh Admin).</li>
-                      </ul>
-                    </>
-                  ) : (
-                    <>
-                      Anda belum dikaitkan dengan Program Studi spesifik apa pun. Hubungi Administrator untuk meng-assign Anda ke Program yang sesuai.
-                    </>
-                  )}
-                </AlertDescription>
-              </div>
-            </Alert>
-          ) : (
-            <div className="grid md:grid-cols-3 gap-6">
-              {/* Class List */}
-              <div className="md:col-span-1 space-y-4">
-                <div className="space-y-3">
-                  {classes.map((cls) => {
-                    const isSelected = cls.id === selectedClassId;
-                    return (
-                      <div
-                        key={cls.id}
-                        onClick={() => setSelectedClassId(cls.id)}
-                        className={`cursor-pointer rounded-xl border p-4 transition-all ${isSelected
-                          ? "bg-brand-purple/10 border-brand-purple shadow-sm"
-                          : "bg-card border-border hover:border-border/80 hover:bg-secondary/30"
-                          }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-secondary text-muted-foreground">
-                            {cls.batch?.name || "Batch 7"}
-                          </span>
-                          {cls.batch?.status === 'active' ? (
-                            <Badge variant="outline" className="text-[10px] bg-emerald-500/10 text-emerald-600 border-emerald-200">
-                              Aktif
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-[10px] bg-amber-500/10 text-amber-600 border-amber-200">
-                              Selesai
-                            </Badge>
-                          )}
-                        </div>
-                        <h3 className="font-heading font-bold text-base mt-2 text-foreground">
-                          {cls.program?.name || "Program Studi"}
-                        </h3>
-                        {cls.batch?.startDate && cls.batch?.endDate && (
-                          <div className="flex items-center gap-1.5 mt-2 text-[10px] text-muted-foreground bg-secondary/50 w-fit px-2 py-1 rounded-md border border-border">
-                            <Calendar className="w-3 h-3" />
-                            <span className="font-semibold">{new Date(cls.batch.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} - {new Date(cls.batch.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
-                          </div>
-                        )}
-                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Users className="w-3.5 h-3.5" />
-                            {cls.enrolledStudentsCount || 0} Siswa
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <FileText className="w-3.5 h-3.5" />
-                            {cls.materials?.length || 0} Materi
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Class Details & Syllabus Progress */}
-              <div className="md:col-span-2 space-y-6">
-                {(() => {
-                  if (!selectedCls) return null;
-
-                  return (
-                    <Card className="border-border bg-card shadow-sm">
-                      <CardHeader className="border-b border-border bg-secondary/20 pb-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                          <div>
-                            <CardTitle className="text-lg font-heading font-bold text-foreground">
-                              {selectedCls.program?.name}
-                            </CardTitle>
-                            <CardDescription className="text-xs text-muted-foreground mt-1">
-                              {selectedCls.batch?.name} • Dikelola oleh Tim Mentor
-                              {selectedCls.batch?.startDate && selectedCls.batch?.endDate && (
-                                <span className="block mt-1 font-medium text-brand-purple flex items-center gap-1">
-                                  <Calendar className="w-3.5 h-3.5" />
-                                  Durasi: {new Date(selectedCls.batch.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })} - {new Date(selectedCls.batch.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
-                                </span>
-                              )}
-                            </CardDescription>
-                          </div>
-                          <Badge className="bg-brand-purple text-white hover:bg-brand-purple-hover self-start sm:self-center">
-                            Silabus Berjalan
-                          </Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="p-6 space-y-6">
-                        {/* Syllabus Progress */}
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-xs font-semibold">
-                            <span>Progres Pembelajaran Silabus</span>
-                            <span className="text-brand-purple">65%</span>
-                          </div>
-                          <Progress value={65} className="h-2 bg-secondary" />
-                        </div>
-
-                        {/* Otomatisasi Alokasi Murid (Round-Robin & Modulo) */}
-                        {(() => {
-                          const progName = selectedCls.program?.name || "";
-                          const isCollab = progName.toLowerCase().includes("web") || progName.toLowerCase().includes("mobile");
-                          if (!isCollab) return null;
-                          return (
-                            <div className="border border-brand-purple/30 bg-brand-purple/5 rounded-xl p-4 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                  <Sliders className="w-4 h-4 text-brand-purple" />
-                                  <h4 className="font-heading font-bold text-sm text-foreground">
-                                    Distribusi Alokasi Murid (Round-Robin & Modulo)
-                                  </h4>
-                                </div>
-                                {!isReadOnly && (
-                                  <Button
-                                    onClick={() => handleDistributeModulo(progName)}
-                                    disabled={isDistributing}
-                                    size="sm"
-                                    className="bg-brand-purple hover:bg-brand-purple-hover text-white text-xs h-8"
-                                  >
-                                    {isDistributing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : <RefreshCw className="w-3.5 h-3.5 mr-1" />}
-                                    Jalankan Distribusi
-                                  </Button>
-                                )}
-                              </div>
-                              <p className="text-2xs text-muted-foreground leading-relaxed">
-                                Sesuai Bab 5 & Bab 9 Source of Truth: Sistem akan membagi siswa secara merata ke Primary Mentor. Sisa pembagian (Modulo remainder) akan dialokasikan secara otomatis ke Supporting/Secondary Mentor (UI/UX & Professional).
-                              </p>
-                              {distributeMessage && (
-                                <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-medium flex items-center gap-2">
-                                  <CheckCircle2 className="w-4 h-4 shrink-0" />
-                                  <span>{distributeMessage}</span>
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })()}
-
-                        {/* Materials Section */}
-                        <div className="space-y-3">
-                          <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
-                            <span className="flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-brand-purple" />
-                              Materi Pembelajaran Terdaftar ({selectedCls.materials?.length || 0})
-                            </span>
-                            {!isReadOnly && (
-                              <Button
-                                onClick={() => setIsAddMaterialModalOpen(true)}
-                                size="sm"
-                                variant="outline"
-                                className="h-8 text-xs flex items-center gap-1.5"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                                Tambah Materi
-                              </Button>
-                            )}
-                          </h4>
-                          <div className="grid gap-2">
-                            {selectedCls.materials && selectedCls.materials.length > 0 ? (
-                              selectedCls.materials.map((mat: any, idx: number) => (
-                                <div key={mat.id || idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-xs">
-                                      #{idx + 1}
-                                    </div>
-                                    <div>
-                                      <p className="text-xs font-semibold text-foreground">{mat.title}</p>
-                                      <p className="text-[11px] text-muted-foreground">{mat.competency || "Kompetensi Umum"} • Tipe: {mat.type?.toUpperCase()}</p>
-                                    </div>
-                                  </div>
-                                  <Link
-                                    href={`/dashboard/class/${selectedCls.id}/material/${mat.id}`}
-                                    target="_blank"
-                                    className="text-xs font-medium text-brand-purple flex items-center gap-1 bg-card px-2.5 py-1 rounded border border-border shadow-2xs hover:bg-brand-purple/5 transition-colors"
-                                  >
-                                    Lihat Modul
-                                  </Link>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-xs text-muted-foreground py-4 text-center border border-dashed rounded-lg">
-                                Belum ada materi pembelajaran untuk kelas ini.
-                              </p>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Assignments Section */}
-                        <div className="space-y-3 pt-2">
-                          <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
-                            <span className="flex items-center gap-2">
-                              <Award className="w-4 h-4 text-emerald-600" />
-                              Tugas & Praktik ({selectedCls.assignments?.length || 0})
-                            </span>
-                            {!isReadOnly && (
-                              <Button
-                                onClick={() => setIsAddAssignmentModalOpen(true)}
-                                size="sm"
-                                variant="outline"
-                                className="h-8 text-xs flex items-center gap-1.5 border-emerald-200 hover:bg-emerald-50 text-emerald-700"
-                              >
-                                <Plus className="w-3.5 h-3.5" />
-                                Tambah Tugas
-                              </Button>
-                            )}
-                          </h4>
-                          <div className="grid gap-2">
-                            {selectedCls.assignments && selectedCls.assignments.length > 0 ? (
-                              selectedCls.assignments.map((ass: any, idx: number) => (
-                                <div key={ass.id || idx} className="flex items-center justify-between p-3 rounded-lg border border-border bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold text-xs">
-                                      T{idx + 1}
-                                    </div>
-                                    <div>
-                                      <p className="text-xs font-semibold text-foreground">{ass.title}</p>
-                                      <p className="text-[11px] text-muted-foreground">Batas Waktu: {ass.dueDate ? new Date(ass.dueDate).toLocaleDateString("id-ID") : "7 Hari"}</p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Link href={`/dashboard/class/${selectedCls.id}/assignment/${ass.id}`}>
-                                      <span className="text-[11px] font-medium text-emerald-600 bg-white dark:bg-card hover:bg-emerald-50 px-2.5 py-1.5 rounded-md border border-border shadow-sm transition-colors cursor-pointer flex items-center gap-1.5">
-                                        Lihat Detail / Periksa Nilai <ChevronRight className="w-3 h-3" />
-                                      </span>
-                                    </Link>
-                                  </div>
-                                </div>
-                              ))
-                            ) : (
-                              <p className="text-xs text-muted-foreground py-4 text-center border border-dashed rounded-lg">
-                                Belum ada tugas praktik untuk kelas ini.
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })()}
-              </div>
-            </div>
-          )}
+          <MentorClassesView
+            profile={profile}
+            classes={classes}
+            activeClasses={activeClasses}
+            selectedClassId={selectedClassId}
+            setSelectedClassId={setSelectedClassId}
+            selectedCls={selectedCls}
+            isReadOnly={isReadOnly}
+            isDistributing={isDistributing}
+            distributeMessage={distributeMessage}
+            handleDistributeModulo={handleDistributeModulo}
+            onOpenAddMaterial={() => setIsAddMaterialModalOpen(true)}
+            onOpenAddAssignment={() => setIsAddAssignmentModalOpen(true)}
+          />
         </TabsContent>
 
         {/* ── TAB 2: SISWA BINAAN ── */}
         <TabsContent value="students" className="space-y-6">
-          <Card className="border-border bg-card shadow-sm">
-            <CardHeader className="border-b border-border pb-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <CardTitle className="text-lg font-heading font-bold text-foreground">
-                    Manajemen Siswa Binaan ({allStudents.length} Siswa)
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground mt-1">
-                    Daftar siswa yang berada di bawah bimbingan dan kepemilikan personal Anda sesuai jurusan.
-                  </CardDescription>
-                </div>
-
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <div className="relative w-full sm:w-64">
-                    <Search className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
-                    <Input
-                      placeholder="Cari nama atau email siswa..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-9 h-9 text-xs bg-secondary/50"
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      <th className="py-3 px-4">Nama Lengkap</th>
-                      <th className="py-3 px-4">Email Terdaftar</th>
-                      <th className="py-3 px-4">WhatsApp</th>
-                      <th className="py-3 px-4">Program Studi</th>
-                      <th className="py-3 px-4 text-center">Status Akun</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/60 text-xs">
-                    {filteredStudents.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} className="py-8 text-center text-muted-foreground">
-                          Tidak ditemukan siswa yang sesuai dengan pencarian Anda.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredStudents.map((student: any, idx: number) => {
-                        const isGmail = student.email && student.email.toLowerCase().endsWith("@gmail.com");
-                        return (
-                          <tr key={student.id || idx} className="hover:bg-secondary/20 transition-colors">
-                            <td className="py-3.5 px-4 font-semibold text-foreground">
-                              {student.name}
-                            </td>
-                            <td className="py-3.5 px-4 font-mono text-muted-foreground">
-                              {student.email}
-                            </td>
-                            <td className="py-3.5 px-4 text-muted-foreground">
-                              {student.whatsapp || "-"}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                {student.selectedProgram || "Web Development"}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-center">
-                              <div className="flex flex-wrap items-center justify-center gap-1">
-                                {student.status === "suspended" ? (
-                                  <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-200 gap-1 text-[10px]">
-                                    <AlertCircle className="w-3 h-3" />
-                                    Suspended
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200 gap-1 text-[10px]">
-                                    <UserCheck className="w-3 h-3" />
-                                    Aktif
-                                  </Badge>
-                                )}
-                                {isGmail ? (
-                                  <Badge variant="outline" className="bg-blue-500/10 text-blue-600 border-blue-200 text-[10px] leading-none py-0.5">
-                                    Gmail
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-300 text-[10px] leading-none py-0.5">
-                                    Non-Gmail
-                                  </Badge>
-                                )}
-                              </div>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {student.whatsapp && (
-                                  <a
-                                    href={`https://wa.me/${student.whatsapp.replace(/^0/, "62")}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-[11px] transition-colors shadow-2xs"
-                                  >
-                                    <MessageSquare className="w-3 h-3" />
-                                    WA
-                                  </a>
-                                )}
-                                {!isReadOnly && (
-                                  student.status === "suspended" ? (
-                                    <button
-                                      onClick={() => {
-                                        setSelectedStudentForSuspend(student);
-                                        setSuspendError(null);
-                                        setSuspendActionType("unsuspend");
-                                        setCountdown(5);
-                                        setIsSuspendDialogOpen(true);
-                                      }}
-                                      className="px-2 py-1 rounded border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-emerald-600 text-[11px] font-medium transition-colors"
-                                    >
-                                      Aktifkan Kembali
-                                    </button>
-                                  ) : (
-                                    <button
-                                      onClick={() => {
-                                        setSelectedStudentForSuspend(student);
-                                        setSuspendError(null);
-                                        setSuspendActionType("suspend");
-                                        setCountdown(5);
-                                        setIsSuspendDialogOpen(true);
-                                      }}
-                                      className="px-2 py-1 rounded border border-border bg-card hover:bg-secondary text-muted-foreground hover:text-amber-600 text-[11px] font-medium transition-colors"
-                                    >
-                                      Suspend
-                                    </button>
-                                  )
-                                )}
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ── TAB 3: PENGATURAN AKUN ── */}
-        <TabsContent value="settings" className="space-y-6 outline-hidden">
-          <Card className="border-border bg-card shadow-sm w-full">
-            <CardHeader className="border-b border-border pb-4">
-              <CardTitle className="font-heading font-bold text-lg flex items-center gap-2 text-foreground">
-                <Settings className="w-5 h-5 text-brand-purple" />
-                Edit Profil Saya
-              </CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">
-                Perbarui data pribadi Anda yang tersimpan di sistem.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="pt-6">
-              <form onSubmit={handleSaveProfile} className="space-y-6">
-                {profileSaveSuccess && (
-                  <Alert className="border-green-500/20 bg-green-500/5 text-green-600 dark:text-green-400">
-                    <AlertDescription className="text-xs font-medium">{profileSaveSuccess}</AlertDescription>
-                  </Alert>
-                )}
-                {profileSaveError && (
-                  <Alert className="border-red-500/20 bg-red-500/5 text-red-600 dark:text-red-400">
-                    <AlertDescription className="text-xs font-medium">{profileSaveError}</AlertDescription>
-                  </Alert>
-                )}
-
-                {/* Avatar Management */}
-                <div className="flex flex-col sm:flex-row items-center gap-6 pb-4 border-b border-border/50">
-                  <div className="relative group shrink-0">
-                    <img
-                      src={getEffectiveAvatar()}
-                      alt="Foto Profil"
-                      className="w-24 h-24 rounded-full object-cover border-2 border-brand-purple/20 shadow-md transition-all group-hover:brightness-90"
-                    />
-                    <label className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer text-white">
-                      <Upload className="w-5 h-5" />
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleProfileFileChange}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                  <div className="space-y-4 w-full">
-                    <div>
-                      <label className="block text-xs font-bold text-foreground mb-1">Unggah Foto Profil Baru</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleProfileFileChange}
-                        className="block w-full text-xs text-muted-foreground file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-purple/10 file:text-brand-purple hover:file:bg-brand-purple/20 cursor-pointer"
-                      />
-                      <p className="text-[10px] text-muted-foreground mt-1">Mendukung format PNG, JPG, JPEG, WEBP, dll. Maksimal 5MB.</p>
-                    </div>
-
-                    {/* Choose from Default Avatars */}
-                    <div className="space-y-2">
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pilih dari Avatar Default:</label>
-                      <div className="flex gap-2">
-                        {defaultAvatars.map((url, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => setMyAvatarUrl(url)}
-                            className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all hover:scale-105 hover:shadow-xs ${myAvatarUrl === url ? "border-brand-purple scale-105 shadow-sm" : "border-transparent"
-                              }`}
-                          >
-                            <img src={url} alt={`Avatar default ${idx + 1}`} className="w-full h-full object-cover" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Form Fields */}
-                <div className="grid sm:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                      <User className="w-3.5 h-3.5 text-brand-purple" />
-                      Nama Lengkap
-                    </label>
-                    <Input
-                      value={myName}
-                      onChange={(e) => setMyName(e.target.value)}
-                      required
-                      placeholder="Nama Anda"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                      <Phone className="w-3.5 h-3.5 text-brand-purple" />
-                      Nomor WhatsApp
-                    </label>
-                    <Input
-                      value={myWhatsapp}
-                      onChange={(e) => setMyWhatsapp(e.target.value)}
-                      placeholder="Contoh: 08123456789"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                      <School className="w-3.5 h-3.5 text-brand-purple" />
-                      Asal Institusi / Kampus
-                    </label>
-                    <Input
-                      value={myInstitution}
-                      onChange={(e) => setMyInstitution(e.target.value)}
-                      placeholder="Contoh: Universitas Indonesia"
-                    />
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1">
-                      <GraduationCap className="w-3.5 h-3.5 text-brand-purple" />
-                      Program Studi
-                    </label>
-                    <Input
-                      value={myStudyProgram}
-                      onChange={(e) => setMyStudyProgram(e.target.value)}
-                      placeholder="Contoh: Teknik Informatika"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4 border-t border-border/50">
-                  <Button
-                    type="submit"
-                    disabled={isSavingProfile}
-                    className="bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-semibold h-10 px-6 flex items-center gap-1.5"
-                  >
-                    {isSavingProfile ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Menyimpan...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4" />
-                        <span>Simpan Perubahan</span>
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {hasPastClasses && (
-          <TabsContent value="past-batches" className="space-y-6 outline-hidden">
-            <div className="space-y-4 font-sans">
-              <h2 className="font-heading font-bold text-lg flex items-center gap-2">
-                <GraduationCap className="w-5 h-5 text-brand-purple" />
-                Riwayat Angkatan / Batch Lama Anda
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Berikut adalah daftar kelas ajar bimbingan Anda di angkatan sebelumnya. Anda tetap dapat mengakses arsip kelas, siswa, materi, dan tugas ini dalam mode baca (Read-Only).
-              </p>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                {pastClasses.map((cls) => (
-                  <Link key={cls.id} href={`/dashboard/class/${cls.id}`} className="block transition-transform hover:-translate-y-1">
-                    <Card className="border-border shadow-sm overflow-hidden bg-card hover:shadow-md transition-shadow">
-                      <div className="bg-slate-800 px-6 py-5 text-white">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-300">
-                          Selesai • {cls.batch?.name}
-                        </p>
-                        <CardTitle className="text-white text-lg mt-1.5">{cls.program?.name}</CardTitle>
-                        <p className="text-2xs text-white/85 mt-1">Total Murid: {cls.enrolledStudentsCount || 0} Siswa</p>
-                      </div>
-                      <CardContent className="py-4 flex justify-between items-center text-xs">
-                        <span className="text-muted-foreground flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-slate-400" />
-                          Ruang kelas diarsipkan
-                        </span>
-                        <span className="text-brand-purple font-semibold hover:underline flex items-center gap-1">
-                          Buka Arsip Kelas
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-                        </span>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          </TabsContent>
-        )}
-
-        {/* ── TAB 3: RUBRIK PENILAIAN ── */}
-        <TabsContent value="rubric" className="space-y-6">
-          <div className="flex items-center justify-between gap-4 mb-4">
-            <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-xl w-fit border border-border">
-              <button
-                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "kompetensi" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
-                onClick={() => setActiveRubrikTab("kompetensi")}
-              >
-                Rubrik Kompetensi
-              </button>
-              <button
-                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "assessment" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
-                onClick={() => setActiveRubrikTab("assessment")}
-              >
-                Rubrik Assessment
-              </button>
-              <button
-                className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "professional" ? "bg-card text-brand-purple shadow-sm border border-border/50" : "text-muted-foreground hover:text-foreground"}`}
-                onClick={() => setActiveRubrikTab("professional")}
-              >
-                Rubrik Professional
-              </button>
-            </div>
-            {uniquePrograms.length > 1 && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground font-medium text-xs">Program:</span>
-                <select
-                  value={selectedProgramId || ""}
-                  onChange={(e) => setSelectedProgramId(e.target.value)}
-                  className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[200px] truncate"
-                >
-                  {uniquePrograms.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-
-          {(activeRubrikTab === "kompetensi" || activeRubrikTab === "professional") && (
-            <Card className="border-border bg-card shadow-sm mb-6">
-              <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-heading font-bold text-foreground">
-                    {activeRubrikTab === "kompetensi" ? "Manajemen Rubrik Kompetensi" : "Manajemen Kompetensi Professional (Global)"}
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground mt-1">
-                    Atur patokan nilai dan kriteria evaluasi (rubrik) untuk masing-masing kompetensi secara global.
-                  </CardDescription>
-                </div>
-                <Button
-                  onClick={() => setIsAddCompetencyModalOpen(true)}
-                  size="sm"
-                  variant="outline"
-                  className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Tambah Kompetensi
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        <th className="py-3 px-4">Nama Kompetensi</th>
-                        <th className="py-3 px-4">Kategori</th>
-                        <th className="py-3 px-4">Fase</th>
-                        <th className="py-3 px-4 text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/60 text-xs">
-                      {competencies.filter((c: any) => activeRubrikTab === "professional" ? c.isGlobal : !c.isGlobal).length === 0 ? (
-                        <tr>
-                          <td colSpan={4} className="py-8 text-center text-muted-foreground">
-                            Belum ada kompetensi.
-                          </td>
-                        </tr>
-                      ) : (
-                        competencies
-                          .filter((c: any) => activeRubrikTab === "professional" ? c.isGlobal : !c.isGlobal)
-                          .map((comp: any) => (
-                            <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
-                              <td className="py-3.5 px-4 font-semibold text-foreground">
-                                {comp.name}
-                              </td>
-                              <td className="py-3.5 px-4">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                  {comp.category}
-                                </span>
-                              </td>
-                              <td className="py-3.5 px-4">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                  {comp.phase || "Micro"}
-                                </span>
-                              </td>
-                              <td className="py-3.5 px-4 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <Link href={`/dashboard/competency/${comp.id}/rubric`}>
-                                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer">
-                                      <FileSpreadsheet className="w-3.5 h-3.5" /> Atur Rubrik
-                                    </span>
-                                  </Link>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 w-7 p-0"
-                                    onClick={() => setEditingCompetency(comp)}
-                                  >
-                                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50"
-                                    onClick={() => handleDeleteCompetency(comp.id)}
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {(activeRubrikTab === "assessment" || activeRubrikTab === "professional") && (
-            <Card className="border-border bg-card shadow-sm">
-              <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="text-lg font-heading font-bold text-foreground">
-                    {activeRubrikTab === "assessment" ? "Manajemen Rubrik Assessment" : "Manajemen Rubrik Assessment Professional (Global)"}
-                  </CardTitle>
-                  <CardDescription className="text-xs text-muted-foreground mt-1">
-                    Atur Rubrik Assessment yang akan menaungi beberapa Rubrik Kompetensi beserta bobotnya.
-                  </CardDescription>
-                </div>
-                <Button
-                  onClick={() => setIsAddRubrikAssessmentModalOpen(true)}
-                  size="sm"
-                  variant="outline"
-                  className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Tambah Rubrik Assessment
-                </Button>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                        <th className="py-3 px-4">Nama Rubrik Assessment</th>
-                        <th className="py-3 px-4">Fase</th>
-                        <th className="py-3 px-4 text-right">Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border/60 text-xs">
-                      {rubrikAssessments.filter((r: any) => activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal).length === 0 ? (
-                        <tr>
-                          <td colSpan={3} className="py-8 text-center text-muted-foreground">
-                            Belum ada Rubrik Assessment.
-                          </td>
-                        </tr>
-                      ) : (
-                        rubrikAssessments
-                          .filter((r: any) => activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal)
-                          .map((ra: any) => (
-                            <tr key={ra.id} className="hover:bg-secondary/20 transition-colors">
-                              <td className="py-3.5 px-4 font-semibold text-foreground">
-                                {ra.name}
-                              </td>
-                              <td className="py-3.5 px-4">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                  {ra.phase}
-                                </span>
-                              </td>
-                              <td className="py-3.5 px-4 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <span
-                                    onClick={() => setEditingWeightRubrikAssessment(ra)}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer"
-                                  >
-                                    <Settings className="w-3.5 h-3.5" /> Atur Bobot Kompetensi
-                                  </span>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 w-7 p-0"
-                                    onClick={() => setEditingRubrikAssessment(ra)}
-                                  >
-                                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50"
-                                    onClick={() => handleDeleteRubrikAssessment(ra.id)}
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                                  </Button>
-                                </div>
-                              </td>
-                            </tr>
-                          ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-        {/* ── TAB 4: ASSESSMENT (GRADEBOOK) ── */}
-        <TabsContent value="assessment" className="space-y-6">
-          <Card className="border-border bg-card shadow-sm">
-            <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg font-heading font-bold text-foreground">
-                  Assessment (Gradebook)
-                </CardTitle>
-                <CardDescription className="text-xs text-muted-foreground mt-1">
-                  Pantau nilai akhir mentee berdasarkan pencapaian kompetensi. Klik nama kompetensi untuk mengatur bobot tugas.
-                </CardDescription>
-              </div>
-              {uniquePrograms.length > 1 && (
-                <div className="flex items-center gap-2 text-sm">
-                  <span className="text-muted-foreground font-medium text-xs">Program:</span>
-                  <select
-                    value={selectedProgramId || ""}
-                    onChange={(e) => setSelectedProgramId(e.target.value)}
-                    className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[200px] truncate"
-                  >
-                    {uniquePrograms.map(p => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </CardHeader>
-            <CardContent className="pt-6">
-              <Tabs defaultValue="Micro" className="w-full">
-                <div className="flex justify-between items-center mb-6">
-                  <TabsList className="grid w-full max-w-sm grid-cols-2">
-                    <TabsTrigger value="Micro">Phase Micro</TabsTrigger>
-                    <TabsTrigger value="Massive">Phase Massive</TabsTrigger>
-                  </TabsList>
-
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="file"
-                      accept=".csv"
-                      className="hidden"
-                      ref={csvInputRef}
-                      onChange={handleImportCSV}
-                    />
-                    <Button
-                      onClick={() => csvInputRef.current?.click()}
-                      size="sm"
-                      variant="outline"
-                      className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple"
-                      disabled={isImportingCSV}
-                    >
-                      {isImportingCSV ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                      Import CSV
-                    </Button>
-                  </div>
-                </div>
-
-                {["Micro", "Massive"].map((phase) => {
-                  const microRAs = rubrikAssessments.filter(ra => ra.phase === "Micro" || (!ra.phase && "Micro" === "Micro"));
-                  const massiveRAs = rubrikAssessments.filter(ra => ra.phase === "Massive");
-                  const displayRAs = phase === "Micro" ? microRAs : massiveRAs;
-
-                  return (
-                    <TabsContent key={phase} value={phase} className="space-y-6">
-                      <div className="overflow-x-auto border border-border rounded-xl">
-                        <table className="w-full text-sm text-left whitespace-nowrap">
-                          <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            <tr>
-                              <th className="px-4 py-3 sticky left-0 z-10 bg-muted/95 backdrop-blur shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">Mentee</th>
-                              <th className="px-4 py-3 bg-brand-purple/10 text-brand-purple border-x border-border text-center">
-                                {phase === "Micro" ? "Total Micro" : "Total Massive"}
-                              </th>
-                              {displayRAs.map(ra => (
-                                <th
-                                  key={ra.id}
-                                  className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
-                                  onClick={() => setEditingWeightRubrikAssessment(ra)}
-                                  title="Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini"
-                                >
-                                  {ra.name}
-                                  <Pencil className="w-3 h-3 inline-block ml-1 opacity-50" />
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-border">
-                            {allStudents.length === 0 ? (
-                              <tr>
-                                <td colSpan={displayRAs.length + 2} className="px-4 py-8 text-center text-muted-foreground">
-                                  Belum ada mentee yang terdaftar.
-                                </td>
-                              </tr>
-                            ) : (
-                              allStudents.map((student) => {
-                                const calculateRAScore = (raId: string, visited = new Set<string>()): number => {
-                                  if (visited.has(raId)) return 65;
-                                  visited.add(raId);
-
-                                  const ra = rubrikAssessments.find((r: any) => r.id === raId);
-                                  if (!ra) return 65;
-
-                                  const ext = externalScores.find((es: any) => es.studentId === student.id && es.rubrikAssessmentId === raId);
-                                  if (ext && ext.score !== undefined) {
-                                    return clampScore(ext.score);
-                                  }
-
-                                  const hasComps = ra.competencies && ra.competencies.length > 0;
-                                  const hasSubs = ra.subAssessments && ra.subAssessments.length > 0;
-                                  if (!hasComps && !hasSubs) return 65;
-
-                                  let totalScore = 0;
-                                  if (hasComps) {
-                                    for (const c of ra.competencies) {
-                                      const compScore = calculateCompetencyScore(student.id, c.competencyId);
-                                      totalScore += compScore * c.weight;
-                                    }
-                                  }
-                                  if (hasSubs) {
-                                    for (const s of ra.subAssessments) {
-                                      const subScore = calculateRAScore(s.assessmentId, visited);
-                                      totalScore += subScore * s.weight;
-                                    }
-                                  }
-                                  return clampScore(totalScore);
-                                };
-
-                                const phaseTotalVal = displayRAs.reduce((acc, ra) => acc + calculateRAScore(ra.id), 0);
-                                const phaseAverage = displayRAs.length > 0 ? phaseTotalVal / displayRAs.length : 65;
-
-                                return (
-                                  <tr key={student.id} className="hover:bg-muted/30 transition-colors">
-                                    <td className="px-4 py-3 sticky left-0 z-10 bg-card shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
-                                      <div className="font-semibold text-foreground text-xs">{student.name}</div>
-                                      <div className="text-[10px] text-muted-foreground">{student.email}</div>
-                                    </td>
-
-                                    <td className="px-4 py-3 text-center border-x border-border font-bold text-brand-purple bg-brand-purple/5">
-                                      {phaseAverage.toFixed(1)}
-                                    </td>
-
-                                    {displayRAs.map(ra => {
-                                      const score = calculateRAScore(ra.id);
-                                      return (
-                                        <td key={ra.id} className="px-4 py-3 text-center border-l border-border text-xs font-medium">
-                                          {score > 0 ? score.toFixed(1) : "-"}
-                                        </td>
-                                      );
-                                    })}
-                                  </tr>
-                                );
-                              })
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </TabsContent>
-                  );
-                })}
-              </Tabs>
-            </CardContent>
-          </Card>
+          <MentorStudentsView
+            allStudents={allStudents}
+            filteredStudents={filteredStudents}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            isReadOnly={isReadOnly}
+            onOpenSuspendDialog={(student, action) => {
+              setSelectedStudentForSuspend(student);
+              setSuspendError(null);
+              setSuspendActionType(action);
+              setCountdown(5);
+              setIsSuspendDialogOpen(true);
+            }}
+          />
         </TabsContent>
 
         {/* ── TAB LOGBOOK ── */}
         <TabsContent value="logbook" className="space-y-6 outline-hidden">
-          {activeClasses.length > 0 ? (
-            <MentorLogbook batchId={activeClasses[0].batchId} />
-          ) : (
-            <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600">
-              <AlertCircle className="w-5 h-5" />
-              <AlertTitle>Tidak dapat mengakses logbook</AlertTitle>
-              <AlertDescription>Anda belum terdaftar di kelas/angkatan aktif mana pun pada batch saat ini.</AlertDescription>
-            </Alert>
-          )}
+          <MentorLogbook
+            batchId={(selectedClassId ? classes.find((c) => c.id === selectedClassId)?.batchId : "") || ""}
+          />
+        </TabsContent>
+
+        {/* ── TAB ABSENSI ── */}
+        <TabsContent value="attendance" className="space-y-6 outline-hidden">
+          <MentorAttendance
+            batchId={(selectedClassId ? classes.find((c) => c.id === selectedClassId)?.batchId : "") || ""}
+            mentorId={profile?.id || ""}
+          />
+        </TabsContent>
+
+        {/* ── TAB RUBRIK ── */}
+        <TabsContent value="rubric" className="space-y-6">
+          <MentorAssessmentView
+            activeSubTab="rubric"
+            competencies={competencies}
+            allStudents={allStudents}
+            onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
+            setEditingCompetency={setEditingCompetency}
+            handleDeleteCompetency={handleDeleteCompetency}
+            setEditingWeightCompetency={setEditingWeightCompetency}
+            calculateCompetencyScore={calculateCompetencyScore}
+          />
+        </TabsContent>
+
+        {/* ── TAB ASSESSMENT (GRADEBOOK) ── */}
+        <TabsContent value="assessment" className="space-y-6">
+          <MentorAssessmentView
+            activeSubTab="assessment"
+            competencies={competencies}
+            allStudents={allStudents}
+            onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
+            setEditingCompetency={setEditingCompetency}
+            handleDeleteCompetency={handleDeleteCompetency}
+            setEditingWeightCompetency={setEditingWeightCompetency}
+            calculateCompetencyScore={calculateCompetencyScore}
+          />
+        </TabsContent>
+
+        {/* ── TAB BATCH LAMA ── */}
+        {hasPastClasses && (
+          <TabsContent value="past-batches" className="space-y-6 outline-hidden">
+            <MentorPastBatches
+              pastClasses={pastClasses}
+              competencies={competencies}
+              calculateCompetencyScore={calculateCompetencyScore}
+              mentorId={profile?.id || ""}
+            />
+          </TabsContent>
+        )}
+
+        {/* ── TAB PENGATURAN AKUN ── */}
+        <TabsContent value="settings" className="space-y-6 outline-hidden">
+          <MentorProfileSettings
+            profile={profile}
+            myName={myName}
+            setMyName={setMyName}
+            myWhatsapp={myWhatsapp}
+            setMyWhatsapp={setMyWhatsapp}
+            myInstitution={myInstitution}
+            setMyInstitution={setMyInstitution}
+            myStudyProgram={myStudyProgram}
+            setMyStudyProgram={setMyStudyProgram}
+            myAvatarUrl={myAvatarUrl}
+            setMyAvatarUrl={setMyAvatarUrl}
+            isSavingProfile={isSavingProfile}
+            profileSaveError={profileSaveError}
+            profileSaveSuccess={profileSaveSuccess}
+            handleProfileFileChange={handleProfileFileChange}
+            handleSaveProfile={handleSaveProfile}
+          />
         </TabsContent>
       </Tabs>
-      {/* Add Competency Modal */}
-      {isAddCompetencyModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
-            <h3 className="font-heading font-bold text-lg mb-4">Tambah Kompetensi Baru</h3>
-            <form onSubmit={handleCreateCompetency} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Nama Kompetensi</label>
-                <Input name="name" required placeholder="Contoh: Intro to React" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Kategori (Pilih salah satu)</label>
-                <select name="category" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="Technical Skill">Technical Skill</option>
-                  <option value="Soft Skills (CCA)">Soft Skills (CCA)</option>
-                  <option value="Capstone Project">Capstone Project</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Fase</label>
-                <select name="phase" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="Micro">Micro</option>
-                  <option value="Massive">Massive</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button type="button" variant="outline" onClick={() => setIsAddCompetencyModalOpen(false)}>Batal</Button>
-                <Button type="submit">Simpan</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* Edit Competency Modal */}
-      {editingCompetency && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
-            <h3 className="font-heading font-bold text-lg mb-4">Edit Kompetensi</h3>
-            <form onSubmit={handleUpdateCompetency} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Nama Kompetensi</label>
-                <Input name="name" required defaultValue={editingCompetency.name} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Kategori</label>
-                <select name="category" required defaultValue={editingCompetency.category} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="Technical Skill">Technical Skill</option>
-                  <option value="Soft Skills (CCA)">Soft Skills (CCA)</option>
-                  <option value="Capstone Project">Capstone Project</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Fase</label>
-                <select name="phase" required defaultValue={editingCompetency.phase || 'Micro'} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="Micro">Micro</option>
-                  <option value="Massive">Massive</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button type="button" variant="outline" onClick={() => setEditingCompetency(null)}>Batal</Button>
-                <Button type="submit">Simpan Perubahan</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Add Material Modal */}
-      {isAddMaterialModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
-            <h3 className="font-heading font-bold text-lg mb-4">Tambah Materi Baru</h3>
-            <form onSubmit={handleCreateMaterial} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Judul Materi</label>
-                <Input name="title" required placeholder="Contoh: Fundamental State Management" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Tipe Materi</label>
-                <select
-                  name="type"
-                  required
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                  value={materialType}
-                  onChange={(e) => setMaterialType(e.target.value)}
-                >
-                  <option value="pdf">PDF</option>
-                  <option value="video">Video</option>
-                  <option value="link">Tautan Luar</option>
-                  <option value="custom">Custom Editor (HTML Embed)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 flex items-center justify-between">
-                  Kompetensi Terkait
-                  <button type="button" onClick={() => { setIsAddMaterialModalOpen(false); setIsAddCompetencyModalOpen(true); }} className="text-xs text-brand-purple hover:underline">+ Buat Baru</button>
-                </label>
-                <select name="competency" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="">Pilih Kompetensi...</option>
-                  {competencies.map((c) => (
-                    <option key={c.id} value={c.name}>{c.name} ({c.category})</option>
-                  ))}
-                </select>
-              </div>
-              {materialType === "custom" ? (
-                <>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Kode HTML Embed (Canva, YouTube, dll)</label>
-                    <textarea name="content" required className="w-full p-3 rounded-md border border-input bg-background text-sm font-mono" rows={4} placeholder="<iframe src='...' />"></textarea>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-1">Keterangan / Caption (Opsional)</label>
-                    <textarea name="caption" className="w-full p-3 rounded-md border border-input bg-background text-sm" rows={2} placeholder="Tuliskan instruksi atau keterangan tambahan di sini..."></textarea>
-                  </div>
-                </>
-              ) : (
-                <div>
-                  <label className="block text-sm font-medium mb-1">URL / Link Materi</label>
-                  <Input name="url" type="url" required placeholder="https://..." />
-                </div>
-              )}
-              <div className="flex justify-end gap-2 mt-4">
-                <Button type="button" variant="outline" onClick={() => setIsAddMaterialModalOpen(false)}>Batal</Button>
-                <Button type="submit">Simpan</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Add Assignment Modal */}
-      {isAddAssignmentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
-            <h3 className="font-heading font-bold text-lg mb-4">Tambah Tugas Baru</h3>
-            <form onSubmit={handleCreateAssignment} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Judul Tugas</label>
-                <Input name="title" required placeholder="Contoh: Proyek Akhir React" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 flex items-center justify-between">
-                  Kompetensi Terkait
-                  <button type="button" onClick={() => { setIsAddAssignmentModalOpen(false); setIsAddCompetencyModalOpen(true); }} className="text-xs text-brand-purple hover:underline">+ Buat Baru</button>
-                </label>
-                <select name="competency" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="">Pilih Kompetensi...</option>
-                  {competencies.map((c) => (
-                    <option key={c.id} value={c.name}>{c.name} ({c.category})</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1 flex items-center justify-between">
-                  Tipe Pengumpulan
-                  <span className="text-[10px] text-muted-foreground font-normal bg-secondary px-2 py-0.5 rounded-full">Format Wajib</span>
-                </label>
-                <select name="submissionType" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="github">Link GitHub (Tugas Kode & Automasi)</option>
-                  <option value="figma">Link Figma (Tugas UI/UX)</option>
-                  <option value="drive">Link Google Drive (Gambar/Lainnya)</option>
-                  <option value="any">Link Bebas</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Deskripsi & Instruksi</label>
-                <textarea name="description" required className="w-full p-3 rounded-md border border-input bg-background text-sm" rows={4} placeholder="Jelaskan detail instruksi tugas..."></textarea>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Tenggat Waktu (Due Date)</label>
-                <Input name="dueDate" type="datetime-local" required />
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button type="button" variant="outline" onClick={() => setIsAddAssignmentModalOpen(false)}>Batal</Button>
-                <Button type="submit">Simpan</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Weight Modal */}
-      {editingWeightCompetency && (() => {
-        const compAssignments = classes.flatMap((cls: any) => (cls.assignments || []).filter((a: any) => a.competency === editingWeightCompetency.id));
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[600px] max-w-[90vw]">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h3 className="font-heading font-bold text-lg">Pengaturan Bobot: {editingWeightCompetency.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Atur bobot tugas untuk kompetensi ini.</p>
-                </div>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => setEditingWeightCompetency(null)}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="max-h-[60vh] overflow-y-auto mb-6 pr-2">
-                {compAssignments.length === 0 ? (
-                  <div className="p-4 text-center text-xs text-muted-foreground bg-muted/20 rounded-lg">Tidak ada tugas di bawah kompetensi ini.</div>
-                ) : (
-                  <table className="w-full text-sm text-left">
-                    <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      <tr>
-                        <th className="px-4 py-2 font-medium">Judul Tugas</th>
-                        <th className="px-4 py-2 font-medium">Kelas</th>
-                        <th className="px-4 py-2 font-medium text-right w-48">Bobot (%)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {compAssignments.map((assignment: any) => {
-                        const currentVal = weightUpdates[assignment.id] !== undefined ? weightUpdates[assignment.id] : assignment.weight || 0.1;
-                        const cls = classes.find((c: any) => c.id === assignment.classId);
-                        return (
-                          <tr key={assignment.id} className="hover:bg-muted/30 transition-colors">
-                            <td className="px-4 py-3">
-                              <span className="font-semibold text-foreground text-xs">{assignment.title}</span>
-                              <div className="text-[10px] text-muted-foreground mt-0.5 max-w-[200px] truncate">{assignment.description}</div>
-                            </td>
-                            <td className="px-4 py-3">
-                              <span className="text-[10px] text-muted-foreground">{cls?.name}</span>
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  min="0"
-                                  max="1"
-                                  className="w-16 text-right h-7 text-xs font-medium border-border focus-visible:border-brand-purple"
-                                  value={currentVal}
-                                  onChange={(e) => handleWeightChange(assignment.id, e.target.value)}
-                                />
-                                <span className="text-muted-foreground text-[10px] font-medium w-8 text-left">
-                                  ({(currentVal * 100).toFixed(0)}%)
-                                </span>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
-              </div>
-              <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setEditingWeightCompetency(null)}>Tutup</Button>
-                <Button
-                  onClick={() => { handleSaveWeights(); setEditingWeightCompetency(null); }}
-                  disabled={isSavingWeights || Object.keys(weightUpdates).length === 0}
-                  className="bg-brand-purple hover:bg-brand-purple-hover text-white"
-                >
-                  {isSavingWeights ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                  Simpan Perubahan Bobot
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* Add Rubrik Assessment Modal */}
-      {isAddRubrikAssessmentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
-            <h3 className="font-heading font-bold text-lg mb-4">Tambah Rubrik Assessment Baru</h3>
-            <form onSubmit={handleCreateRubrikAssessment} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Nama Rubrik Assessment</label>
-                <Input name="name" required placeholder="Contoh: UI Design" />
-
-                <Dialog open={isSuspendDialogOpen} onOpenChange={setIsSuspendDialogOpen}>
-                  <DialogContent className="sm:max-w-md bg-card border border-border">
-                    <DialogHeader>
-                      <DialogTitle className={`flex items-center gap-2 font-heading font-bold text-base ${suspendActionType === "suspend" ? "text-amber-600" : "text-emerald-600"}`}>
-                        <ShieldAlert className="w-5 h-5" />
-                        {suspendActionType === "suspend" ? "Tangguhkan Akses Murid" : "Aktifkan Kembali Akses Murid"}
-                      </DialogTitle>
-                      <DialogDescription className="text-xs pt-1.5 leading-relaxed text-muted-foreground font-sans">
-                        {suspendActionType === "suspend"
-                          ? "Apakah Anda yakin ingin menangguhkan sementara (Suspend) akses masuk murid ini ke LMS?"
-                          : "Apakah Anda yakin ingin memulihkan/mengaktifkan kembali akses masuk murid ini ke LMS?"}
-                      </DialogDescription>
-                    </DialogHeader>
-
-                    {selectedStudentForSuspend && (
-                      <div className="bg-secondary/40 border border-border rounded-lg p-3.5 space-y-1.5 text-xs font-sans">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Nama Murid:</span>
-                          <span className="font-semibold text-foreground">{selectedStudentForSuspend.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Email:</span>
-                          <span className="font-mono text-muted-foreground">{selectedStudentForSuspend.email}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Program Studi:</span>
-                          <span className="font-medium text-brand-purple">{selectedStudentForSuspend.selectedProgram || "Web Development"}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {suspendError && (
-                      <Alert variant="destructive" className="py-2.5 px-3">
-                        <AlertCircle className="w-4 h-4" />
-                        <AlertDescription className="text-2xs font-medium">{suspendError}</AlertDescription>
-                      </Alert>
-                    )}
-
-                    <DialogFooter className="gap-2 sm:gap-0 font-sans border-t border-border/40 pt-3">
-                      <DialogClose render={<Button variant="outline" size="sm" className="text-xs font-semibold">Batal</Button>} />
-                      <Button
-                        variant={suspendActionType === "suspend" ? "destructive" : "default"}
-                        size="sm"
-                        disabled={isSuspending || countdown > 0}
-                        onClick={handleSuspendStudent}
-                        className={`text-xs font-semibold gap-1.5 ${suspendActionType === "unsuspend" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"}`}
-                      >
-                        {isSuspending ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            Memproses...
-                          </>
-                        ) : (
-                          `${suspendActionType === "suspend" ? "Ya, Suspend Akses" : "Ya, Aktifkan Akses"}${countdown > 0 ? ` (${countdown}s)` : ""}`
-                        )}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-
-                {/* Add Assignment Modal */}
-                {isAddAssignmentModalOpen && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
-                      <h3 className="font-heading font-bold text-lg mb-4">Tambah Tugas Baru</h3>
-                      <form onSubmit={handleCreateAssignment} className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Judul Tugas</label>
-                          <Input name="title" required placeholder="Contoh: Proyek Akhir React" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1 flex items-center justify-between">
-                            Kompetensi Terkait
-                            <button type="button" onClick={() => { setIsAddAssignmentModalOpen(false); setIsAddCompetencyModalOpen(true); }} className="text-xs text-brand-purple hover:underline">+ Buat Baru</button>
-                          </label>
-                          <select name="competency" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                            <option value="">Pilih Kompetensi...</option>
-                            {competencies.map((c) => (
-                              <option key={c.id} value={c.name}>{c.name} ({c.category})</option>
-                            ))}
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1 flex items-center justify-between">
-                            Tipe Pengumpulan
-                            <span className="text-[10px] text-muted-foreground font-normal bg-secondary px-2 py-0.5 rounded-full">Format Wajib</span>
-                          </label>
-                          <select name="submissionType" required className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                            <option value="github">Link GitHub (Tugas Kode & Automasi)</option>
-                            <option value="figma">Link Figma (Tugas UI/UX)</option>
-                            <option value="drive">Link Google Drive (Gambar/Lainnya)</option>
-                            <option value="any">Link Bebas</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Deskripsi & Instruksi</label>
-                          <textarea name="description" required className="w-full p-3 rounded-md border border-input bg-background text-sm" rows={4} placeholder="Jelaskan detail instruksi tugas..."></textarea>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1">Tenggat Waktu (Due Date)</label>
-                          <Input name="dueDate" type="datetime-local" required />
-                        </div>
-                        <div className="flex justify-end gap-2 mt-4">
-                          <Button type="button" variant="outline" onClick={() => setIsAddAssignmentModalOpen(false)}>Batal</Button>
-                          <Button type="submit">Simpan</Button>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                )}
-
-                {/* Edit Weight Modal */}
-                {editingWeightCompetency && (() => {
-                  const compAssignments = classes.flatMap((cls: any) => (cls.assignments || []).filter((a: any) => a.competency === editingWeightCompetency.id));
-                  return (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                      <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[600px] max-w-[90vw]">
-                        <div className="flex justify-between items-center mb-4">
-                          <div>
-                            <h3 className="font-heading font-bold text-lg">Pengaturan Bobot: {editingWeightCompetency.name}</h3>
-                            <p className="text-xs text-muted-foreground mt-1">Atur bobot tugas untuk kompetensi ini.</p>
-                          </div>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => setEditingWeightCompetency(null)}>
-                            <X className="w-4 h-4" />
-                          </Button>
-                        </div>
-                        <div className="max-h-[60vh] overflow-y-auto mb-6 pr-2">
-                          {compAssignments.length === 0 ? (
-                            <div className="p-4 text-center text-xs text-muted-foreground bg-muted/20 rounded-lg">Tidak ada tugas di bawah kompetensi ini.</div>
-                          ) : (
-                            <table className="w-full text-sm text-left">
-                              <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                <tr>
-                                  <th className="px-4 py-2 font-medium">Judul Tugas</th>
-                                  <th className="px-4 py-2 font-medium">Kelas</th>
-                                  <th className="px-4 py-2 font-medium text-right w-48">Bobot (%)</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-border">
-                                {compAssignments.map((assignment: any) => {
-                                  const currentVal = weightUpdates[assignment.id] !== undefined ? weightUpdates[assignment.id] : assignment.weight || 0.1;
-                                  const cls = classes.find((c: any) => c.id === assignment.classId);
-                                  return (
-                                    <tr key={assignment.id} className="hover:bg-muted/30 transition-colors">
-                                      <td className="px-4 py-3">
-                                        <span className="font-semibold text-foreground text-xs">{assignment.title}</span>
-                                        <div className="text-[10px] text-muted-foreground mt-0.5 max-w-[200px] truncate">{assignment.description}</div>
-                                      </td>
-                                      <td className="px-4 py-3">
-                                        <span className="text-[10px] text-muted-foreground">{cls?.name}</span>
-                                      </td>
-                                      <td className="px-4 py-3 text-right">
-                                        <div className="flex items-center justify-end gap-2">
-                                          <Input
-                                            type="number"
-                                            step="0.01"
-                                            min="0"
-                                            max="1"
-                                            className="w-16 text-right h-7 text-xs font-medium border-border focus-visible:border-brand-purple"
-                                            value={currentVal}
-                                            onChange={(e) => handleWeightChange(assignment.id, e.target.value)}
-                                          />
-                                          <span className="text-muted-foreground text-[10px] font-medium w-8 text-left">
-                                            ({(currentVal * 100).toFixed(0)}%)
-                                          </span>
-                                        </div>
-                                      </td>
-                                    </tr>
-                                  );
-                                })}
-                              </tbody>
-                            </table>
-                          )}
-                        </div>
-                        <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                          <Button type="button" variant="outline" onClick={() => setEditingWeightCompetency(null)}>Tutup</Button>
-                          <Button
-                            onClick={() => { handleSaveWeights(); setEditingWeightCompetency(null); }}
-                            disabled={isSavingWeights || Object.keys(weightUpdates).length === 0}
-                            className="bg-brand-purple hover:bg-brand-purple-hover text-white"
-                          >
-                            {isSavingWeights ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                            Simpan Perubahan Bobot
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })()}
-
-                <Dialog open={isSuspendDialogOpen} onOpenChange={setIsSuspendDialogOpen}>
-                  <DialogContent className="sm:max-w-md bg-card border border-border">
-                    <DialogHeader>
-                      <DialogTitle className={`flex items-center gap-2 font-heading font-bold text-base ${suspendActionType === "suspend" ? "text-amber-600" : "text-emerald-600"}`}>
-                        <ShieldAlert className="w-5 h-5" />
-                        {suspendActionType === "suspend" ? "Tangguhkan Akses Murid" : "Aktifkan Kembali Akses Murid"}
-                      </DialogTitle>
-                      <DialogDescription className="text-xs pt-1.5 leading-relaxed text-muted-foreground font-sans">
-                        {suspendActionType === "suspend"
-                          ? "Apakah Anda yakin ingin menangguhkan sementara (Suspend) akses masuk murid ini ke LMS?"
-                          : "Apakah Anda yakin ingin memulihkan/mengaktifkan kembali akses masuk murid ini ke LMS?"}
-                      </DialogDescription>
-                    </DialogHeader>
-
-                    {selectedStudentForSuspend && (
-                      <div className="bg-secondary/40 border border-border rounded-lg p-3.5 space-y-1.5 text-xs font-sans">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Nama Murid:</span>
-                          <span className="font-semibold text-foreground">{selectedStudentForSuspend.name}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Email:</span>
-                          <span className="font-mono text-muted-foreground">{selectedStudentForSuspend.email}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Program Studi:</span>
-                          <span className="font-medium text-brand-purple">{selectedStudentForSuspend.selectedProgram || "Web Development"}</span>
-                        </div>
-                      </div>
-                    )}
-
-                    {suspendError && (
-                      <Alert variant="destructive" className="py-2.5 px-3">
-                        <AlertCircle className="w-4 h-4" />
-                        <AlertDescription className="text-2xs font-medium">{suspendError}</AlertDescription>
-                      </Alert>
-                    )}
-
-                    <DialogFooter className="gap-2 sm:gap-0 font-sans border-t border-border/40 pt-3">
-                      <DialogClose render={<Button variant="outline" size="sm" className="text-xs font-semibold">Batal</Button>} />
-                      <Button
-                        variant={suspendActionType === "suspend" ? "destructive" : "default"}
-                        size="sm"
-                        disabled={isSuspending || countdown > 0}
-                        onClick={handleSuspendStudent}
-                        className={`text-xs font-semibold gap-1.5 ${suspendActionType === "unsuspend" ? "bg-emerald-600 hover:bg-emerald-700 text-white" : "bg-red-600 hover:bg-red-700 text-white"}`}
-                      >
-                        {isSuspending ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            Memproses...
-                          </>
-                        ) : (
-                          `${suspendActionType === "suspend" ? "Ya, Suspend Akses" : "Ya, Aktifkan Akses"}${countdown > 0 ? ` (${countdown}s)` : ""}`
-                        )}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-
-
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Fase</label>
-                <select name="phase" className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="Micro">Micro</option>
-                  <option value="Massive">Massive</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button type="button" variant="outline" onClick={() => setIsAddRubrikAssessmentModalOpen(false)}>Batal</Button>
-                <Button type="submit">Simpan</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Rubrik Assessment Modal */}
-      {editingRubrikAssessment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
-            <h3 className="font-heading font-bold text-lg mb-4">Edit Rubrik Assessment</h3>
-            <form onSubmit={handleUpdateRubrikAssessment} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Nama Rubrik Assessment</label>
-                <Input name="name" required defaultValue={editingRubrikAssessment.name} />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Fase</label>
-                <select name="phase" defaultValue={editingRubrikAssessment.phase} className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm">
-                  <option value="Micro">Micro</option>
-                  <option value="Massive">Massive</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <Button type="button" variant="outline" onClick={() => setEditingRubrikAssessment(null)}>Batal</Button>
-                <Button type="submit">Simpan</Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Weight Rubrik Assessment Modal */}
-      {editingWeightRubrikAssessment && (() => {
-        // filter competencies based on same phase
-        const phaseComps = competencies.filter(c => c.phase === editingWeightRubrikAssessment.phase || (!c.phase && editingWeightRubrikAssessment.phase === "Micro"));
-        // filter other RAs based on same phase, exclude self
-        const phaseRAs = rubrikAssessments.filter(ra => ra.id !== editingWeightRubrikAssessment.id && (ra.phase === editingWeightRubrikAssessment.phase || (!ra.phase && editingWeightRubrikAssessment.phase === "Micro")));
-
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[600px] max-w-[90vw]">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h3 className="font-heading font-bold text-lg">Pengaturan Bobot Penilaian: {editingWeightRubrikAssessment.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Pilih Rubrik Kompetensi atau Rubrik Assessment lain yang masuk ke Assessment ini, dan atur bobotnya.</p>
-                </div>
-                <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full" onClick={() => setEditingWeightRubrikAssessment(null)}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              <div className="max-h-[60vh] overflow-y-auto mb-6 pr-2 space-y-6">
-
-                {/* 1. Rubrik Kompetensi */}
-                <div>
-                  <h4 className="font-semibold text-sm mb-2 text-brand-purple">Daftar Rubrik Kompetensi</h4>
-                  {phaseComps.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-muted-foreground bg-muted/20 rounded-lg">Tidak ada Rubrik Kompetensi di fase ini.</div>
-                  ) : (
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        <tr>
-                          <th className="px-4 py-2 font-medium">Nama Kompetensi</th>
-                          <th className="px-4 py-2 font-medium text-right w-48">Bobot (%)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {phaseComps.map((comp: any) => {
-                          const raComp = (editingWeightRubrikAssessment.competencies || []).find((c: any) => c.competencyId === comp.id);
-                          const currentVal = weightUpdates[comp.id] !== undefined ? weightUpdates[comp.id] : (raComp ? raComp.weight : 0);
-
-                          return (
-                            <tr key={comp.id} className="hover:bg-muted/30 transition-colors">
-                              <td className="px-4 py-3">
-                                <span className="font-semibold text-foreground text-xs">{comp.name}</span>
-                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                  {comp.category}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    max="1"
-                                    className="w-16 text-right h-7 text-xs font-medium border-border focus-visible:border-brand-purple"
-                                    value={currentVal}
-                                    onChange={(e) => handleWeightChange(comp.id, e.target.value)}
-                                  />
-                                  <span className="text-muted-foreground text-[10px] font-medium w-8 text-left">
-                                    ({(currentVal * 100).toFixed(0)}%)
-                                  </span>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-                {/* 2. Sub Assessments */}
-                <div>
-                  <h4 className="font-semibold text-sm mb-2 text-brand-purple">Daftar Rubrik Assessment Lain</h4>
-                  {phaseRAs.length === 0 ? (
-                    <div className="p-4 text-center text-xs text-muted-foreground bg-muted/20 rounded-lg">Tidak ada Rubrik Assessment lain di fase ini.</div>
-                  ) : (
-                    <table className="w-full text-sm text-left">
-                      <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        <tr>
-                          <th className="px-4 py-2 font-medium">Nama Assessment</th>
-                          <th className="px-4 py-2 font-medium text-right w-48">Bobot (%)</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-border">
-                        {phaseRAs.map((ra: any) => {
-                          const raSub = (editingWeightRubrikAssessment.subAssessments || []).find((s: any) => s.assessmentId === ra.id);
-                          const currentVal = weightUpdates[ra.id] !== undefined ? weightUpdates[ra.id] : (raSub ? raSub.weight : 0);
-
-                          return (
-                            <tr key={ra.id} className="hover:bg-muted/30 transition-colors">
-                              <td className="px-4 py-3">
-                                <span className="font-semibold text-foreground text-xs">{ra.name}</span>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="flex items-center justify-end gap-2">
-                                  <Input
-                                    type="number"
-                                    step="0.01"
-                                    min="0"
-                                    max="1"
-                                    className="w-16 text-right h-7 text-xs font-medium border-border focus-visible:border-brand-purple"
-                                    value={currentVal}
-                                    onChange={(e) => handleWeightChange(ra.id, e.target.value)}
-                                  />
-                                  <span className="text-muted-foreground text-[10px] font-medium w-8 text-left">
-                                    ({(currentVal * 100).toFixed(0)}%)
-                                  </span>
-                                </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
-
-              </div>
-              <div className="flex justify-end gap-2 pt-4 border-t border-border">
-                <Button type="button" variant="outline" onClick={() => setEditingWeightRubrikAssessment(null)}>Tutup</Button>
-                <Button
-                  onClick={async () => {
-                    // split updates into competencies vs subAssessments
-                    const compIds = new Set(phaseComps.map(c => c.id));
-                    const raIds = new Set(phaseRAs.map(r => r.id));
-
-                    const updatedComps = Object.keys(weightUpdates).filter(id => compIds.has(id)).map(id => ({ competencyId: id, weight: weightUpdates[id] })).filter(c => c.weight > 0);
-                    const updatedRAs = Object.keys(weightUpdates).filter(id => raIds.has(id)).map(id => ({ assessmentId: id, weight: weightUpdates[id] })).filter(c => c.weight > 0);
-
-                    // Combine with existing unchanged ones
-                    const existingComps = editingWeightRubrikAssessment.competencies || [];
-                    const finalComps = [...existingComps.filter((e: any) => weightUpdates[e.competencyId] === undefined), ...updatedComps].filter(c => c.weight > 0);
-
-                    const existingRAs = editingWeightRubrikAssessment.subAssessments || [];
-                    const finalRAs = [...existingRAs.filter((e: any) => weightUpdates[e.assessmentId] === undefined), ...updatedRAs].filter(c => c.weight > 0);
-
-                    setIsSavingWeights(true);
-                    try {
-                      const res = await fetch(`http://localhost:7000/classes/rubrik-assessments/${editingWeightRubrikAssessment.id}`, {
-                        method: "PUT",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ competencies: finalComps, subAssessments: finalRAs }),
-                        credentials: "include"
-                      });
-                      if (res.ok) {
-                        alert("Bobot Assessment berhasil disimpan!");
-                        setWeightUpdates({});
-                        setEditingWeightRubrikAssessment(null);
-                        fetchRubrikAssessments(classes[0].program.id);
-                      }
-                    } catch (err) {
-                      console.error(err);
-                      alert("Gagal menyimpan.");
-                    } finally {
-                      setIsSavingWeights(false);
-                    }
-                  }}
-                  disabled={isSavingWeights || Object.keys(weightUpdates).length === 0}
-                  className="bg-brand-purple hover:bg-brand-purple-hover text-white"
-                >
-                  {isSavingWeights ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
-                  Simpan Perubahan Bobot
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+      {/* Modal Dialogs */}
+      <MentorModals
+        isAddCompetencyModalOpen={isAddCompetencyModalOpen}
+        setIsAddCompetencyModalOpen={setIsAddCompetencyModalOpen}
+        handleCreateCompetency={handleCreateCompetency}
+        editingCompetency={editingCompetency}
+        setEditingCompetency={setEditingCompetency}
+        handleUpdateCompetency={handleUpdateCompetency}
+        isAddMaterialModalOpen={isAddMaterialModalOpen}
+        setIsAddMaterialModalOpen={setIsAddMaterialModalOpen}
+        materialType={materialType}
+        setMaterialType={setMaterialType}
+        handleCreateMaterial={handleCreateMaterial}
+        competencies={competencies}
+        isAddAssignmentModalOpen={isAddAssignmentModalOpen}
+        setIsAddAssignmentModalOpen={setIsAddAssignmentModalOpen}
+        handleCreateAssignment={handleCreateAssignment}
+        editingWeightCompetency={editingWeightCompetency}
+        setEditingWeightCompetency={setEditingWeightCompetency}
+        classes={classes}
+        weightUpdates={weightUpdates}
+        handleWeightChange={handleWeightChange}
+        handleSaveWeights={handleSaveWeights}
+        isSavingWeights={isSavingWeights}
+        isSuspendDialogOpen={isSuspendDialogOpen}
+        setIsSuspendDialogOpen={setIsSuspendDialogOpen}
+        selectedStudentForSuspend={selectedStudentForSuspend}
+        suspendActionType={suspendActionType}
+        suspendError={suspendError}
+        isSuspending={isSuspending}
+        countdown={countdown}
+        handleSuspendStudent={handleSuspendStudent}
+        editingRubrikAssessment={editingRubrikAssessment}
+        setEditingRubrikAssessment={setEditingRubrikAssessment}
+        handleUpdateRubrikAssessment={handleUpdateRubrikAssessment}
+        isAddRubrikAssessmentModalOpen={isAddRubrikAssessmentModalOpen}
+        setIsAddRubrikAssessmentModalOpen={setIsAddRubrikAssessmentModalOpen}
+        handleCreateRubrikAssessment={handleCreateRubrikAssessment}
+        editingWeightRubrikAssessment={editingWeightRubrikAssessment}
+        setEditingWeightRubrikAssessment={setEditingWeightRubrikAssessment}
+        rubrikAssessments={rubrikAssessments}
+      />
     </div>
   );
 }
