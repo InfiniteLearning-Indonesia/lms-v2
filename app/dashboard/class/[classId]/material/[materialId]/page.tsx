@@ -28,8 +28,11 @@ export default function MaterialDetailPage() {
         throw new Error("Unauthorized");
       })
       .then((data) => setProfile(data))
-      .catch((err) => console.error("Gagal memuat profil:", err));
-  }, []);
+      .catch((err) => {
+        console.error("Gagal memuat profil:", err);
+        router.push("/login");
+      });
+  }, [router]);
 
   const handleLogout = async () => {
     try {
@@ -51,6 +54,10 @@ export default function MaterialDetailPage() {
       credentials: "include",
     })
       .then((res) => {
+        if (res.status === 401) {
+          router.push("/login");
+          throw new Error("Unauthorized");
+        }
         if (!res.ok) throw new Error("Gagal mengambil data materi");
         return res.json();
       })
@@ -62,7 +69,7 @@ export default function MaterialDetailPage() {
         console.error(err);
         setIsLoading(false);
       });
-  }, [classId, materialId]);
+  }, [classId, materialId, router]);
 
   if (isLoading || !materialData) {
     return (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { BookOpen, CheckCircle2, Loader2, Info, Settings, User, Phone, School, GraduationCap, Upload, Save } from "lucide-react";
+import { BookOpen, CheckCircle2, Loader2, Info, Settings, User, Phone, School, GraduationCap, Upload, Save, Calendar } from "lucide-react";
 import {
   Card,
   CardTitle,
@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { StudentLogbook } from "./student-logbook";
 
 interface StudentDashboardProps {
   profile: {
@@ -34,16 +36,30 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("activity");
 
-  // Listen to tab query parameter
+  const searchParams = useSearchParams();
+
+  // Listen to tab query parameter dynamically
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const tab = params.get("tab");
-      if (tab === "settings") {
-        setActiveTab("settings");
-      }
+    const tab = searchParams.get("tab");
+    if (tab === "settings") {
+      setActiveTab("settings");
+    } else if (!tab && activeTab === "settings") {
+      setActiveTab("activity");
     }
-  }, []);
+  }, [searchParams]);
+
+  const handleTabChange = (val: string) => {
+    setActiveTab(val);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (val === "settings") {
+        url.searchParams.set("tab", "settings");
+      } else {
+        url.searchParams.delete("tab");
+      }
+      window.history.pushState({}, "", url.toString());
+    }
+  };
 
   // Profile Form States
   const [name, setName] = useState(profile?.name || "");
@@ -105,8 +121,13 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setSaveError("Ukuran file foto maksimal 2MB.");
+    if (!file.type.startsWith("image/")) {
+      setSaveError("Format file tidak didukung. Harap pilih gambar (PNG, JPG, JPEG, WEBP, dll).");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setSaveError("Ukuran file foto maksimal 5MB.");
       return;
     }
 
@@ -169,13 +190,22 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
     );
   }
 
-  const activeClasses = classes.filter((cls) => cls.batch?.status === "active");
-  const pastClasses = classes.filter((cls) => cls.batch?.status === "completed");
+  // Find the most recent active batch
+  const activeBatches = classes
+    .map(c => c.batch)
+    .filter(b => b?.status === "active")
+    .sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
+  
+  const currentBatch = activeBatches[0];
+  const activeClasses = classes.filter((cls) => cls.batchId === currentBatch?.id);
+  const pastClasses = classes.filter((cls) => cls.batchId !== currentBatch?.id);
   const hasPastClasses = pastClasses.length > 0;
 
+  const tabCols = hasPastClasses ? "grid-cols-4" : "grid-cols-3";
+
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6 w-full">
-      <TabsList className={`bg-secondary/60 p-1.5 rounded-xl border border-border/60 grid w-full min-h-14 ${hasPastClasses ? "grid-cols-3" : "grid-cols-2"}`}>
+    <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6 w-full">
+      <TabsList className={`bg-secondary/60 p-1.5 rounded-xl border border-border/60 grid w-full min-h-14 ${tabCols}`}>
         <TabsTrigger value="activity" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
           <BookOpen className="w-5 h-5 shrink-0" />
           <span>Kelas & Aktivitas</span>
@@ -186,6 +216,10 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
             <span>Batch Lama</span>
           </TabsTrigger>
         )}
+        <TabsTrigger value="logbook" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
+          <BookOpen className="w-5 h-5 shrink-0" />
+          <span>Logbook</span>
+        </TabsTrigger>
         <TabsTrigger value="settings" className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2">
           <Settings className="w-5 h-5 shrink-0" />
           <span>Pengaturan Akun</span>
@@ -233,6 +267,12 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
                           </p>
                           <CardTitle className="text-white text-xl mt-1.5">{cls.program?.name}</CardTitle>
                           <p className="text-xs text-white/80 mt-1">Mentor: {cls.mentor?.name || "Belum ditentukan"}</p>
+                          {cls.batch?.startDate && cls.batch?.endDate && (
+                            <div className="flex items-center gap-1.5 mt-2 text-[10px] bg-white/10 w-fit px-2 py-1 rounded-md border border-white/10">
+                              <Calendar className="w-3 h-3 text-brand-yellow" />
+                              <span className="font-semibold">{new Date(cls.batch.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} - {new Date(cls.batch.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
+                            </div>
+                          )}
                         </div>
                         <CardContent className="py-5 space-y-5">
                           <div className="space-y-2">
@@ -378,7 +418,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
                       onChange={handleFileChange}
                       className="block w-full text-xs text-muted-foreground file:mr-4 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-purple/10 file:text-brand-purple hover:file:bg-brand-purple/20 cursor-pointer"
                     />
-                    <p className="text-[10px] text-muted-foreground mt-1">Mendukung format PNG, JPG, JPEG. Maksimal 2MB.</p>
+                    <p className="text-[10px] text-muted-foreground mt-1">Mendukung format PNG, JPG, JPEG, WEBP, dll. Maksimal 5MB.</p>
                   </div>
 
                   {/* Choose from Default Avatars */}
@@ -476,6 +516,19 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
             </form>
           </CardContent>
         </Card>
+      </TabsContent>
+
+      {/* ── TAB LOGBOOK ── */}
+      <TabsContent value="logbook" className="space-y-6 outline-hidden">
+        {activeClasses.length > 0 ? (
+          <StudentLogbook batchId={activeClasses[0].batchId} />
+        ) : (
+          <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600">
+            <Info className="w-5 h-5" />
+            <AlertTitle>Tidak dapat mengakses logbook</AlertTitle>
+            <AlertDescription>Anda belum terdaftar di kelas aktif mana pun pada batch saat ini.</AlertDescription>
+          </Alert>
+        )}
       </TabsContent>
 
       {hasPastClasses && (

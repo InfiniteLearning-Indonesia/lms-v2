@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
@@ -37,7 +38,6 @@ import {
   Search,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { AdminRules } from "./admin-rules";
 
 export interface UserListItem {
   id: string;
@@ -115,8 +115,13 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      setProfileSaveError("Ukuran file foto maksimal 2MB.");
+    if (!file.type.startsWith("image/")) {
+      setProfileSaveError("Format file tidak didukung. Harap pilih gambar (PNG, JPG, JPEG, WEBP, dll).");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setProfileSaveError("Ukuran file foto maksimal 5MB.");
       return;
     }
 
@@ -172,16 +177,30 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   // Main admin dashboard tabs state
   const [activeTab, setActiveTab] = useState("users");
 
-  // Listen to tab query parameter
+  const searchParams = useSearchParams();
+
+  // Listen to tab query parameter dynamically
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const tab = params.get("tab");
-      if (tab === "settings") {
-        setActiveTab("settings");
-      }
+    const tab = searchParams.get("tab");
+    if (tab === "settings") {
+      setActiveTab("settings");
+    } else if (!tab && activeTab === "settings") {
+      setActiveTab("users");
     }
-  }, []);
+  }, [searchParams]);
+
+  const handleTabChange = (val: string) => {
+    setActiveTab(val);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      if (val === "settings") {
+        url.searchParams.set("tab", "settings");
+      } else {
+        url.searchParams.delete("tab");
+      }
+      window.history.pushState({}, "", url.toString());
+    }
+  };
 
   // Sub-tabs under User Management Sub-section
   const [adminSubTab, setAdminSubTab] = useState<"users" | "invite">("users");
@@ -200,7 +219,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "mentor" | "student">("student");
-  
+
   // Single Invite optional metadata fields
   const [inviteWhatsapp, setInviteWhatsapp] = useState("");
   const [inviteInstitution, setInviteInstitution] = useState("");
@@ -233,6 +252,24 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const [confirmButtonText, setConfirmButtonText] = useState("Konfirmasi");
   const [confirmIsDestructive, setConfirmIsDestructive] = useState(false);
   const [confirmAction, setConfirmAction] = useState<(() => void) | null>(null);
+  const [confirmCountdown, setConfirmCountdown] = useState(0);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isConfirmOpen && confirmCountdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isConfirmOpen, confirmCountdown]);
+
+  // Helper alias to update countdown state without type issues
+  const setCountdown = (val: number | ((prev: number) => number)) => {
+    setConfirmCountdown(val);
+  };
 
   const triggerConfirm = (
     title: string,
@@ -246,6 +283,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setConfirmButtonText(buttonText);
     setConfirmIsDestructive(isDestructive);
     setConfirmAction(() => action);
+    setConfirmCountdown(0);
     setIsConfirmOpen(true);
   };
 
@@ -272,6 +310,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const [isCreateBatchModalOpen, setIsCreateBatchModalOpen] = useState(false);
   const [newBatchName, setNewBatchName] = useState("");
   const [newBatchStatus, setNewBatchStatus] = useState<"draft" | "active">("draft");
+  const [newBatchStartDate, setNewBatchStartDate] = useState("");
+  const [newBatchEndDate, setNewBatchEndDate] = useState("");
   const [selectedProgramIdsForBatch, setSelectedProgramIdsForBatch] = useState<string[]>([]);
   const [customProgramInput, setCustomProgramInput] = useState("");
   const [isSubmittingCreateBatch, setIsSubmittingCreateBatch] = useState(false);
@@ -284,6 +324,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const [selectedBatchForEdit, setSelectedBatchForEdit] = useState<any | null>(null);
   const [editBatchName, setEditBatchName] = useState("");
   const [editBatchIncludedProgramIds, setEditBatchIncludedProgramIds] = useState<string[]>([]);
+  const [editBatchStartDate, setEditBatchStartDate] = useState("");
+  const [editBatchEndDate, setEditBatchEndDate] = useState("");
   const [isSubmittingEditBatch, setIsSubmittingEditBatch] = useState(false);
 
   // Batch Detail statistics State
@@ -460,6 +502,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
             status: newBatchStatus,
             includedProgramIds: selectedProgramIdsForBatch,
             newProgramNames: newProgramsList,
+            startDate: newBatchStartDate || null,
+            endDate: newBatchEndDate || null,
           }),
           credentials: "include",
         });
@@ -467,6 +511,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
           setIsCreateBatchModalOpen(false);
           setNewBatchName("");
           setNewBatchStatus("draft");
+          setNewBatchStartDate("");
+          setNewBatchEndDate("");
           setCustomProgramInput("");
           fetchBatchesList();
           fetchProgramsList();
@@ -484,7 +530,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     if (newBatchStatus === "active") {
       triggerConfirm(
         "Konfirmasi Pembuatan & Aktivasi Batch",
-        `Membuat "${newBatchName}" dengan status ACTIVE akan otomatis mengunci batch aktif saat ini ke dalam Mode Read-Only (Selesai) sesuai Rule 27. Lanjutkan?`,
+        `Membuat "${newBatchName}" dengan status ACTIVE akan otomatis mengunci batch aktif saat ini ke dalam Mode Read-Only (Selesai). Lanjutkan?`,
         "Ya, Buat & Aktifkan",
         false,
         executeCreate
@@ -507,6 +553,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         body: JSON.stringify({
           name: editBatchName.trim(),
           includedProgramIds: editBatchIncludedProgramIds,
+          startDate: editBatchStartDate || null,
+          endDate: editBatchEndDate || null,
         }),
         credentials: "include",
       });
@@ -516,6 +564,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         setSelectedBatchForEdit(null);
         setEditBatchName("");
         setEditBatchIncludedProgramIds([]);
+        setEditBatchStartDate("");
+        setEditBatchEndDate("");
         fetchBatchesList();
         fetchProgramsList();
       } else {
@@ -546,7 +596,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     e.preventDefault();
     const activeBatch = batchesList.find((b: any) => b.status === "active");
     if (!activeBatch) {
-      alert("Gagal memproses CSV: Tidak ada Cohort/Batch yang berstatus ACTIVE saat ini (Rule 27). Murid hanya bisa didaftarkan ke batch aktif.");
+      alert("Gagal memproses CSV: Tidak ada Cohort/Batch yang berstatus ACTIVE saat ini. Murid hanya bisa didaftarkan ke batch aktif.");
       return;
     }
     if (!selectedBatchForImport) {
@@ -971,6 +1021,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setConfirmButtonText("Ya, Suspend");
     setConfirmIsDestructive(true);
     setConfirmAction(() => () => proceedSuspend(userId));
+    setConfirmCountdown(5);
     setIsConfirmOpen(true);
   };
 
@@ -980,6 +1031,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setConfirmButtonText("Ya, Aktifkan");
     setConfirmIsDestructive(false);
     setConfirmAction(() => () => proceedUnsuspend(userId));
+    setConfirmCountdown(5);
     setIsConfirmOpen(true);
   };
 
@@ -989,6 +1041,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setConfirmButtonText("Ya, Hapus");
     setConfirmIsDestructive(true);
     setConfirmAction(() => () => proceedDelete(userId));
+    setConfirmCountdown(0);
     setIsConfirmOpen(true);
   };
 
@@ -1000,6 +1053,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setConfirmButtonText("Ya, Hapus Semua");
     setConfirmIsDestructive(true);
     setConfirmAction(() => () => proceedBulkDelete());
+    setConfirmCountdown(0);
     setIsConfirmOpen(true);
   };
 
@@ -1126,17 +1180,17 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     const whatsapp = user.whatsapp || "";
     const institution = user.institution?.toLowerCase() || "";
     const query = userSearchQuery.toLowerCase().trim();
-    const matchesQuery = 
-      !query || 
-      name.includes(query) || 
-      email.includes(query) || 
-      whatsapp.includes(query) || 
+    const matchesQuery =
+      !query ||
+      name.includes(query) ||
+      email.includes(query) ||
+      whatsapp.includes(query) ||
       institution.includes(query);
 
     // Batch filter only applies to non-admin users
-    const matchesBatch = 
+    const matchesBatch =
       !userBatchFilter ||
-      user.role === "admin" || 
+      user.role === "admin" ||
       (user.batches && user.batches.some((b: any) => b.id === userBatchFilter));
 
     // Role filter
@@ -1200,8 +1254,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         )}
       </AnimatePresence>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5 mb-8 min-h-14 p-1.5 bg-secondary border border-border rounded-lg">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <TabsList className="grid w-full grid-cols-4 mb-8 min-h-14 p-1.5 bg-secondary border border-border rounded-lg">
           <TabsTrigger value="users" className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md">
             <Users className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Pengguna</span>
@@ -1218,35 +1272,29 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
             <Settings className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Pengaturan</span>
           </TabsTrigger>
-          <TabsTrigger value="rules" className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md">
-            <ShieldAlert className="w-5 h-5 text-brand-purple shrink-0" />
-            <span>Rules (Domain)</span>
-          </TabsTrigger>
         </TabsList>
 
         {/* ──────── TAB 1: MANAJEMEN PENGGUNA (ACTUAL IMPLEMENTATION) ──────── */}
         <TabsContent value="users" className="space-y-6 outline-hidden">
-          
+
           {/* Sub-tabs under User Management */}
           <div className="flex border-b border-border gap-6">
             <button
               onClick={() => setAdminSubTab("users")}
-              className={`pb-3 text-xs sm:text-sm font-semibold font-heading transition-all border-b-2 -mb-px flex items-center gap-2 ${
-                adminSubTab === "users"
+              className={`pb-3 text-xs sm:text-sm font-semibold font-heading transition-all border-b-2 -mb-px flex items-center gap-2 ${adminSubTab === "users"
                   ? "border-brand-purple text-brand-purple"
                   : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               <UserCheck className="w-5 h-5 shrink-0" />
               <span>Manajemen Pengguna Terdaftar ({usersList.length})</span>
             </button>
             <button
               onClick={() => setAdminSubTab("invite")}
-              className={`pb-3 text-xs sm:text-sm font-semibold font-heading transition-all border-b-2 -mb-px flex items-center gap-2 ${
-                adminSubTab === "invite"
+              className={`pb-3 text-xs sm:text-sm font-semibold font-heading transition-all border-b-2 -mb-px flex items-center gap-2 ${adminSubTab === "invite"
                   ? "border-brand-purple text-brand-purple"
                   : "border-transparent text-muted-foreground hover:text-foreground"
-              }`}
+                }`}
             >
               <UserPlus className="w-5 h-5 shrink-0" />
               <span>Tambah Pengguna / Import CSV</span>
@@ -1266,7 +1314,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                     Kelola data, edit info, suspend, atau hapus massal akun pengguna. Akun ber-domain non-Gmail ditandai dengan bendera kuning.
                   </p>
                 </div>
-                
+
                 <div className="flex items-center gap-2 self-end sm:self-center">
                   {selectedUserIds.length > 0 && (
                     <button
@@ -1397,11 +1445,11 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                                 <span className="text-3xs text-muted-foreground italic">-</span>
                               )}
                             </td>
-                            
+
                             <td className="py-3 px-3 font-medium text-foreground max-w-[150px] truncate">
                               {user.name}
                             </td>
-                            
+
                             {/* Email with alert flag if not gmail */}
                             <td className="py-3 px-3 max-w-[170px] truncate">
                               <div className="font-mono text-2xs text-muted-foreground">{user.email}</div>
@@ -1429,11 +1477,11 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                               {user.selectedProgram || <span className="text-muted-foreground/50">-</span>}
                             </td>
 
-                            <td className="py-3 px-3 text-2xs max-w-[140px] truncate">
+                            <td className="py-3 px-3 text-2xs max-w-[160px]">
                               {user.batches && user.batches.length > 0 ? (
                                 <div className="flex flex-wrap gap-1">
                                   {user.batches.map((b: any) => (
-                                    <span key={b.id} className="px-1.5 py-0.5 rounded bg-secondary text-foreground text-3xs border border-border">
+                                    <span key={b.id} className="px-1.5 py-0.5 rounded bg-secondary text-foreground text-3xs border border-border truncate max-w-[140px] inline-block" title={b.name}>
                                       {b.name}
                                     </span>
                                   ))}
@@ -1448,13 +1496,12 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                                 user.roles.map((r) => (
                                   <span
                                     key={r}
-                                    className={`inline-block px-1.5 py-0.5 rounded text-3xs font-semibold uppercase mr-1 ${
-                                      r === "admin"
+                                    className={`inline-block px-1.5 py-0.5 rounded text-3xs font-semibold uppercase mr-1 ${r === "admin"
                                         ? "bg-red-500/10 text-red-500 border border-red-500/20"
                                         : r === "mentor"
-                                        ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
-                                        : "bg-purple-500/10 text-purple-600 border border-purple-500/20"
-                                    }`}
+                                          ? "bg-amber-500/10 text-amber-500 border border-amber-500/20"
+                                          : "bg-purple-500/10 text-purple-600 border border-purple-500/20"
+                                      }`}
                                   >
                                     {r}
                                   </span>
@@ -1465,11 +1512,10 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                             </td>
 
                             <td className="py-3 px-3">
-                              <span className={`inline-block px-2 py-0.5 rounded-full text-3xs font-semibold ${
-                                user.status === "active" ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" :
-                                user.status === "suspended" ? "bg-red-500/10 text-red-500 border border-red-500/20" :
-                                "bg-secondary text-muted-foreground border border-border"
-                              }`}>
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-3xs font-semibold ${user.status === "active" ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" :
+                                  user.status === "suspended" ? "bg-red-500/10 text-red-500 border border-red-500/20" :
+                                    "bg-secondary text-muted-foreground border border-border"
+                                }`}>
                                 {user.status}
                               </span>
                             </td>
@@ -1884,7 +1930,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                     <div className="space-y-1.5">
                       <p className="font-semibold text-emerald-600">Berhasil Ditambahkan ({bulkResult.invited.length})</p>
                       <div className="bg-secondary/40 rounded-lg p-3 max-h-32 overflow-y-auto space-y-1">
-                        {bulkResult.invited.length === 0 ? <p className="text-muted-foreground">-</p> : 
+                        {bulkResult.invited.length === 0 ? <p className="text-muted-foreground">-</p> :
                           bulkResult.invited.map((u: any, idx) => (
                             <p key={idx} className="font-medium">{u.name} ({u.email})</p>
                           ))
@@ -1894,7 +1940,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                     <div className="space-y-1.5">
                       <p className="font-semibold text-red-500">Gagal / Bentrok / Sudah Terdaftar ({bulkResult.failed.length})</p>
                       <div className="bg-secondary/40 rounded-lg p-3 max-h-32 overflow-y-auto space-y-1">
-                        {bulkResult.failed.length === 0 ? <p className="text-muted-foreground">-</p> : 
+                        {bulkResult.failed.length === 0 ? <p className="text-muted-foreground">-</p> :
                           bulkResult.failed.map((u: any, idx) => (
                             <p key={idx} className="text-red-500/80">{u.email}: {u.reason}</p>
                           ))
@@ -2099,7 +2145,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                 Manajemen Angkatan / Batch (Global Cohort)
               </h2>
               <p className="text-xs text-muted-foreground mt-1">
-                Aturan Mutlak (Rule 27): Hanya boleh ada 1 (satu) Batch berstatus ACTIVE pada satu waktu. Tiap batch berjalan berbarengan untuk program studi yang diikutsertakan.
+                Aturan Mutlak: Hanya boleh ada 1 (satu) Batch berstatus ACTIVE pada satu waktu. Tiap batch berjalan berbarengan untuk program studi yang diikutsertakan.
               </p>
             </div>
             <button
@@ -2145,13 +2191,12 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                   return (
                     <div
                       key={batch.id}
-                      className={`relative overflow-hidden rounded-xl p-5 border transition-all hover:shadow-xs w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 ${
-                        isActive 
-                          ? "bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border-indigo-500/50 shadow-md shadow-indigo-950/20" 
-                          : isDraft 
-                          ? "bg-card text-foreground border-amber-500/30 hover:border-amber-500/50" 
-                          : "bg-card/60 text-foreground/90 border-border hover:border-muted-foreground/35 opacity-90"
-                      }`}
+                      className={`relative overflow-hidden rounded-xl p-5 border transition-all hover:shadow-xs w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 ${isActive
+                          ? "bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white border-indigo-500/50 shadow-md shadow-indigo-950/20"
+                          : isDraft
+                            ? "bg-card text-foreground border-amber-500/30 hover:border-amber-500/50"
+                            : "bg-card/60 text-foreground/90 border-border hover:border-muted-foreground/35 opacity-90"
+                        }`}
                     >
                       {/* Column 1: Name, Status & Creation Date */}
                       <div className="space-y-1.5 w-full lg:w-[240px] shrink-0">
@@ -2159,7 +2204,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                           <h4 className={`font-heading font-black text-lg ${isActive ? 'text-white' : 'text-foreground'}`}>
                             {batch.name}
                           </h4>
-                          
+
                           {isActive && (
                             <span className="bg-emerald-600/90 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1 shadow-sm font-sans">
                               <CheckCircle2 className="w-2.5 h-2.5" />
@@ -2182,6 +2227,17 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                         <p className={`text-3xs font-sans ${isActive ? 'text-indigo-200/60' : 'text-muted-foreground'}`}>
                           Dibuat pada {new Date(batch.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
                         </p>
+                        {batch.startDate && batch.endDate ? (
+                          <p className={`text-3xs font-sans font-medium flex items-center gap-1 mt-1 ${isActive ? 'text-indigo-200' : 'text-brand-purple'}`}>
+                            <Calendar className="w-3.5 h-3.5 shrink-0" />
+                            {new Date(batch.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} - {new Date(batch.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        ) : (
+                          <p className={`text-3xs font-sans font-medium flex items-center gap-1 mt-1 text-muted-foreground italic`}>
+                            <Calendar className="w-3.5 h-3.5 shrink-0 opacity-50" />
+                            Durasi belum ditentukan
+                          </p>
+                        )}
                       </div>
 
                       {/* Column 2: Included Programs */}
@@ -2193,11 +2249,10 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                           {batch.includedPrograms?.map((prog: any) => (
                             <span
                               key={prog.id}
-                              className={`px-2 py-0.5 text-3xs font-medium rounded-md border ${
-                                isActive 
-                                  ? "bg-white/10 text-white border-white/10" 
+                              className={`px-2 py-0.5 text-3xs font-medium rounded-md border ${isActive
+                                  ? "bg-white/10 text-white border-white/10"
                                   : "bg-secondary text-foreground border-border/60"
-                              }`}
+                                }`}
                             >
                               {prog.name}
                             </span>
@@ -2229,11 +2284,10 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                             setSelectedBatchForDetail(batch);
                             setIsBatchDetailModalOpen(true);
                           }}
-                          className={`px-3 py-1.5 rounded-lg text-2xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                            isActive 
-                              ? "bg-brand-purple/20 hover:bg-brand-purple/40 text-brand-purple dark:text-purple-300 border border-brand-purple/30" 
+                          className={`px-3 py-1.5 rounded-lg text-2xs font-bold transition-all cursor-pointer flex items-center gap-1 ${isActive
+                              ? "bg-brand-purple/20 hover:bg-brand-purple/40 text-brand-purple dark:text-purple-300 border border-brand-purple/30"
                               : "bg-brand-purple/10 hover:bg-brand-purple/20 text-brand-purple border border-brand-purple/20"
-                          }`}
+                            }`}
                         >
                           Detail
                         </button>
@@ -2243,13 +2297,14 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                             setSelectedBatchForEdit(batch);
                             setEditBatchName(batch.name);
                             setEditBatchIncludedProgramIds(batch.includedProgramIds || batch.includedPrograms?.map((p: any) => p.id) || []);
+                            setEditBatchStartDate(batch.startDate ? new Date(batch.startDate).toISOString().split('T')[0] : "");
+                            setEditBatchEndDate(batch.endDate ? new Date(batch.endDate).toISOString().split('T')[0] : "");
                             setIsEditBatchModalOpen(true);
                           }}
-                          className={`px-3 py-1.5 rounded-lg text-2xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                            isActive 
-                              ? "bg-white/10 hover:bg-white/20 text-white border border-white/15" 
+                          className={`px-3 py-1.5 rounded-lg text-2xs font-bold transition-all cursor-pointer flex items-center gap-1 ${isActive
+                              ? "bg-white/10 hover:bg-white/20 text-white border border-white/15"
                               : "bg-secondary hover:bg-secondary/80 text-foreground border border-border"
-                          }`}
+                            }`}
                         >
                           <Settings className="w-3 h-3" />
                           Edit
@@ -2260,7 +2315,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                             onClick={() => {
                               triggerConfirm(
                                 "Aktifkan Batch Ini?",
-                                `Mengaktifkan "${batch.name}" akan otomatis mengubah Batch Aktif lainnya menjadi Read-Only Mode (Selesai) sesuai Rule 27. Lanjutkan?`,
+                                `Mengaktifkan "${batch.name}" akan otomatis mengubah Batch Aktif lainnya menjadi Read-Only Mode (Selesai). Lanjutkan?`,
                                 "Ya, Aktifkan",
                                 false,
                                 async () => {
@@ -2291,7 +2346,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                             onClick={() => {
                               triggerConfirm(
                                 "Akhiri Batch Cohort?",
-                                `Mengakhiri "${batch.name}" akan memindahkan statusnya menjadi selesai dan tidak bisa diaktifkan kembali. Seluruh kelas di dalamnya akan terkunci menjadi arsip Read-Only (Rule 23 & 26). Lanjutkan?`,
+                                `Mengakhiri "${batch.name}" akan memindahkan statusnya menjadi selesai dan tidak bisa diaktifkan kembali. Seluruh kelas di dalamnya akan terkunci menjadi arsip Read-Only. Lanjutkan?`,
                                 "Ya, Akhiri Batch",
                                 true,
                                 async () => {
@@ -2417,7 +2472,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                         onChange={handleProfileFileChange}
                         className="block w-full text-xs text-muted-foreground file:mr-4 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-purple/10 file:text-brand-purple hover:file:bg-brand-purple/20 cursor-pointer"
                       />
-                      <p className="text-[10px] text-muted-foreground mt-1">Mendukung format PNG, JPG, JPEG. Maksimal 2MB.</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">Mendukung format PNG, JPG, JPEG, WEBP, dll. Maksimal 5MB.</p>
                     </div>
 
                     {/* Choose from Default Avatars */}
@@ -2429,9 +2484,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                             key={idx}
                             type="button"
                             onClick={() => setProfileAvatarUrl(url)}
-                            className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all hover:scale-105 hover:shadow-xs ${
-                              profileAvatarUrl === url ? "border-brand-purple scale-105 shadow-sm" : "border-transparent"
-                            }`}
+                            className={`w-8 h-8 rounded-full overflow-hidden border-2 transition-all hover:scale-105 hover:shadow-xs ${profileAvatarUrl === url ? "border-brand-purple scale-105 shadow-sm" : "border-transparent"
+                              }`}
                           >
                             <img src={url} alt={`Avatar default ${idx + 1}`} className="w-full h-full object-cover" />
                           </button>
@@ -2518,11 +2572,6 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
               </form>
             </div>
           </div>
-        </TabsContent>
-
-        {/* ──────── TAB 5: RULES & SOURCE OF TRUTH ──────── */}
-        <TabsContent value="rules" className="space-y-6 outline-hidden">
-          <AdminRules />
         </TabsContent>
       </Tabs>
 
@@ -2642,7 +2691,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                     user?.roles?.includes("student") || user?.roles?.includes("mentor")
                   );
                   if (!isStudentOrMentor) return null;
-                  
+
                   return (
                     <div className="col-span-2 space-y-1.5 pt-2 border-t border-border/60">
                       <label className="font-semibold text-muted-foreground block mb-1">Daftar Cohort/Batch Keikutsertaan:</label>
@@ -3059,7 +3108,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                 {enrollCase === "case3" && (
                   <span className="text-red-600 dark:text-red-400 font-semibold flex items-center gap-1.5">
                     <ShieldAlert className="w-4 h-4 shrink-0" />
-                    PERINGATAN RULE 25 (CLEAN TRANSFER): Memindahkan murid antar program akan menghapus SELURUH riwayat nilai, absen, dan tugas di program lama!
+                    PERINGATAN (CLEAN TRANSFER): Memindahkan murid antar program akan menghapus SELURUH riwayat nilai, absen, dan tugas di program lama!
                   </span>
                 )}
               </div>
@@ -3078,17 +3127,17 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                     <option value="">-- Pilih Siswa --</option>
                     {enrollCase === "case3"
                       ? usersList
-                          .filter((u) => u.role === "student" && u.selectedProgram && u.selectedProgram !== selectedProgramDetail.name)
-                          .map((s) => (
-                            <option key={s.id} value={s.id}>
-                              {s.name} (asal: {s.selectedProgram})
-                            </option>
-                          ))
-                      : selectedProgramDetail.students?.map((s: any) => (
+                        .filter((u) => u.role === "student" && u.selectedProgram && u.selectedProgram !== selectedProgramDetail.name)
+                        .map((s) => (
                           <option key={s.id} value={s.id}>
-                            {s.name} ({s.email})
+                            {s.name} (asal: {s.selectedProgram})
                           </option>
-                        ))}
+                        ))
+                      : selectedProgramDetail.students?.map((s: any) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} ({s.email})
+                        </option>
+                      ))}
                   </select>
                 </div>
 
@@ -3115,9 +3164,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                   <button
                     type="submit"
                     disabled={isSubmittingEnroll}
-                    className={`px-4 py-1.5 rounded-lg text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm ${
-                      enrollCase === "case3" ? "bg-red-500 hover:bg-red-600" : "bg-brand-purple hover:bg-brand-purple-hover"
-                    }`}
+                    className={`px-4 py-1.5 rounded-lg text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm ${enrollCase === "case3" ? "bg-red-500 hover:bg-red-600" : "bg-brand-purple hover:bg-brand-purple-hover"
+                      }`}
                   >
                     {isSubmittingEnroll && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     {enrollCase === "case3" ? "Eksekusi Clean Transfer" : "Daftarkan Siswa"}
@@ -3169,6 +3217,27 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                   />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground">Tanggal Mulai Cohort</label>
+                    <input
+                      type="date"
+                      value={newBatchStartDate}
+                      onChange={(e) => setNewBatchStartDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-background border border-input text-foreground text-xs focus:ring-2 focus:ring-brand-purple outline-hidden font-sans"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-semibold text-foreground">Tanggal Selesai Cohort</label>
+                    <input
+                      type="date"
+                      value={newBatchEndDate}
+                      onChange={(e) => setNewBatchEndDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg bg-background border border-input text-foreground text-xs focus:ring-2 focus:ring-brand-purple outline-hidden font-sans"
+                    />
+                  </div>
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground">Status Awal</label>
                   <select
@@ -3182,7 +3251,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                   {newBatchStatus === "active" && (
                     <p className="text-3xs text-amber-500 font-medium flex items-center gap-1 mt-1">
                       <AlertCircle className="w-3 h-3 shrink-0" />
-                      Peringatan Rule 27: Mengaktifkan batch ini akan langsung mengunci batch aktif saat ini menjadi Read-Only.
+                      Peringatan: Mengaktifkan batch ini akan langsung mengunci batch aktif saat ini menjadi Read-Only.
                     </p>
                   )}
                 </div>
@@ -3198,9 +3267,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                       return (
                         <label
                           key={prog.id}
-                          className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-xs ${
-                            isChecked ? "border-brand-purple bg-brand-purple/5 font-medium text-foreground" : "border-border bg-secondary/30 text-muted-foreground"
-                          }`}
+                          className={`flex items-center gap-2 p-2 rounded-lg border cursor-pointer transition-all text-xs ${isChecked ? "border-brand-purple bg-brand-purple/5 font-medium text-foreground" : "border-border bg-secondary/30 text-muted-foreground"
+                            }`}
                         >
                           <input
                             type="checkbox"
@@ -3223,7 +3291,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-foreground flex items-center justify-between">
-                    <span>Tambah Program Baru (Fleksibel Rule 22)</span>
+                    <span>Tambah Program Baru</span>
                     <span className="text-3xs font-normal text-brand-purple">Ekspansi Kurikulum</span>
                   </label>
                   <input
@@ -3293,6 +3361,27 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                     />
                   </div>
 
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-foreground">Tanggal Mulai Cohort</label>
+                      <input
+                        type="date"
+                        value={editBatchStartDate}
+                        onChange={(e) => setEditBatchStartDate(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-background border border-input text-foreground text-xs focus:ring-2 focus:ring-brand-purple outline-hidden font-sans"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-foreground">Tanggal Selesai Cohort</label>
+                      <input
+                        type="date"
+                        value={editBatchEndDate}
+                        onChange={(e) => setEditBatchEndDate(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-background border border-input text-foreground text-xs focus:ring-2 focus:ring-brand-purple outline-hidden font-sans"
+                      />
+                    </div>
+                  </div>
+
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-foreground flex items-center justify-between">
                       <span>Status Batch saat ini</span>
@@ -3309,22 +3398,19 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                         <span className="text-3xs text-amber-500 font-semibold font-sans">Terkunci (Batch sudah berjalan/selesai)</span>
                       )}
                     </label>
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto p-1">
                       {programsData?.programs?.map((prog: any) => {
                         const isChecked = editBatchIncludedProgramIds.includes(prog.id);
                         return (
                           <label
                             key={prog.id}
-                            className={`flex items-center gap-2 p-2 rounded-lg border text-xs transition-all ${
-                              !isDraft 
+                            className={`flex items-center gap-2 p-2 rounded-lg border text-xs transition-all ${!isDraft
                                 ? "opacity-75 border-border bg-secondary/20 text-muted-foreground cursor-not-allowed"
                                 : "cursor-pointer"
-                            } ${
-                              isChecked && isDraft ? "border-brand-purple bg-brand-purple/5 font-medium text-foreground" : ""
-                            } ${
-                              isChecked && !isDraft ? "border-border bg-secondary/40 font-medium text-foreground" : ""
-                            }`}
+                              } ${isChecked && isDraft ? "border-brand-purple bg-brand-purple/5 font-medium text-foreground" : ""
+                              } ${isChecked && !isDraft ? "border-border bg-secondary/40 font-medium text-foreground" : ""
+                              }`}
                           >
                             <input
                               type="checkbox"
@@ -3404,10 +3490,29 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                   </div>
                 </div>
 
+                {/* Cohort Duration */}
+                <div className="flex items-center gap-2.5 p-3.5 bg-brand-purple/5 border border-brand-purple/20 rounded-xl">
+                  <Calendar className="w-4 h-4 text-brand-purple shrink-0" />
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-bold text-brand-purple uppercase tracking-wider font-sans">Durasi Cohort / Angkatan</p>
+                    <p className="text-xs font-semibold text-foreground">
+                      {selectedBatchForDetail.startDate && selectedBatchForDetail.endDate ? (
+                        <>
+                          {new Date(selectedBatchForDetail.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                          {" s/d "}
+                          {new Date(selectedBatchForDetail.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}
+                        </>
+                      ) : (
+                        <span className="text-muted-foreground italic font-normal">Tanggal durasi belum dikonfigurasi.</span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Programs and Student Counts List */}
                 <div className="space-y-2.5">
                   <h4 className="font-heading font-bold text-sm text-foreground">Distribusi Murid per Program Studi</h4>
-                  
+
                   <div className="border border-border rounded-xl overflow-hidden bg-background">
                     <div className="grid grid-cols-3 border-b border-border bg-secondary/35 font-semibold p-2.5 text-foreground text-[10px] uppercase tracking-wider font-sans">
                       <div>Nama Program</div>
@@ -3433,18 +3538,17 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                 <div className="p-4 bg-secondary/20 border border-border rounded-xl space-y-2">
                   <div className="flex justify-between items-center text-[10px] uppercase font-bold text-muted-foreground tracking-wider font-sans">
                     <span>Status Siklus Hidup</span>
-                    <span className={`px-2 py-0.5 rounded font-semibold capitalize font-sans ${
-                      selectedBatchForDetail.status === "active" ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" :
-                      selectedBatchForDetail.status === "draft" ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" :
-                      "bg-slate-500/10 text-slate-600 border border-slate-500/20"
-                    }`}>
+                    <span className={`px-2 py-0.5 rounded font-semibold capitalize font-sans ${selectedBatchForDetail.status === "active" ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" :
+                        selectedBatchForDetail.status === "draft" ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" :
+                          "bg-slate-500/10 text-slate-600 border border-slate-500/20"
+                      }`}>
                       {selectedBatchForDetail.status === "completed" ? "Selesai (Diakhiri)" : selectedBatchForDetail.status}
                     </span>
                   </div>
                   <p className="text-[11px] text-muted-foreground leading-relaxed font-sans">
                     {selectedBatchForDetail.status === "active" ? "Siklus saat ini sedang berjalan aktif. Semua pendaftaran murid baru dan tugas diarahkan ke angkatan ini." :
-                     selectedBatchForDetail.status === "draft" ? "Batch ini sedang dipersiapkan (Draft) dan belum diumumkan ke sistem pembelajaran aktif." :
-                     "Siklus angkatan ini sudah selesai diakhiri. Seluruh data historis bersifat Read-Only untuk integritas sistem."}
+                      selectedBatchForDetail.status === "draft" ? "Batch ini sedang dipersiapkan (Draft) dan belum diumumkan ke sistem pembelajaran aktif." :
+                        "Siklus angkatan ini sudah selesai diakhiri. Seluruh data historis bersifat Read-Only untuk integritas sistem."}
                   </p>
                 </div>
               </div>
@@ -3527,11 +3631,10 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                               return (
                                 <label
                                   key={m.id}
-                                  className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-all ${
-                                    isChecked
+                                  className={`flex items-center gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-all ${isChecked
                                       ? "bg-brand-purple/10 border-brand-purple/40 text-foreground font-semibold"
                                       : "bg-card border-border text-muted-foreground hover:border-border/80"
-                                  }`}
+                                    }`}
                                 >
                                   <input
                                     type="checkbox"
@@ -3628,17 +3731,17 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                   Batal
                 </button>
                 <button
+                  disabled={confirmCountdown > 0}
                   onClick={() => {
                     setIsConfirmOpen(false);
                     if (confirmAction) confirmAction();
                   }}
-                  className={`px-4 py-2 rounded-lg text-white text-xs font-semibold font-heading transition-colors shadow-sm ${
-                    confirmIsDestructive
+                  className={`px-4 py-2 rounded-lg text-white text-xs font-semibold font-heading transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${confirmIsDestructive
                       ? "bg-red-500 hover:bg-red-600"
                       : "bg-brand-purple hover:bg-brand-purple-hover"
-                  }`}
+                    }`}
                 >
-                  {confirmButtonText}
+                  {confirmButtonText}{confirmCountdown > 0 ? ` (${confirmCountdown}s)` : ""}
                 </button>
               </div>
             </motion.div>
