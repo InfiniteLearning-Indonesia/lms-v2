@@ -14,7 +14,13 @@ import { StudentProfileSettings } from "./student/student-profile-settings";
 import { StudentPastBatches } from "./student/student-past-batches";
 import { StudentPermissionView } from "./student/student-permission-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Info, AlertTriangle, Lock } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogFooter,
+} from "@/components/ui/alert-dialog";
 
 export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardProps) {
   const [classes, setClasses] = useState<StudentClass[]>([]);
@@ -147,6 +153,47 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
     }
   };
 
+  // SP Global Modal States
+  const [globalSpLevel, setGlobalSpLevel] = useState<number>(0);
+  const [globalSpPopupOpen, setGlobalSpPopupOpen] = useState(false);
+  const [globalSpAgreed, setGlobalSpAgreed] = useState(false);
+  const [globalSpCountdown, setGlobalSpCountdown] = useState(10);
+
+  useEffect(() => {
+    if (!profile?.id || classes.length === 0) return;
+    const activeCls = classes.find((c) => c.batch?.status === "active");
+    if (!activeCls?.batchId) return;
+
+    fetch(`http://localhost:7000/attendance?batchId=${activeCls.batchId}&studentId=${profile.id}`, {
+      headers: { Accept: "application/json" },
+      credentials: "include"
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const maxSp = Math.max(...data.map((d: any) => d.spLevel || 0));
+          if (maxSp >= 1 && maxSp <= 3) {
+            setGlobalSpLevel(maxSp);
+            setGlobalSpPopupOpen(true);
+            setGlobalSpCountdown(10);
+          }
+        }
+      })
+      .catch(console.error);
+  }, [profile?.id, classes]);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (globalSpPopupOpen && globalSpCountdown > 0) {
+      timer = setInterval(() => {
+        setGlobalSpCountdown((prev) => (prev <= 1 ? 0 : prev - 1));
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [globalSpPopupOpen, globalSpCountdown]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center p-12">
@@ -154,6 +201,49 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
         <p className="mt-4 text-xs text-muted-foreground animate-pulse font-heading">
           Menarik data kelas...
         </p>
+      </div>
+    );
+  }
+
+  // 🚫 Check if student account is Suspended
+  if (profile?.status === "suspended") {
+    return (
+      <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center font-sans">
+        <div className="max-w-lg w-full bg-card border border-red-500/30 rounded-3xl p-8 shadow-2xl space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-red-600 via-orange-500 to-red-600" />
+          <div className="mx-auto w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-600">
+            <Lock className="w-10 h-10" />
+          </div>
+          <div className="space-y-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 text-red-600 font-bold text-xs uppercase tracking-wider border border-red-500/20">
+              <Info className="w-4 h-4" /> Akun Ter-Suspend
+            </span>
+            <h2 className="text-2xl font-heading font-extrabold text-foreground tracking-tight">
+              Akses LMS Anda Dibatasi
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed pt-2">
+              Akun Anda telah <strong>di-suspend</strong> secara otomatis oleh sistem karena telah melampaui ambang batas Surat Peringatan (SP3) akibat ketidakhadiran tanpa keterangan (Alpha).
+            </p>
+          </div>
+          <div className="bg-secondary/40 p-4 rounded-xl text-left border border-border text-xs text-muted-foreground space-y-1">
+            <p className="font-semibold text-foreground">Dampak Status Suspended:</p>
+            <ul className="list-disc list-inside space-y-1 pt-1">
+              <li>Seluruh modul, tugas, dan fitur LMS Anda dikunci.</li>
+              <li>Status absensi harian Anda otomatis Alpha secara berkelanjutan.</li>
+              <li>Silakan hubungi Mentor Utama atau Admin untuk permohonan <em>Unsuspend</em>.</li>
+            </ul>
+          </div>
+          <button
+            onClick={() => {
+              fetch("http://localhost:7000/auth/logout", { method: "POST", credentials: "include" })
+                .then(() => (window.location.href = "/login"))
+                .catch(() => (window.location.href = "/login"));
+            }}
+            className="w-full h-11 border border-red-500/30 text-red-600 hover:bg-red-500/10 text-sm font-semibold rounded-xl transition-all cursor-pointer"
+          >
+            Keluar Akun
+          </button>
+        </div>
       </div>
     );
   }
@@ -171,8 +261,62 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
 
   const tabCols = hasPastClasses ? "grid-cols-6" : "grid-cols-5";
 
+  const getSPContent = (level: number) => {
+    if (level === 1) return { title: "SURAT PERINGATAN 1 (SP1)", color: "bg-amber-500", desc: "Anda telah mencapai 10% Alpha (tidak hadir tanpa keterangan) pada bulan ini. Harap tingkatkan kedisiplinan kehadiran Anda agar tidak mendapat Sanksi SP2." };
+    if (level === 2) return { title: "SURAT PERINGATAN 2 (SP2)", color: "bg-orange-500", desc: "Anda telah mendapat Alpha lagi setelah SP1. Harap berhati-hati, 1x Alpha lagi akan menyebabkan terbitnya Surat Peringatan SP3." };
+    return { title: "SURAT PERINGATAN 3 (SP3)", color: "bg-red-600", desc: "PERINGATAN TERAKHIR (SP3). Tambahan 1x Alpha lagi akan menyebabkan AKUN ANDA OTOMATIS DI-SUSPEND dari sistem LMS." };
+  };
+
+  const spContent = globalSpLevel > 0 ? getSPContent(globalSpLevel) : null;
+
   return (
-    <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6 w-full font-sans">
+    <>
+      {/* ⚠️ Global SP Warning Modal on Login */}
+      {spContent && (
+        <AlertDialog open={globalSpPopupOpen}>
+          <AlertDialogContent className="max-w-xl max-h-[90vh] overflow-hidden p-0 border border-border shadow-2xl">
+            <div className={`${spContent.color} px-6 py-5 relative overflow-hidden`}>
+              <div className="relative flex items-center gap-3">
+                <AlertTriangle className="h-6 w-6 text-white" />
+                <div>
+                  <h2 className="text-lg font-bold text-white tracking-tight">{spContent.title}</h2>
+                  <p className="text-white/80 text-xs font-medium">Batas ketidakhadiran telah terlampaui.</p>
+                </div>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-4 text-sm text-foreground">
+              <p>{spContent.desc}</p>
+              <p className="text-xs text-muted-foreground">
+                Satu tingkat Alpha lagi berpotensi menyebabkan sanksi yang lebih berat hingga suspend otomatis dari sistem.
+              </p>
+              
+              <label className={`flex items-start gap-3 mt-4 ${globalSpCountdown > 0 ? 'opacity-50' : 'cursor-pointer'}`}>
+                <input
+                  type="checkbox"
+                  checked={globalSpAgreed}
+                  onChange={e => setGlobalSpAgreed(e.target.checked)}
+                  disabled={globalSpCountdown > 0}
+                  className="mt-1"
+                />
+                <span className="text-xs text-muted-foreground select-none">
+                  Saya telah membaca peringatan ini dan akan berkomitmen untuk memperbaiki kehadiran saya.
+                </span>
+              </label>
+            </div>
+            <AlertDialogFooter className="px-6 pb-5 pt-0">
+              <AlertDialogAction
+                disabled={globalSpCountdown > 0 || !globalSpAgreed}
+                onClick={() => setGlobalSpPopupOpen(false)}
+                className={`w-full ${globalSpCountdown > 0 || !globalSpAgreed ? 'bg-secondary text-muted-foreground' : spContent.color + ' text-white'} transition-all`}
+              >
+                {globalSpCountdown > 0 ? `Mohon dibaca (${globalSpCountdown}s)` : 'Saya Mengerti dan Setuju'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
+
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6 w-full font-sans">
       <TabsList
         className={`bg-secondary/60 p-1.5 rounded-xl border border-border/60 grid w-full min-h-14 ${tabCols}`}
       >
@@ -297,5 +441,6 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
         </TabsContent>
       )}
     </Tabs>
+    </>
   );
 }

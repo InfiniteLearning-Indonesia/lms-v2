@@ -17,8 +17,8 @@ interface AdminUserInviteProps {
   setInviteName: (v: string) => void;
   inviteEmail: string;
   setInviteEmail: (v: string) => void;
-  inviteRole: "student" | "mentor" | "admin";
-  setInviteRole: (v: "student" | "mentor" | "admin") => void;
+  inviteRole: "student" | "mentor" | "admin" | "facilitator";
+  setInviteRole: (v: "student" | "mentor" | "admin" | "facilitator") => void;
   inviteWhatsapp: string;
   setInviteWhatsapp: (v: string) => void;
   inviteInstitution: string;
@@ -105,6 +105,7 @@ export function AdminUserInvite({
               >
                 <option value="student">Siswa LMS</option>
                 <option value="mentor">Mentor Kelas</option>
+                <option value="facilitator">Facilitator Program</option>
                 <option value="admin">Administrator</option>
               </select>
             </div>
@@ -202,6 +203,33 @@ export function AdminUserInvite({
                   </select>
                 </div>
               </>
+            )}
+
+            {inviteRole === "facilitator" && (
+              <div className="space-y-1.5 bg-brand-purple/5 p-3 rounded-lg border border-brand-purple/20">
+                <label className="text-xs font-bold text-brand-purple">
+                  Program IL yang Dipautkan Ke Facilitator <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={inviteSelectedProgram}
+                  onChange={(e) => setInviteSelectedProgram(e.target.value)}
+                  className="w-full text-xs px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-brand-purple text-foreground font-semibold"
+                  required
+                >
+                  <option value="">-- Pilih Program Wajib --</option>
+                  <option value="AI Development">AI Development</option>
+                  <option value="Web Development and UI/UX Design">
+                    Web Development & UI/UX Design
+                  </option>
+                  <option value="Mobile Development and UI/UX Design">
+                    Mobile Development & UI/UX Design
+                  </option>
+                  <option value="Game Development">Game Development</option>
+                </select>
+                <p className="text-[11px] text-muted-foreground">
+                  Facilitator akan memiliki akses absensi dan informasi penuh pada program ini.
+                </p>
+              </div>
             )}
 
             {inviteRole === "mentor" && (

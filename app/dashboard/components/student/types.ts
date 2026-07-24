@@ -4,6 +4,7 @@ export interface StudentProfile {
   name: string;
   role: string;
   roles?: string[];
+  status?: string | null;
   whatsapp?: string | null;
   institution?: string | null;
   studyProgram?: string | null;

@@ -1,12 +1,6 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { Loader2, Calendar as CalendarIcon, AlertTriangle, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Loader2, Calendar as CalendarIcon, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogFooter,
-} from "@/components/ui/alert-dialog";
 import { Calendar } from "@/components/ui/calendar";
 
 export function StudentAttendance({ batchId, studentId }: { batchId: string, studentId: string }) {
@@ -19,27 +13,6 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
   // Calendar Month State
   const [month, setMonth] = useState<Date>(new Date());
   
-  // SP Popup logic
-  const [spLevel, setSpLevel] = useState<number>(0);
-  const [spPopupOpen, setSpPopupOpen] = useState(false);
-  const [spAgreed, setSpAgreed] = useState(false);
-  const [spCountdown, setSpCountdown] = useState(60);
-  const spTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const startSpCountdown = useCallback(() => {
-    setSpCountdown(60);
-    if (spTimerRef.current) clearInterval(spTimerRef.current);
-    spTimerRef.current = setInterval(() => {
-      setSpCountdown((prev) => {
-        if (prev <= 1) {
-          if (spTimerRef.current) clearInterval(spTimerRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  }, []);
-
   useEffect(() => {
     if (!batchId) return;
 
@@ -87,25 +60,12 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
       .then(data => {
         setAttendances(Array.isArray(data) ? data : []);
         setLoading(false);
-        
-        if (Array.isArray(data) && data.length > 0) {
-          const maxSp = Math.max(...data.map((d: any) => d.spLevel || 0));
-          if (maxSp > 0) {
-            setSpLevel(maxSp);
-            setSpPopupOpen(true);
-            startSpCountdown();
-          }
-        }
       })
       .catch(err => {
         console.error(err);
         setLoading(false);
       });
-      
-    return () => {
-      if (spTimerRef.current) clearInterval(spTimerRef.current);
-    }
-  }, [batchId, studentId, startSpCountdown]);
+  }, [batchId, studentId]);
 
   if (loading) {
     return (
@@ -118,18 +78,17 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
     );
   }
 
-  const getSPContent = (level: number) => {
-    if (level === 1) return { title: "SURAT PERINGATAN 1 (SP1)", color: "bg-amber-500", txtColor: "text-amber-500" };
-    if (level === 2) return { title: "SURAT PERINGATAN 2 (SP2)", color: "bg-orange-500", txtColor: "text-orange-500" };
-    return { title: "SURAT PERINGATAN 3 (SP3)", color: "bg-red-600", txtColor: "text-red-600" };
-  };
+  // Filter attendances for current selected calendar month
+  const selectedMonthName = month.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+  const monthlyAttendances = attendances.filter(a => {
+    const d = new Date(a.date);
+    return d.getMonth() === month.getMonth() && d.getFullYear() === month.getFullYear();
+  });
 
-  const spContent = spLevel > 0 ? getSPContent(spLevel) : null;
-  
-  // Calculate stats
-  const hadir = attendances.filter(a => a.status.includes('Hadir')).length;
-  const izin = attendances.filter(a => a.status.includes('Izin')).length;
-  const alpha = attendances.filter(a => a.status === 'Alpha').length;
+  // Calculate monthly stats
+  const hadir = monthlyAttendances.filter(a => a.status.includes('Hadir')).length;
+  const izin = monthlyAttendances.filter(a => a.status.includes('Izin') || a.status.includes('Sakit')).length;
+  const alpha = monthlyAttendances.filter(a => a.status === 'Alpha').length;
 
   const CustomDayButton = ({ day, modifiers, ...props }: any) => {
     const date = day.date;
@@ -243,55 +202,17 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
 
   return (
     <div className="space-y-6">
-      {/* SP Popup */}
-      {spContent && (
-        <AlertDialog open={spPopupOpen}>
-          <AlertDialogContent className="max-w-xl max-h-[90vh] overflow-hidden p-0 border border-border shadow-2xl">
-            <div className={`${spContent.color} px-6 py-5 relative overflow-hidden`}>
-              <div className="relative flex items-center gap-3">
-                <AlertTriangle className="h-6 w-6 text-white" />
-                <div>
-                  <h2 className="text-lg font-bold text-white tracking-tight">{spContent.title}</h2>
-                  <p className="text-white/80 text-xs font-medium">Batas ketidakhadiran telah terlampaui.</p>
-                </div>
-              </div>
-            </div>
-            <div className="px-6 py-5 space-y-4 text-sm text-foreground">
-              <p>Anda telah mencapai <strong>Alpha (tidak hadir tanpa keterangan)</strong> melewati batas toleransi bulan ini.</p>
-              <p>Satu tingkat Alpha lagi berpotensi menyebabkan sanksi yang lebih berat hingga suspend otomatis dari sistem.</p>
-              
-              <label className={`flex items-start gap-3 mt-4 ${spCountdown > 0 ? 'opacity-50' : 'cursor-pointer'}`}>
-                <input
-                  type="checkbox"
-                  checked={spAgreed}
-                  onChange={e => setSpAgreed(e.target.checked)}
-                  disabled={spCountdown > 0}
-                  className="mt-1"
-                />
-                <span className="text-xs text-muted-foreground">
-                  Saya telah membaca peringatan ini dan akan berkomitmen untuk memperbaiki kehadiran saya.
-                </span>
-              </label>
-            </div>
-            <AlertDialogFooter className="px-6 pb-5 pt-0">
-              <AlertDialogAction
-                disabled={spCountdown > 0 || !spAgreed}
-                onClick={() => setSpPopupOpen(false)}
-                className={`w-full ${spCountdown > 0 || !spAgreed ? 'bg-secondary' : spContent.color} text-white`}
-              >
-                {spCountdown > 0 ? `Mohon dibaca (${spCountdown}s)` : 'Saya Mengerti dan Setuju'}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-
       {/* Stats Cards */}
       <div className="grid grid-cols-3 gap-4">
         <Card className="bg-emerald-50 border-emerald-100 shadow-sm">
-          <CardHeader className="py-4">
-            <CardTitle className="text-sm font-semibold text-emerald-800 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4" /> Hadir
+          <CardHeader className="py-4 pb-2">
+            <CardTitle className="text-sm font-semibold text-emerald-800 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4" /> Hadir
+              </span>
+              <span className="text-[10px] font-normal text-emerald-700/80 bg-emerald-100/80 px-2 py-0.5 rounded-md">
+                {selectedMonthName}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -299,9 +220,14 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
           </CardContent>
         </Card>
         <Card className="bg-amber-50 border-amber-100 shadow-sm">
-          <CardHeader className="py-4">
-            <CardTitle className="text-sm font-semibold text-amber-800 flex items-center gap-2">
-              <Clock className="w-4 h-4" /> Izin / Sakit
+          <CardHeader className="py-4 pb-2">
+            <CardTitle className="text-sm font-semibold text-amber-800 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Clock className="w-4 h-4" /> Izin / Sakit
+              </span>
+              <span className="text-[10px] font-normal text-amber-700/80 bg-amber-100/80 px-2 py-0.5 rounded-md">
+                {selectedMonthName}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -309,9 +235,14 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
           </CardContent>
         </Card>
         <Card className="bg-red-50 border-red-100 shadow-sm">
-          <CardHeader className="py-4">
-            <CardTitle className="text-sm font-semibold text-red-800 flex items-center gap-2">
-              <XCircle className="w-4 h-4" /> Alpha
+          <CardHeader className="py-4 pb-2">
+            <CardTitle className="text-sm font-semibold text-red-800 flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <XCircle className="w-4 h-4" /> Alpha
+              </span>
+              <span className="text-[10px] font-normal text-red-700/80 bg-red-100/80 px-2 py-0.5 rounded-md">
+                {selectedMonthName}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent>

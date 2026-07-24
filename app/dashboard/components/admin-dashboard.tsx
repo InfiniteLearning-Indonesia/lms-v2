@@ -160,7 +160,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   // Single Invite States
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
-  const [inviteRole, setInviteRole] = useState<"student" | "mentor" | "admin">("student");
+  const [inviteRole, setInviteRole] = useState<"student" | "mentor" | "admin" | "facilitator">("student");
   const [inviteWhatsapp, setInviteWhatsapp] = useState("");
   const [inviteInstitution, setInviteInstitution] = useState("");
   const [inviteStudyProgram, setInviteStudyProgram] = useState("");

@@ -15,27 +15,30 @@ import {
 import { StudentDashboard } from "./components/student-dashboard";
 import { MentorDashboard } from "./components/mentor-dashboard";
 import { AdminDashboard } from "./components/admin-dashboard";
+import { FacilitatorDashboard } from "./components/facilitator-dashboard";
 
 interface UserProfile {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "mentor" | "student";
-  roles?: ("admin" | "mentor" | "student")[];
+  role: "admin" | "facilitator" | "mentor" | "student";
+  roles?: ("admin" | "facilitator" | "mentor" | "student")[];
   status: "invited" | "active" | "suspended";
   avatarUrl: string | null;
   createdAt: string;
   lastLoginAt: string | null;
   selectedProgram?: string | null;
+  programId?: string | null;
   specialization?: string | null;
+  whatsapp?: string | null;
+  institution?: string | null;
+  studyProgram?: string | null;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
-
-
 
   const fetchProfile = () => {
     fetch("http://localhost:7000/auth/me", {
@@ -78,12 +81,14 @@ export default function DashboardPage() {
 
   const roleColors = {
     admin: "bg-red-500/10 text-red-500 border-red-500/20",
+    facilitator: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
     mentor: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     student: "bg-brand-purple/10 text-brand-purple border-brand-purple/20",
   };
 
   const roleLabels = {
     admin: "Administrator",
+    facilitator: "Facilitator Program",
     mentor: "Mentor Kelas",
     student: "Siswa LMS",
   };
@@ -134,8 +139,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Views Routing based on Role */}
-          {profile?.roles?.includes("student") && !profile?.roles?.includes("mentor") && !profile?.roles?.includes("admin") && <StudentDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-          {profile?.roles?.includes("mentor") && !profile?.roles?.includes("admin") && <MentorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+          {profile?.roles?.includes("student") && !profile?.roles?.includes("mentor") && !profile?.roles?.includes("facilitator") && !profile?.roles?.includes("admin") && <StudentDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+          {profile?.roles?.includes("facilitator") && !profile?.roles?.includes("admin") && <FacilitatorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+          {profile?.roles?.includes("mentor") && !profile?.roles?.includes("facilitator") && !profile?.roles?.includes("admin") && <MentorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
           {profile?.roles?.includes("admin") && <AdminDashboard profile={profile} onProfileUpdate={fetchProfile} />}
 
         </div>

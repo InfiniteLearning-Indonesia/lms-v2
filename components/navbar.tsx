@@ -20,8 +20,8 @@ interface UserProfile {
   id: string;
   email: string;
   name: string;
-  role: "admin" | "mentor" | "student";
-  roles?: ("admin" | "mentor" | "student")[];
+  role: "admin" | "facilitator" | "mentor" | "student";
+  roles?: ("admin" | "facilitator" | "mentor" | "student")[];
   status: "invited" | "active" | "suspended";
   avatarUrl: string | null;
 }
@@ -41,12 +41,14 @@ export function Navbar({ profile, onLogout, title = "Dasbor Utama", showBackButt
 
   const roleColors = {
     admin: "bg-red-500/10 text-red-500 border-red-500/20",
+    facilitator: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
     mentor: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     student: "bg-brand-purple/10 text-brand-purple border-brand-purple/20",
   };
 
   const roleLabels = {
     admin: "Administrator",
+    facilitator: "Facilitator Program",
     mentor: "Mentor Kelas",
     student: "Siswa LMS",
   };
