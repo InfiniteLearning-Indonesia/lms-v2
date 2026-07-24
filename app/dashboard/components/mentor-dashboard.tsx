@@ -22,6 +22,7 @@ import {
   Users,
 } from "lucide-react";
 
+import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -226,15 +227,15 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         body: JSON.stringify({ updates }),
       });
       if (res.ok) {
-        alert("Bobot berhasil disimpan!");
+        toast.success("Bobot berhasil disimpan!");
         setWeightUpdates({});
         fetchMentorData();
       } else {
-        alert("Gagal menyimpan bobot.");
+        toast.error("Gagal menyimpan bobot.");
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan sistem.");
+      toast.error("Terjadi kesalahan sistem.");
     } finally {
       setIsSavingWeights(false);
     }
@@ -257,14 +258,16 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         credentials: "include"
       });
       if (res.ok) {
+        toast.success("Rubrik Assessment berhasil ditambahkan!");
         setIsAddRubrikAssessmentModalOpen(false);
         const progId = selectedProgramId || classes[0]?.program?.id;
         if (progId) fetchRubrikAssessments(progId);
       } else {
-        alert("Gagal menambahkan Rubrik Assessment");
+        toast.error("Gagal menambahkan Rubrik Assessment");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
     }
   };
 
@@ -282,29 +285,57 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         credentials: "include"
       });
       if (res.ok) {
+        toast.success("Rubrik Assessment berhasil diperbarui!");
         setEditingRubrikAssessment(null);
         const progId = selectedProgramId || classes[0]?.program?.id;
         if (progId) fetchRubrikAssessments(progId);
+      } else {
+        toast.error("Gagal memperbarui Rubrik Assessment");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
     }
   };
 
   const handleDeleteRubrikAssessment = async (id: string) => {
-    if (!confirm("Yakin ingin menghapus Rubrik Assessment ini?")) return;
     try {
       const res = await fetch(`http://localhost:7000/classes/rubrik-assessments/${id}`, {
         method: "DELETE",
         credentials: "include"
       });
       if (res.ok) {
+        toast.success("Rubrik Assessment berhasil dihapus!");
         const progId = selectedProgramId || classes[0]?.program?.id;
         if (progId) fetchRubrikAssessments(progId);
+      } else {
+        toast.error("Gagal menghapus Rubrik Assessment.");
       }
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan sistem.");
+      toast.error("Terjadi kesalahan sistem.");
+    }
+  };
+
+  const handleSaveRubrikAssessmentWeights = async (id: string, payload: { competencies: any[]; subAssessments: any[] }) => {
+    try {
+      const res = await fetch(`http://localhost:7000/classes/rubrik-assessments/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        credentials: "include"
+      });
+      if (res.ok) {
+        toast.success("Bobot Rubrik Assessment berhasil disimpan!");
+        setEditingWeightRubrikAssessment(null);
+        const progId = selectedProgramId || classes[0]?.program?.id;
+        if (progId) fetchRubrikAssessments(progId);
+      } else {
+        toast.error("Gagal menyimpan bobot.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan sistem.");
     }
   };
 
@@ -417,7 +448,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           }
 
           if (Object.keys(headerToRaId).length === 0) {
-            alert("Tidak ada nama kolom CSV yang cocok dengan Rubrik Assessment.");
+            toast.error("Tidak ada nama kolom CSV yang cocok dengan Rubrik Assessment.");
             setIsImportingCSV(false);
             if (csvInputRef.current) csvInputRef.current.value = "";
             return;
@@ -444,7 +475,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           }
 
           if (scoresToImport.length === 0) {
-            alert("Tidak ada nilai yang valid untuk di-import.");
+            toast.warning("Tidak ada nilai yang valid untuk di-import.");
             setIsImportingCSV(false);
             if (csvInputRef.current) csvInputRef.current.value = "";
             return;
@@ -462,14 +493,14 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
           if (res.ok) {
             const resData = await res.json();
-            alert(`Berhasil import ${resData.importedCount} nilai.`);
+            toast.success(`Berhasil import ${resData.importedCount} nilai.`);
             fetchExternalScores(progId);
           } else {
-            alert("Gagal melakukan import data.");
+            toast.error("Gagal melakukan import data.");
           }
         } catch (err) {
           console.error(err);
-          alert("Terjadi kesalahan saat memproses CSV.");
+          toast.error("Terjadi kesalahan saat memproses CSV.");
         } finally {
           setIsImportingCSV(false);
           if (csvInputRef.current) csvInputRef.current.value = "";
@@ -477,7 +508,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       },
       error: (err) => {
         console.error(err);
-        alert("Gagal membaca file CSV.");
+        toast.error("Gagal membaca file CSV.");
         setIsImportingCSV(false);
         if (csvInputRef.current) csvInputRef.current.value = "";
       }
@@ -501,14 +532,17 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         credentials: "include",
       });
       if (res.ok) {
+        toast.success("Kompetensi berhasil ditambahkan!");
         setIsAddCompetencyModalOpen(false);
-        if (classes[0]?.program?.id) fetchCompetencies(classes[0].program.id);
+        const progId = selectedProgramId || classes[0]?.program?.id;
+        if (progId) fetchCompetencies(progId);
       } else {
         const error = await res.json();
-        alert(`Error: ${error.message}`);
+        toast.error(error.message || "Gagal menambahkan kompetensi.");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
     }
   };
 
@@ -559,32 +593,37 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         credentials: "include",
       });
       if (res.ok) {
+        toast.success("Kompetensi berhasil diperbarui!");
         setEditingCompetency(null);
-        if (classes[0]?.program?.id) fetchCompetencies(classes[0].program.id);
+        const progId = selectedProgramId || classes[0]?.program?.id;
+        if (progId) fetchCompetencies(progId);
       } else {
         const error = await res.json();
-        alert(`Error: ${error.message}`);
+        toast.error(error.message || "Gagal memperbarui kompetensi.");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
     }
   };
 
   const handleDeleteCompetency = async (id: string) => {
-    if (!confirm("Yakin ingin menghapus kompetensi ini?")) return;
     try {
       const res = await fetch(`http://localhost:7000/classes/competencies/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
       if (res.ok) {
-        if (classes[0]?.program?.id) fetchCompetencies(classes[0].program.id);
+        toast.success("Kompetensi berhasil dihapus!");
+        const progId = selectedProgramId || classes[0]?.program?.id;
+        if (progId) fetchCompetencies(progId);
       } else {
         const error = await res.json();
-        alert(`Error: ${error.message}`);
+        toast.error(error.message || "Gagal menghapus kompetensi.");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
     }
   };
 
@@ -605,14 +644,16 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         credentials: "include",
       });
       if (res.ok) {
+        toast.success("Materi pembelajaran berhasil ditambahkan!");
         setIsAddMaterialModalOpen(false);
         fetchMentorData();
       } else {
         const error = await res.json();
-        alert(`Error: ${error.message}`);
+        toast.error(error.message || "Gagal menambahkan materi.");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
     }
   };
 
@@ -633,14 +674,52 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         credentials: "include",
       });
       if (res.ok) {
+        toast.success("Tugas praktik berhasil ditambahkan!");
         setIsAddAssignmentModalOpen(false);
         fetchMentorData();
       } else {
         const error = await res.json();
-        alert(`Error: ${error.message}`);
+        toast.error(error.message || "Gagal menambahkan tugas.");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
+    }
+  };
+
+  const handleDeleteMaterial = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:7000/classes/materials/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        toast.success("Materi pembelajaran berhasil dihapus!");
+        fetchMentorData();
+      } else {
+        toast.error("Gagal menghapus materi.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
+    }
+  };
+
+  const handleDeleteAssignment = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:7000/classes/assignments/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        toast.success("Tugas praktik berhasil dihapus!");
+        fetchMentorData();
+      } else {
+        toast.error("Gagal menghapus tugas.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
     }
   };
 
@@ -946,6 +1025,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             handleDistributeModulo={handleDistributeModulo}
             onOpenAddMaterial={() => setIsAddMaterialModalOpen(true)}
             onOpenAddAssignment={() => setIsAddAssignmentModalOpen(true)}
+            onDeleteMaterial={handleDeleteMaterial}
+            onDeleteAssignment={handleDeleteAssignment}
           />
         </TabsContent>
 
@@ -1113,6 +1194,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         handleCreateRubrikAssessment={handleCreateRubrikAssessment}
         editingWeightRubrikAssessment={editingWeightRubrikAssessment}
         setEditingWeightRubrikAssessment={setEditingWeightRubrikAssessment}
+        handleSaveRubrikAssessmentWeights={handleSaveRubrikAssessmentWeights}
         rubrikAssessments={rubrikAssessments}
       />
     </div>

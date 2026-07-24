@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowLeft, Loader2, CheckCircle2, Clock, UploadCloud, Link as LinkIcon, AlertCircle, FileSpreadsheet, Bot, Pencil } from "lucide-react";
@@ -157,9 +158,10 @@ export default function AssignmentDetailPage() {
         setSubmissionData(data.submission);
       }
       setIsSubmitted(true);
+      toast.success("Tugas berhasil dikirim!");
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat mengirim tugas.");
+      toast.error("Terjadi kesalahan saat mengirim tugas.");
     } finally {
       setIsSubmitting(false);
     }
@@ -177,13 +179,15 @@ export default function AssignmentDetailPage() {
         body: JSON.stringify({ score: Number(manualScore), manualFeedback })
       });
       if (res.ok) {
+        toast.success("Nilai berhasil disimpan!");
         setIsManualModalOpen(false);
         fetchMentorSubmissions();
       } else {
-        alert("Gagal menyimpan nilai");
+        toast.error("Gagal menyimpan nilai.");
       }
     } catch (err) {
       console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
     } finally {
       setIsSubmittingManual(false);
     }
@@ -199,11 +203,9 @@ export default function AssignmentDetailPage() {
   const handleBulkAIEvaluate = async () => {
     const ungraded = mentorSubmissions.filter(s => s.status !== 'graded');
     if (ungraded.length === 0) {
-      alert("Semua tugas sudah dinilai final.");
+      toast.info("Semua tugas sudah dinilai final.");
       return;
     }
-
-    if (!confirm(`Evaluasi AI akan memproses ${ungraded.length} tugas secara berurutan. Lanjutkan?`)) return;
 
     setIsBulkEvaluating(true);
     setBulkProgress({ total: ungraded.length, current: 0 });
@@ -222,7 +224,7 @@ export default function AssignmentDetailPage() {
 
     await fetchMentorSubmissions();
     setIsBulkEvaluating(false);
-    alert("Evaluasi massal AI selesai.");
+    toast.success("Evaluasi massal AI selesai.");
   };
 
   const isPastDue = assignmentData.dueDate ? new Date(assignmentData.dueDate) < new Date() : false;

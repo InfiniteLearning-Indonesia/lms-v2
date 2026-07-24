@@ -1,7 +1,7 @@
-"use strict";
 "use client";
 
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Notebook, Calendar, Loader2, AlertCircle, CheckCircle2, User, Search, FileEdit, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -45,7 +45,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
 
   const handleReview = async (logbookId: string, status: "accepted" | "revision") => {
     if (status === "revision" && !feedback.trim()) {
-      alert("Harap isi feedback/catatan jika meminta revisi.");
+      toast.warning("Harap isi feedback/catatan jika meminta revisi.");
       return;
     }
     
@@ -59,14 +59,15 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
       });
 
       if (res.ok) {
+        toast.success(status === "accepted" ? "Logbook berhasil disetujui!" : "Permintaan revisi dikirim.");
         setFeedback("");
         await fetchLogbooks(); // Refresh data
       } else {
         const err = await res.json();
-        alert(err.message || "Gagal memperbarui status logbook.");
+        toast.error(err.message || "Gagal memperbarui status logbook.");
       }
     } catch (err) {
-      alert("Kesalahan jaringan saat menyimpan review.");
+      toast.error("Kesalahan jaringan saat menyimpan review.");
     } finally {
       setIsSubmitting(false);
     }

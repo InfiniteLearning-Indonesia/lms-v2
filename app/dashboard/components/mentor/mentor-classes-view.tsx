@@ -14,6 +14,7 @@ import {
   Plus,
   RefreshCw,
   Sliders,
+  Trash2,
   Users,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -36,6 +37,8 @@ interface MentorClassesViewProps {
   handleDistributeModulo: (progName: string) => void;
   onOpenAddMaterial: () => void;
   onOpenAddAssignment: () => void;
+  onDeleteMaterial?: (id: string) => void;
+  onDeleteAssignment?: (id: string) => void;
 }
 
 export function MentorClassesView({
@@ -51,6 +54,8 @@ export function MentorClassesView({
   handleDistributeModulo,
   onOpenAddMaterial,
   onOpenAddAssignment,
+  onDeleteMaterial,
+  onDeleteAssignment,
 }: MentorClassesViewProps) {
   if (activeClasses.length === 0) {
     return (
@@ -288,13 +293,27 @@ export function MentorClassesView({
                             </p>
                           </div>
                         </div>
-                        <Link
-                          href={`/dashboard/class/${selectedCls.id}/material/${mat.id}`}
-                          target="_blank"
-                          className="text-xs font-medium text-brand-purple flex items-center gap-1 bg-card px-2.5 py-1 rounded border border-border shadow-2xs hover:bg-brand-purple/5 transition-colors"
-                        >
-                          Lihat Modul
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <Link
+                            href={`/dashboard/class/${selectedCls.id}/material/${mat.id}`}
+                            target="_blank"
+                            className="text-xs font-medium text-brand-purple flex items-center gap-1 bg-card px-2.5 py-1 rounded border border-border shadow-2xs hover:bg-brand-purple/5 transition-colors"
+                          >
+                            Lihat Modul
+                          </Link>
+
+                          {!isReadOnly && onDeleteMaterial && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
+                              onClick={() => onDeleteMaterial(mat.id)}
+                              title="Hapus Materi"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     ))
                   ) : (
@@ -353,6 +372,18 @@ export function MentorClassesView({
                               Lihat Detail / Periksa Nilai <ChevronRight className="w-3 h-3" />
                             </span>
                           </Link>
+
+                          {!isReadOnly && onDeleteAssignment && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
+                              onClick={() => onDeleteAssignment(ass.id)}
+                              title="Hapus Tugas"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))
