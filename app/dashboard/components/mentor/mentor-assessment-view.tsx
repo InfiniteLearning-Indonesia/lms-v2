@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload } from "lucide-react";
+import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -408,7 +409,7 @@ export function MentorAssessmentView({
           )}
 
           {csvInputRef && handleImportCSV && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <input
                 type="file"
                 ref={csvInputRef}
@@ -429,6 +430,32 @@ export function MentorAssessmentView({
                   <Upload className="w-3.5 h-3.5" />
                 )}
                 Import CSV
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                onClick={async () => {
+                  if (!selectedProgramId) return;
+                  try {
+                    const res = await fetch(`http://localhost:7000/classes/programs/${selectedProgramId}/release-certificate`, {
+                      method: "POST",
+                      credentials: "include"
+                    });
+                    if (res.ok) {
+                      const d = await res.json();
+                      toast.success(d.isCertificateReleased ? "Sertifikat Kelulusan berhasil dirilis untuk mentee!" : "Rilis Sertifikat ditarik kembali.");
+                    } else {
+                      toast.error("Gagal memperbarui rilis sertifikat.");
+                    }
+                  } catch (err) {
+                    toast.error("Terjadi kesalahan sistem.");
+                  }
+                }}
+                className="h-8 text-xs flex items-center gap-1.5 bg-brand-purple hover:bg-brand-purple/90 text-white cursor-pointer shadow-xs font-semibold"
+              >
+                <Award className="w-3.5 h-3.5" />
+                Rilis Sertifikat Mentee
               </Button>
             </div>
           )}
@@ -463,12 +490,6 @@ export function MentorAssessmentView({
                           {phase === "Micro" ? "Total Micro" : "Total Massive"}
                         </th>
 
-                        {phase === "Massive" && (
-                          <th className="px-4 py-3 bg-secondary/50 text-foreground border-r border-border text-center">
-                            Akumulasi Micro
-                          </th>
-                        )}
-
                         {/* Rubrik Assessment Columns */}
                         {hasRAs ? (
                           displayRAs.map((ra) => (
@@ -501,10 +522,7 @@ export function MentorAssessmentView({
                       {allStudents.length === 0 ? (
                         <tr>
                           <td
-                            colSpan={
-                              (hasRAs ? displayRAs.length : displayComps.length) +
-                              (phase === "Massive" ? 3 : 2)
-                            }
+                            colSpan={(hasRAs ? displayRAs.length : displayComps.length) + 2}
                             className="px-4 py-8 text-center text-muted-foreground"
                           >
                             Belum ada mentee yang terdaftar.
@@ -543,12 +561,6 @@ export function MentorAssessmentView({
                               <td className="px-4 py-3 text-center border-x border-border font-bold text-brand-purple bg-brand-purple/5">
                                 {ensureMinScore(summaryScore).toFixed(1)}
                               </td>
-
-                              {phase === "Massive" && (
-                                <td className="px-4 py-3 text-center border-r border-border font-semibold text-muted-foreground bg-secondary/20">
-                                  {ensureMinScore(totalMicroAvg).toFixed(1)}
-                                </td>
-                              )}
 
                               {/* RA Cells or Competency Cells */}
                               {hasRAs

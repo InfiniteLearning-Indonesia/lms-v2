@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { toast } from "sonner";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ArrowLeft, Loader2, Save, Plus, Trash2, AlertCircle } from "lucide-react";
@@ -85,10 +86,10 @@ export default function AssignmentRubricPage() {
         body: JSON.stringify({ rubric })
       });
       if (!res.ok) throw new Error("Gagal menyimpan rubrik");
-      alert("Rubrik berhasil disimpan!");
+      toast.success("Rubrik berhasil disimpan!");
     } catch (err) {
       console.error(err);
-      alert("Terjadi kesalahan saat menyimpan rubrik.");
+      toast.error("Terjadi kesalahan saat menyimpan rubrik.");
     } finally {
       setIsSaving(false);
     }
@@ -110,7 +111,7 @@ export default function AssignmentRubricPage() {
   };
 
   const deleteLevel = (id: string) => {
-    if (rubric.levels.length <= 1) return alert("Minimal harus ada 1 level penilaian");
+    if (rubric.levels.length <= 1) return toast.warning("Minimal harus ada 1 level penilaian");
     setRubric((prev) => {
       const newLevels = prev.levels.filter((l) => l.id !== id);
       const newCells = { ...prev.cells };
@@ -138,7 +139,7 @@ export default function AssignmentRubricPage() {
   };
 
   const deleteCriterion = (id: string) => {
-    if (rubric.criteria.length <= 1) return alert("Minimal harus ada 1 kriteria");
+    if (rubric.criteria.length <= 1) return toast.warning("Minimal harus ada 1 kriteria");
     setRubric((prev) => {
       const newCriteria = prev.criteria.filter((c) => c.id !== id);
       const newCells = { ...prev.cells };

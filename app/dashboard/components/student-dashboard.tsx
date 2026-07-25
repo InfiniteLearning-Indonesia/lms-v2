@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { BookOpen, Calendar, FileText, GraduationCap, Loader2, Settings, User } from "lucide-react";
+import { BookOpen, Calendar, FileText, GraduationCap, Loader2, Settings, User, Award } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StudentLogbook } from "./student-logbook";
 import { StudentAttendance } from "./student-attendance";
@@ -13,6 +13,7 @@ import { StudentActivityView } from "./student/student-activity-view";
 import { StudentProfileSettings } from "./student/student-profile-settings";
 import { StudentPastBatches } from "./student/student-past-batches";
 import { StudentPermissionView } from "./student/student-permission-view";
+import { StudentCertificateView } from "./student/student-certificate-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info, AlertTriangle, Lock } from "lucide-react";
 import {
@@ -259,7 +260,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
   const pastClasses = classes.filter((cls) => cls.batchId !== currentBatch?.id);
   const hasPastClasses = pastClasses.length > 0;
 
-  const tabCols = hasPastClasses ? "grid-cols-6" : "grid-cols-5";
+  const tabCols = hasPastClasses ? "grid-cols-7" : "grid-cols-6";
 
   const getSPContent = (level: number) => {
     if (level === 1) return { title: "SURAT PERINGATAN 1 (SP1)", color: "bg-amber-500", desc: "Anda telah mencapai 10% Alpha (tidak hadir tanpa keterangan) pada bulan ini. Harap tingkatkan kedisiplinan kehadiran Anda agar tidak mendapat Sanksi SP2." };
@@ -358,6 +359,13 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
           <span>Absensi</span>
         </TabsTrigger>
         <TabsTrigger
+          value="certificate"
+          className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2 cursor-pointer"
+        >
+          <Award className="w-5 h-5 shrink-0" />
+          <span>Transkrip & Sertifikat</span>
+        </TabsTrigger>
+        <TabsTrigger
           value="settings"
           className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2 cursor-pointer"
         >
@@ -378,6 +386,11 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
       {/* ── TAB FORM IZIN ── */}
       <TabsContent value="permission" className="space-y-6 outline-hidden">
         <StudentPermissionView profile={profile} activeClasses={activeClasses} />
+      </TabsContent>
+
+      {/* ── TAB TRANSKRIP & SERTIFIKAT ── */}
+      <TabsContent value="certificate" className="space-y-6 outline-hidden">
+        <StudentCertificateView profile={profile} />
       </TabsContent>
 
       {/* ── TAB 2: PENGATURAN AKUN ── */}

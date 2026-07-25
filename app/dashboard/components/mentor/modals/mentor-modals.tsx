@@ -1,5 +1,6 @@
 "use client";
-
+import { useState } from "react";
+import { toast } from "sonner";
 import { AlertCircle, Loader2, Save, ShieldAlert, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -67,6 +68,7 @@ interface MentorModalsProps {
   handleCreateRubrikAssessment?: (e: React.FormEvent<HTMLFormElement>) => void;
   editingWeightRubrikAssessment?: any;
   setEditingWeightRubrikAssessment?: (v: any) => void;
+  handleSaveRubrikAssessmentWeights?: (id: string, payload: { competencies: any[]; subAssessments: any[] }) => Promise<void>;
   rubrikAssessments?: any[];
 }
 
@@ -109,6 +111,7 @@ export function MentorModals({
   handleCreateRubrikAssessment,
   editingWeightRubrikAssessment,
   setEditingWeightRubrikAssessment,
+  handleSaveRubrikAssessmentWeights,
   rubrikAssessments = [],
 }: MentorModalsProps) {
   return (
@@ -564,9 +567,8 @@ export function MentorModals({
         <DialogContent className="sm:max-w-md bg-card border border-border">
           <DialogHeader>
             <DialogTitle
-              className={`flex items-center gap-2 font-heading font-bold text-base ${
-                suspendActionType === "suspend" ? "text-amber-600" : "text-emerald-600"
-              }`}
+              className={`flex items-center gap-2 font-heading font-bold text-base ${suspendActionType === "suspend" ? "text-amber-600" : "text-emerald-600"
+                }`}
             >
               <ShieldAlert className="w-5 h-5" />
               {suspendActionType === "suspend"
@@ -625,11 +627,10 @@ export function MentorModals({
               size="sm"
               disabled={isSuspending || countdown > 0}
               onClick={handleSuspendStudent}
-              className={`text-xs font-semibold gap-1.5 cursor-pointer ${
-                suspendActionType === "unsuspend"
+              className={`text-xs font-semibold gap-1.5 cursor-pointer ${suspendActionType === "unsuspend"
                   ? "bg-emerald-600 hover:bg-emerald-700 text-white"
                   : "bg-red-600 hover:bg-red-700 text-white"
-              }`}
+                }`}
             >
               {isSuspending ? (
                 <>
@@ -637,8 +638,7 @@ export function MentorModals({
                   Memproses...
                 </>
               ) : (
-                `${suspendActionType === "suspend" ? "Ya, Suspend Akses" : "Ya, Aktifkan Akses"}${
-                  countdown > 0 ? ` (${countdown}s)` : ""
+                `${suspendActionType === "suspend" ? "Ya, Suspend Akses" : "Ya, Aktifkan Akses"}${countdown > 0 ? ` (${countdown}s)` : ""
                 }`
               )}
             </Button>
@@ -740,6 +740,251 @@ export function MentorModals({
           </div>
         </div>
       )}
+
+      {/* Edit Weight for Rubrik Assessment Modal */}
+      {editingWeightRubrikAssessment && (
+        <RubrikAssessmentWeightModal
+          editingWeightRubrikAssessment={editingWeightRubrikAssessment}
+          setEditingWeightRubrikAssessment={setEditingWeightRubrikAssessment}
+          competencies={competencies}
+          rubrikAssessments={rubrikAssessments}
+          handleSaveRubrikAssessmentWeights={handleSaveRubrikAssessmentWeights}
+        />
+      )}
     </>
+  );
+}
+
+function RubrikAssessmentWeightModal({
+  editingWeightRubrikAssessment,
+  setEditingWeightRubrikAssessment,
+  competencies,
+  rubrikAssessments,
+  handleSaveRubrikAssessmentWeights,
+}: {
+  editingWeightRubrikAssessment: any;
+  setEditingWeightRubrikAssessment?: (v: any) => void;
+  competencies: CompetencyItem[];
+  rubrikAssessments: any[];
+  handleSaveRubrikAssessmentWeights?: (id: string, payload: { competencies: any[]; subAssessments: any[] }) => Promise<void>;
+}) {
+  const [compWeights, setCompWeights] = useState<Record<string, number>>(() => {
+    const map: Record<string, number> = {};
+    if (editingWeightRubrikAssessment?.competencies) {
+      for (const item of editingWeightRubrikAssessment.competencies) {
+        map[item.competencyId] = item.weight;
+      }
+    }
+    return map;
+  });
+
+  const [subWeights, setSubWeights] = useState<Record<string, number>>(() => {
+    const map: Record<string, number> = {};
+    if (editingWeightRubrikAssessment?.subAssessments) {
+      for (const item of editingWeightRubrikAssessment.subAssessments) {
+        map[item.assessmentId] = item.weight;
+      }
+    }
+    return map;
+  });
+
+  const [isSaving, setIsSaving] = useState(false);
+
+  const availableOtherRAs = rubrikAssessments.filter(
+    (r) => r.id !== editingWeightRubrikAssessment.id
+  );
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      const competenciesPayload = Object.entries(compWeights)
+        .filter(([_, w]) => w > 0)
+        .map(([competencyId, weight]) => ({ competencyId, weight }));
+
+      const subAssessmentsPayload = Object.entries(subWeights)
+        .filter(([_, w]) => w > 0)
+        .map(([assessmentId, weight]) => ({ assessmentId, weight }));
+
+      if (handleSaveRubrikAssessmentWeights) {
+        await handleSaveRubrikAssessmentWeights(editingWeightRubrikAssessment.id, {
+          competencies: competenciesPayload,
+          subAssessments: subAssessmentsPayload,
+        });
+      } else {
+        const res = await fetch(
+          `http://localhost:7000/classes/rubrik-assessments/${editingWeightRubrikAssessment.id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              competencies: competenciesPayload,
+              subAssessments: subAssessmentsPayload,
+            }),
+            credentials: "include",
+          }
+        );
+        if (res.ok) {
+          toast.success("Bobot Rubrik Assessment berhasil disimpan!");
+          setEditingWeightRubrikAssessment?.(null);
+          window.location.reload();
+        } else {
+          toast.error("Gagal menyimpan bobot.");
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const totalCompWeight = Object.values(compWeights).reduce((a, b) => a + (b || 0), 0);
+  const totalSubWeight = Object.values(subWeights).reduce((a, b) => a + (b || 0), 0);
+  const totalWeight = totalCompWeight + totalSubWeight;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
+      <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[640px] max-w-[95vw] max-h-[90vh] flex flex-col">
+        <div className="flex justify-between items-center pb-3 border-b border-border">
+          <div>
+            <h3 className="font-heading font-bold text-lg text-foreground">
+              Atur Komposisi & Bobot: {editingWeightRubrikAssessment.name}
+            </h3>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Pilih kompetensi atau sub-assessment yang menyusun nilai rubrik ini (misal: 0.5 = 50%).
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 rounded-full cursor-pointer"
+            onClick={() => setEditingWeightRubrikAssessment?.(null)}
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto py-4 space-y-6 pr-2">
+          {/* Section 1: Kompetensi */}
+          <div>
+            <h4 className="font-heading font-bold text-sm text-brand-purple mb-3 flex items-center justify-between">
+              <span>1. Kompetensi Terhubung</span>
+              <span className="text-xs text-muted-foreground font-normal">
+                Subtotal Bobot: {totalCompWeight.toFixed(2)}
+              </span>
+            </h4>
+            {competencies.length === 0 ? (
+              <p className="text-xs text-muted-foreground italic">Belum ada kompetensi.</p>
+            ) : (
+              <div className="space-y-2">
+                {competencies.map((comp) => {
+                  const currentWeight = compWeights[comp.id] ?? 0;
+                  return (
+                    <div
+                      key={comp.id}
+                      className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-secondary/20 text-xs"
+                    >
+                      <div>
+                        <p className="font-semibold text-foreground">{comp.name}</p>
+                        <p className="text-[10px] text-muted-foreground">{comp.category}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-muted-foreground">Bobot:</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="1"
+                          placeholder="0.0"
+                          value={currentWeight === 0 ? "" : currentWeight}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setCompWeights((prev) => ({ ...prev, [comp.id]: val }));
+                          }}
+                          className="w-20 h-8 text-xs font-bold text-center"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Section 2: Sub-Assessments */}
+          {availableOtherRAs.length > 0 && (
+            <div>
+              <h4 className="font-heading font-bold text-sm text-brand-purple mb-3 flex items-center justify-between">
+                <span>2. Sub-Assessment Terhubung (Opsional)</span>
+                <span className="text-xs text-muted-foreground font-normal">
+                  Subtotal Bobot: {totalSubWeight.toFixed(2)}
+                </span>
+              </h4>
+              <div className="space-y-2">
+                {availableOtherRAs.map((ra) => {
+                  const currentWeight = subWeights[ra.id] ?? 0;
+                  return (
+                    <div
+                      key={ra.id}
+                      className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-secondary/20 text-xs"
+                    >
+                      <div>
+                        <p className="font-semibold text-foreground">{ra.name}</p>
+                        <p className="text-[10px] text-muted-foreground">Fase: {ra.phase || "Micro"}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-muted-foreground">Bobot:</span>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          max="1"
+                          placeholder="0.0"
+                          value={currentWeight === 0 ? "" : currentWeight}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value) || 0;
+                            setSubWeights((prev) => ({ ...prev, [ra.id]: val }));
+                          }}
+                          className="w-20 h-8 text-xs font-bold text-center"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Total Summary */}
+          <div className="p-3 rounded-lg bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-between text-xs">
+            <span className="font-bold text-brand-purple">Total Bobot Keseluruhan:</span>
+            <span className="font-extrabold text-brand-purple text-sm">
+              {totalWeight.toFixed(2)} {totalWeight === 1 ? "(100% Ideal)" : ""}
+            </span>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingWeightRubrikAssessment?.(null)}
+            >
+              Batal
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              disabled={isSaving}
+              className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold cursor-pointer"
+            >
+              {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1" /> : null}
+              Simpan Bobot Rubrik
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }

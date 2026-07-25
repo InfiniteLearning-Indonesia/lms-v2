@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { toast } from "sonner";
+import { useState, useRef, useEffect } from "react";
 import {
   Calendar as CalendarIcon,
   CheckCircle2,
@@ -121,7 +122,7 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
 
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith("image/")) {
-        alert("Bukti chat mentor hanya menerima format gambar (PNG, JPG, WEBP).");
+        toast.error("Bukti chat mentor hanya menerima format gambar (PNG, JPG, WEBP).");
         return;
       }
       const reader = new FileReader();
