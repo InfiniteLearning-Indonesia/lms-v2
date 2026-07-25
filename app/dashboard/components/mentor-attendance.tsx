@@ -54,7 +54,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
         credentials: "include"
       });
       const batchData = await batchRes.json();
-      const foundBatch = batchData.find((b: any) => b.id === batchId);
+      const foundBatch = Array.isArray(batchData) ? batchData.find((b: any) => b.id === batchId) : null;
       if (foundBatch) {
         setBatch(foundBatch);
         const now = new Date();

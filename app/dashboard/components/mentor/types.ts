@@ -55,6 +55,17 @@ export interface MentorClass {
     weight?: number;
     submissions?: any[];
   }[];
+  facilitators?: {
+    id: string;
+    name: string;
+    email: string;
+    avatarUrl?: string | null;
+    whatsapp?: string | null;
+    institution?: string | null;
+    studyProgram?: string | null;
+    selectedProgram?: string | null;
+    status: string;
+  }[];
 }
 
 export interface CompetencyItem {

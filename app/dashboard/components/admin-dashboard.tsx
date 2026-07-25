@@ -495,14 +495,15 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         method: "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userIds: selectedUserIds }),
+        body: JSON.stringify({ ids: selectedUserIds, userIds: selectedUserIds }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setSuccessMsg(`${selectedUserIds.length} akun pengguna berhasil dihapus permanen.`);
         setSelectedUserIds([]);
         fetchUsersList();
       } else {
-        setError("Gagal menghapus pengguna terpilih.");
+        setError(data.message || "Gagal menghapus pengguna terpilih.");
       }
     } catch (err) {
       setError("Terjadi kesalahan jaringan.");

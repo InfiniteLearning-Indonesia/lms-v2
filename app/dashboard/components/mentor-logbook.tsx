@@ -90,13 +90,14 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
     );
   }
 
-  const filteredStudents = data.students.filter(s => 
-    s.student.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    s.student.email.toLowerCase().includes(searchTerm.toLowerCase())
+  const studentsList = data?.students || [];
+  const filteredStudents = studentsList.filter(s => 
+    (s?.student?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (s?.student?.email || "").toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const selectedStudentObj = data.students.find(s => s.student.id === selectedStudentId);
-  const months = Array.from({ length: data.totalMonths }, (_, i) => i + 1);
+  const selectedStudentObj = studentsList.find(s => s?.student?.id === selectedStudentId);
+  const months = Array.from({ length: data?.totalMonths || 0 }, (_, i) => i + 1);
 
   return (
     <div className="space-y-6">
@@ -125,15 +126,17 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
               filteredStudents.map(obj => {
                 const isSelected = selectedStudentId === obj.student.id;
                 // Count pending logbooks
-                const pendingCount = obj.logbooks.filter((l: any) => l.status === "pending").length;
+                const pendingCount = (obj.logbooks || []).filter((l: any) => l.status === "pending").length;
 
                 return (
                   <button
-                    key={obj.student.id}
+                    key={obj.student?.id || Math.random().toString()}
                     onClick={() => {
-                      setSelectedStudentId(obj.student.id);
-                      setSelectedMonth(1);
-                      setFeedback("");
+                      if (obj.student?.id) {
+                        setSelectedStudentId(obj.student.id);
+                        setSelectedMonth(1);
+                        setFeedback("");
+                      }
                     }}
                     className={`flex items-start justify-between p-3 rounded-lg text-left transition-all border ${
                       isSelected 
@@ -143,7 +146,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
                   >
                     <div>
                       <p className={`text-sm font-bold ${isSelected ? 'text-brand-purple' : 'text-foreground'}`}>
-                        {obj.student.name}
+                        {obj.student?.name || "Student"}
                       </p>
                       <p className="text-[10px] text-muted-foreground line-clamp-1">{obj.class?.program?.name}</p>
                     </div>
@@ -172,10 +175,10 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-lg font-heading font-bold text-foreground">
-                      Logbook {selectedStudentObj.student.name}
+                      Logbook {selectedStudentObj.student?.name || "Student"}
                     </CardTitle>
                     <CardDescription className="text-xs text-muted-foreground">
-                      {selectedStudentObj.student.email}
+                      {selectedStudentObj.student?.email || ""}
                     </CardDescription>
                   </div>
                 </div>
@@ -184,7 +187,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
               <div className="flex border-b border-border bg-background overflow-x-auto">
                 {months.map(m => {
                   const isSelected = selectedMonth === m;
-                  const log = selectedStudentObj.logbooks.find((l: any) => l.monthIndex === m);
+                  const log = (selectedStudentObj.logbooks || []).find((l: any) => l.monthIndex === m);
                   let dotColor = "bg-muted-foreground/30";
                   if (log?.status === 'accepted') dotColor = "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
                   if (log?.status === 'revision') dotColor = "bg-amber-500";
@@ -207,7 +210,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
 
               <CardContent className="p-6">
                 {(() => {
-                  const currentLog = selectedStudentObj.logbooks.find((l: any) => l.monthIndex === selectedMonth);
+                  const currentLog = (selectedStudentObj.logbooks || []).find((l: any) => l.monthIndex === selectedMonth);
                   
                   if (!currentLog) {
                     return (

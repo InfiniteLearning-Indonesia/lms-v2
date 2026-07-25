@@ -9,6 +9,7 @@ import { MentorLogbook } from "./mentor-logbook";
 import {
   Award,
   BookOpen,
+  Building2,
   CalendarDays,
   FileSpreadsheet,
   GraduationCap,
@@ -17,14 +18,17 @@ import {
   Lock,
   Notebook,
   Pencil,
+  Phone,
   Settings,
   Sparkles,
+  UserCheck,
   Users,
 } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 import { MentorAttendance } from "./mentor-attendance";
 
@@ -705,15 +709,17 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     .sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
 
   const currentBatch = activeBatches[0];
-  const activeClasses = classes.filter((cls) => cls.batchId === currentBatch?.id);
-  const pastClasses = classes.filter((cls) => cls.batchId !== currentBatch?.id);
+  const activeClasses = classes.filter(
+    (cls) => cls.batch?.status === "active" || (currentBatch && cls.batchId === currentBatch.id)
+  );
+  const pastClasses = classes.filter((cls) => !activeClasses.some((ac) => ac.id === cls.id));
   const hasPastClasses = pastClasses.length > 0;
 
   // Calculate stats
   const totalClasses = activeClasses.length;
   const totalStudents = activeClasses.reduce((acc, cls) => acc + (cls.enrolledStudentsCount || 0), 0);
   const allStudents = activeClasses
-    .filter((cls) => cls.program?.id === selectedProgramId)
+    .filter((cls) => !selectedProgramId || cls.program?.id === selectedProgramId)
     .flatMap((cls) => cls.enrolledStudents || []);
   const totalMaterials = activeClasses.reduce((acc, cls) => acc + (cls.materials?.length || 0), 0);
   const totalAssignments = activeClasses.reduce((acc, cls) => acc + (cls.assignments?.length || 0), 0);
@@ -729,6 +735,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   });
 
   const selectedCls = classes.find((c) => c.id === selectedClassId) || classes[0];
+  const currentFacilitators = selectedCls?.facilitators || (classes && classes[0]?.facilitators) || [];
   const isReadOnly = selectedCls?.batch?.status === "completed";
 
   if (isLoading) {
@@ -886,6 +893,13 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             <span>Siswa ({allStudents.length})</span>
           </TabsTrigger>
           <TabsTrigger
+            value="facilitator"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+          >
+            <UserCheck className="w-4 h-4 shrink-0" />
+            <span>Facilitator ({currentFacilitators.length})</span>
+          </TabsTrigger>
+          <TabsTrigger
             value="logbook"
             className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
           >
@@ -965,6 +979,116 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
               setIsSuspendDialogOpen(true);
             }}
           />
+        </TabsContent>
+
+        {/* ── TAB FACILITATOR PROGRAM ── */}
+        <TabsContent value="facilitator" className="space-y-6">
+          <Card className="border-border shadow-xs bg-card rounded-2xl overflow-hidden font-sans">
+            <CardHeader className="border-b border-border bg-secondary/20 p-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-1">
+                  <CardTitle className="text-lg font-bold font-heading text-foreground flex items-center gap-2">
+                    <UserCheck className="w-5 h-5 text-brand-purple" />
+                    Facilitator Program ({selectedCls?.program?.name || profile?.selectedProgram || "Program"})
+                  </CardTitle>
+                  <CardDescription className="text-xs text-muted-foreground">
+                    Daftar Facilitator Program yang bertugas mendampingi dan mengoordinasikan kegiatan pembelajaran & absensi.
+                  </CardDescription>
+                </div>
+                <Badge variant="outline" className="bg-brand-purple/10 text-brand-purple border-brand-purple/20 text-xs px-3 py-1 font-bold w-fit">
+                  {currentFacilitators.length} Facilitator Terdaftar
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              {currentFacilitators.length === 0 ? (
+                <div className="py-12 text-center border border-dashed rounded-2xl bg-secondary/10 space-y-2">
+                  <UserCheck className="w-8 h-8 text-muted-foreground/40 mx-auto" />
+                  <p className="text-xs text-muted-foreground font-medium">
+                    Belum ada Facilitator yang ditugaskan pada program {selectedCls?.program?.name || profile?.selectedProgram || "ini"}.
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/70">
+                    Administrator dapat memasangkan Facilitator ke program ini melalui manajemen pengguna.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {currentFacilitators.map((f: any) => (
+                    <div
+                      key={f.id}
+                      className="p-5 rounded-2xl border border-border bg-card hover:border-brand-purple/40 hover:bg-secondary/20 transition-all shadow-2xs space-y-4"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3.5">
+                          {f.avatarUrl ? (
+                            <img
+                              src={f.avatarUrl}
+                              alt={f.name}
+                              className="w-12 h-12 rounded-full object-cover border-2 border-brand-purple/20 shadow-2xs"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 rounded-full bg-brand-purple/10 text-brand-purple flex items-center justify-center font-bold font-heading text-lg border border-brand-purple/20">
+                              {f.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <h5 className="font-bold text-sm text-foreground font-heading">{f.name}</h5>
+                            <span className="text-[11px] text-muted-foreground block">{f.email}</span>
+                          </div>
+                        </div>
+
+                        <Badge
+                          className={
+                            f.status === "active"
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] font-bold"
+                              : "bg-secondary text-muted-foreground text-[10px] font-bold"
+                          }
+                        >
+                          {f.status === "active" ? "AKTIF" : f.status.toUpperCase()}
+                        </Badge>
+                      </div>
+
+                      <div className="space-y-2 pt-2 border-t border-border/60 text-xs">
+                        <div className="flex items-center justify-between text-muted-foreground">
+                          <span className="flex items-center gap-1.5 text-2xs font-medium">
+                            <Building2 className="w-3.5 h-3.5 text-muted-foreground" />
+                            Institusi / Kampus
+                          </span>
+                          <span className="font-semibold text-foreground text-2xs">
+                            {f.institution || "-"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between text-muted-foreground">
+                          <span className="flex items-center gap-1.5 text-2xs font-medium">
+                            <BookOpen className="w-3.5 h-3.5 text-muted-foreground" />
+                            Program Studi / Jurusan
+                          </span>
+                          <span className="font-semibold text-foreground text-2xs">
+                            {f.studyProgram || "-"}
+                          </span>
+                        </div>
+
+                        {f.whatsapp && (
+                          <div className="pt-2 flex justify-end">
+                            <a
+                              href={`https://wa.me/${f.whatsapp.replace(/[^0-9]/g, "")}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 border border-emerald-500/30 text-2xs font-bold transition-all shadow-2xs"
+                            >
+                              <Phone className="w-3 h-3" />
+                              Hubungi via WhatsApp
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* ── TAB LOGBOOK ── */}

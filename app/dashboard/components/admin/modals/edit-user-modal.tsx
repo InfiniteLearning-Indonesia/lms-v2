@@ -51,8 +51,11 @@ export function EditUserModal({
 }: EditUserModalProps) {
   const user = editingUserId ? usersList.find((u) => u.id === editingUserId) : null;
   const isAdmin = user?.role === "admin" || user?.roles?.includes("admin");
+  const isFacilitator =
+    !isAdmin && (user?.role === "facilitator" || user?.roles?.includes("facilitator"));
   const isStudentOrMentor =
     !isAdmin &&
+    !isFacilitator &&
     (user?.role === "student" ||
       user?.role === "mentor" ||
       user?.roles?.includes("student") ||
@@ -156,6 +159,29 @@ export function EditUserModal({
                   <option value="Game Development">Game Development</option>
                 </select>
               </div>
+
+              {isFacilitator && (
+                <div className="col-span-2 space-y-1.5 pt-2 border-t border-border/60">
+                  <label className="font-semibold text-muted-foreground block mb-1">
+                    Cohort/Batch Ditugaskan (1 Batch Aktif):
+                  </label>
+                  <select
+                    value={userBatches[0] || ""}
+                    onChange={(e) => setUserBatches(e.target.value ? [e.target.value] : [])}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-brand-purple text-xs font-semibold cursor-pointer"
+                  >
+                    <option value="">-- Pilih Batch Ditugaskan --</option>
+                    {batchesList.map((batch) => (
+                      <option key={batch.id} value={batch.id}>
+                        {batch.name} ({batch.status.toUpperCase()})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Facilitator hanya memiliki 1 batch aktif yang dipantau. Admin dapat memindahkan Facilitator ke batch manapun.
+                  </p>
+                </div>
+              )}
 
               {isStudentOrMentor && (
                 <div className="col-span-2 space-y-1.5 pt-2 border-t border-border/60">

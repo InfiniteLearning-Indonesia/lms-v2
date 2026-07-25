@@ -2,8 +2,8 @@ export interface UserListItem {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "mentor" | "student";
-  roles?: ("admin" | "mentor" | "student")[];
+  role: "admin" | "facilitator" | "mentor" | "student";
+  roles?: ("admin" | "facilitator" | "mentor" | "student")[];
   status: "invited" | "active" | "suspended";
   createdAt: string;
   lastLoginAt: string | null;

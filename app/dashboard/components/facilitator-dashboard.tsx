@@ -76,8 +76,9 @@ export function FacilitatorDashboard({
         const batchesData = await resBatches.json();
         const programName = profile.selectedProgram || "";
 
-        // Filter batches that include the facilitator's assigned program
+        // Filter batches that include the facilitator's assigned program and are ACTIVE
         const filteredBatches = batchesData.filter((b: any) => {
+          if (b.status !== "active") return false;
           if (!programName) return true;
           if (!b.includedPrograms || !Array.isArray(b.includedPrograms) || b.includedPrograms.length === 0) {
             return true;
@@ -238,172 +239,95 @@ export function FacilitatorDashboard({
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Stat Cards Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <Card className="bg-card border-border shadow-xs p-5 rounded-2xl">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                      Cohort / Batch Active
-                    </span>
-                    <div className="p-2 bg-brand-purple/10 text-brand-purple rounded-xl">
-                      <Layers className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <div className="text-3xl font-extrabold text-foreground font-heading">
-                      {batches.filter((b) => b.status === "active").length} Batch
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      Dari total {batches.length} angkatan terdaftar.
-                    </p>
-                  </div>
-                </Card>
-
-                <Card className="bg-card border-border shadow-xs p-5 rounded-2xl">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                      Siswa Terdaftar (Batch Aktif)
-                    </span>
-                    <div className="p-2 bg-emerald-500/10 text-emerald-600 rounded-xl">
-                      <Users className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <div className="text-3xl font-extrabold text-foreground font-heading">
-                      {activeStudentsCount} Siswa
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {activeBatch ? `Pada ${activeBatch.name}. ` : ""}Total {totalStudentsCount} di seluruh angkatan.
-                    </p>
-                  </div>
-                </Card>
-
-                <Card className="bg-card border-border shadow-xs p-5 rounded-2xl">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                      Mentor Bertugas (Batch Aktif)
-                    </span>
-                    <div className="p-2 bg-amber-500/10 text-amber-600 rounded-xl">
-                      <GraduationCap className="w-4 h-4" />
-                    </div>
-                  </div>
-                  <div className="mt-3">
-                    <div className="text-3xl font-extrabold text-foreground font-heading">
-                      {activeMentorsCount} Mentor
-                    </div>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">
-                      {activeBatch ? `Mengampu kelas pada ${activeBatch.name}.` : `Total ${totalMentorsCount} mentor terdaftar.`}
-                    </p>
-                  </div>
-                </Card>
-              </div>
-
-              {/* General Program Info Card */}
-              <Card className="border-border shadow-xs bg-card rounded-2xl overflow-hidden">
+              {/* Active Batch Showcase Card (Redesigned Overview) */}
+              <Card className="border-border shadow-xs bg-card rounded-2xl overflow-hidden relative">
                 <CardHeader className="border-b border-border bg-secondary/20 p-5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <CardTitle className="text-lg font-bold font-heading text-foreground flex items-center gap-2">
-                        <BookOpen className="w-5 h-5 text-brand-purple" />
-                        Informasi Umum Program: {programName}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-600 uppercase tracking-wider">
+                        <Sparkles className="w-3 h-3 text-emerald-500" />
+                        Cohort / Batch Aktif Berjalan
+                      </div>
+                      <CardTitle className="text-xl font-bold font-heading text-foreground flex items-center gap-2 pt-0.5">
+                        <Layers className="w-5 h-5 text-brand-purple" />
+                        {activeBatch ? activeBatch.name : "Belum Ada Batch Aktif"}
                       </CardTitle>
-                      <CardDescription className="text-xs mt-0.5">
-                        Daftar cohort/batch yang berjalan beserta rincian jumlah siswa dan mentor.
+                      <CardDescription className="text-xs text-muted-foreground">
+                        {activeBatch?.startDate
+                          ? `${new Date(activeBatch.startDate).toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })} — ${new Date(activeBatch.endDate).toLocaleDateString("id-ID", {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            })}`
+                          : "Periode pelaksanaan batch aktif."}
                       </CardDescription>
                     </div>
-                    <Badge variant="outline" className="bg-brand-purple/10 text-brand-purple border-brand-purple/20 text-xs px-3 py-1 font-bold w-fit">
-                      Tinjauan Facilitator
-                    </Badge>
+
+                    {activeBatch && (
+                      <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/30 text-xs px-3 py-1.5 font-bold shadow-2xs w-fit">
+                        {activeBatch.status.toUpperCase()}
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
-                <CardContent className="p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-foreground font-heading flex items-center gap-1.5 uppercase tracking-wider">
-                      <Layers className="w-4 h-4 text-brand-purple" />
-                      Daftar Batch / Cohort Terkait ({batches.length})
-                    </h4>
-                  </div>
 
-                  {batches.length === 0 ? (
+                <CardContent className="p-6 space-y-6">
+                  {!activeBatch ? (
                     <div className="p-10 text-center border border-dashed rounded-xl bg-secondary/10">
                       <p className="text-xs text-muted-foreground italic">
-                        Belum ada Batch/Cohort terdaftar untuk program {programName}.
+                        Saat ini belum ada Batch/Cohort yang berstatus AKTIF untuk program {programName}.
                       </p>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {batches.map((b) => {
-                        const progDetails = b.includedPrograms?.find(
-                          (p: any) => typeof p === "object" && p.name && p.name.toLowerCase() === programName.toLowerCase()
-                        );
-                        return (
-                          <div
-                            key={b.id}
-                            className="p-5 rounded-2xl border border-border bg-card hover:bg-secondary/30 transition-all shadow-2xs flex flex-col justify-between space-y-4"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <h5 className="font-bold text-base text-foreground font-heading flex items-center gap-2">
-                                  {b.name}
-                                </h5>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {b.startDate
-                                    ? `${new Date(b.startDate).toLocaleDateString("id-ID", {
-                                        day: "numeric",
-                                        month: "short",
-                                        year: "numeric",
-                                      })} — ${new Date(b.endDate).toLocaleDateString("id-ID", {
-                                        day: "numeric",
-                                        month: "short",
-                                        year: "numeric",
-                                      })}`
-                                    : "Tanggal Belum Diatur"}
-                                </p>
-                              </div>
-                              <Badge
-                                className={
-                                  b.status === "active"
-                                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] font-bold"
-                                    : "bg-secondary text-muted-foreground text-[10px] font-bold"
-                                }
-                              >
-                                {b.status === "active" ? "AKTIF" : b.status.toUpperCase()}
-                              </Badge>
-                            </div>
-
-                            {/* Program Stats in Batch */}
-                            <div className="grid grid-cols-2 gap-2 bg-secondary/40 p-2.5 rounded-xl text-xs">
-                              <div>
-                                <span className="text-[10px] text-muted-foreground block font-medium">Siswa Enrolled</span>
-                                <span className="font-bold text-foreground">
-                                  {progDetails?.studentsCount || (progDetails?.students ? progDetails.students.length : 0)} Siswa
-                                </span>
-                              </div>
-                              <div>
-                                <span className="text-[10px] text-muted-foreground block font-medium">Mentor Program</span>
-                                <span className="font-bold text-foreground">
-                                  {progDetails?.mentorsCount || (progDetails?.mentors ? progDetails.mentors.length : 0)} Mentor
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="pt-2 flex items-center justify-end">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setSelectedBatchId(b.id);
-                                  setActiveTab("attendance");
-                                }}
-                                className="text-xs text-brand-purple border-brand-purple/30 hover:bg-brand-purple/10 cursor-pointer font-bold gap-1.5 h-8"
-                              >
-                                Kelola Absensi Batch
-                                <ChevronRight className="w-3.5 h-3.5" />
-                              </Button>
-                            </div>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="p-4 rounded-xl border border-border/80 bg-secondary/20 shadow-2xs space-y-1">
+                          <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wider block">
+                            Peserta Enrolled Batch Ini
+                          </span>
+                          <div className="text-2xl font-extrabold text-foreground font-heading flex items-baseline gap-2">
+                            {activeStudentsCount} <span className="text-xs font-normal text-muted-foreground">Siswa</span>
                           </div>
-                        );
-                      })}
+                          <p className="text-[11px] text-muted-foreground">
+                            Terdaftar aktif pada program {programName}.
+                          </p>
+                        </div>
+
+                        <div className="p-4 rounded-xl border border-border/80 bg-secondary/20 shadow-2xs space-y-1">
+                          <span className="text-2xs font-bold text-muted-foreground uppercase tracking-wider block">
+                            Mentor Pengampu Batch Ini
+                          </span>
+                          <div className="text-2xl font-extrabold text-foreground font-heading flex items-baseline gap-2">
+                            {activeMentorsCount} <span className="text-xs font-normal text-muted-foreground">Mentor</span>
+                          </div>
+                          <p className="text-[11px] text-muted-foreground">
+                            Bertugas mengampu modul & absensi kelas.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-brand-purple/5 border border-brand-purple/20">
+                        <div className="text-xs space-y-0.5">
+                          <span className="font-bold text-brand-purple block font-heading">Kelola Absensi Program</span>
+                          <span className="text-muted-foreground">
+                            Input jadwal absensi harian, kalender kelas, dan rekapitulasi siswa untuk {activeBatch.name}.
+                          </span>
+                        </div>
+                        <Button
+                          onClick={() => {
+                            setSelectedBatchId(activeBatch.id);
+                            setActiveTab("attendance");
+                          }}
+                          className="bg-brand-purple hover:bg-brand-purple-hover text-white font-bold text-xs px-5 py-2.5 rounded-xl transition-all shadow-xs flex items-center gap-2 shrink-0 cursor-pointer"
+                        >
+                          Masuk & Kelola Absensi Batch
+                          <ChevronRight className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </CardContent>
