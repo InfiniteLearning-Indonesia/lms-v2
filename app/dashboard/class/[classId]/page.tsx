@@ -8,13 +8,14 @@ import {
   ArrowLeft,
   BookOpen,
   CheckCircle2,
-  Loader2,
-  Users,
-  Video,
   ChevronDown,
   ChevronUp,
+  FileText,
   Folder,
+  Loader2,
   Lock,
+  Users,
+  Video,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -169,9 +170,21 @@ export default function ClassDetailPage() {
         {/* Tabs for Class Content */}
         <div className="bg-card border border-border rounded-xl p-6 shadow-sm min-h-[400px]">
           <Tabs defaultValue="materi" className="w-full">
-            <TabsList className="mb-6">
-              <TabsTrigger value="materi" className="font-heading font-semibold">Materi & Modul</TabsTrigger>
-              <TabsTrigger value="tugas" className="font-heading font-semibold">Tugas</TabsTrigger>
+            <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex flex-wrap min-h-14 w-full gap-1.5 justify-start">
+              <TabsTrigger
+                value="materi"
+                className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2.5 px-5 py-2 cursor-pointer text-muted-foreground hover:text-foreground"
+              >
+                <BookOpen className="w-4 h-4 shrink-0" />
+                <span>Materi & Modul</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="tugas"
+                className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2.5 px-5 py-2 cursor-pointer text-muted-foreground hover:text-foreground"
+              >
+                <FileText className="w-4 h-4 shrink-0" />
+                <span>Tugas</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="materi" className="space-y-6">

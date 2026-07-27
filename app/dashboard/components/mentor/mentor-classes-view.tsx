@@ -1,16 +1,21 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  AlertTriangle,
+  ArrowRight,
   Award,
   BookOpen,
   Calendar,
   CheckCircle2,
   ChevronRight,
+  ExternalLink,
   FileText,
   Info,
   Layers,
   Loader2,
+  Pencil,
   Plus,
   RefreshCw,
   Sliders,
@@ -37,8 +42,12 @@ interface MentorClassesViewProps {
   handleDistributeModulo: (progName: string) => void;
   onOpenAddMaterial: () => void;
   onOpenAddAssignment: () => void;
+  onOpenAddCompetency?: () => void;
+  onEditCompetency?: (comp: any) => void;
+  competencies?: any[];
   onDeleteMaterial?: (id: string) => void;
   onDeleteAssignment?: (id: string) => void;
+  onDeleteCompetency?: (id: string) => void;
 }
 
 export function MentorClassesView({
@@ -54,9 +63,55 @@ export function MentorClassesView({
   handleDistributeModulo,
   onOpenAddMaterial,
   onOpenAddAssignment,
+  onOpenAddCompetency,
+  onEditCompetency,
+  competencies = [],
   onDeleteMaterial,
   onDeleteAssignment,
+  onDeleteCompetency,
 }: MentorClassesViewProps) {
+  const [deleteConfirmTarget, setDeleteConfirmTarget] = useState<{
+    type: "competency" | "material" | "assignment";
+    id: string;
+    title: string;
+  } | null>(null);
+  const [deleteCountdown, setDeleteCountdown] = useState(5);
+
+  useEffect(() => {
+    if (!deleteConfirmTarget) {
+      setDeleteCountdown(5);
+      return;
+    }
+
+    setDeleteCountdown(5);
+    const interval = setInterval(() => {
+      setDeleteCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [deleteConfirmTarget]);
+
+  const handleExecuteDelete = () => {
+    if (!deleteConfirmTarget) return;
+    const { type, id } = deleteConfirmTarget;
+
+    if (type === "competency") {
+      onDeleteCompetency?.(id);
+    } else if (type === "material") {
+      onDeleteMaterial?.(id);
+    } else if (type === "assignment") {
+      onDeleteAssignment?.(id);
+    }
+
+    setDeleteConfirmTarget(null);
+  };
+
   if (activeClasses.length === 0) {
     return (
       <Alert className="border-border bg-card shadow-sm p-6 font-sans">
@@ -192,19 +247,54 @@ export function MentorClassesView({
                     )}
                   </CardDescription>
                 </div>
-                <Badge className="bg-brand-purple text-white hover:bg-brand-purple-hover self-start sm:self-center">
-                  Silabus Berjalan
-                </Badge>
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                  <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-xs font-semibold py-1">
+                    Silabus Berjalan
+                  </Badge>
+                  <Link
+                    href={`/dashboard/class/${selectedCls.id}`}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-semibold transition-all shadow-sm cursor-pointer"
+                  >
+                    <span>Masuk Ruang Kelas</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs font-semibold">
-                  <span>Progres Pembelajaran Silabus</span>
-                  <span className="text-brand-purple">65%</span>
-                </div>
-                <Progress value={65} className="h-2 bg-secondary" />
-              </div>
+              {/* Live Cohort Progress Bar */}
+              {(() => {
+                const start = selectedCls.batch?.startDate ? new Date(selectedCls.batch.startDate).getTime() : 0;
+                const end = selectedCls.batch?.endDate ? new Date(selectedCls.batch.endDate).getTime() : 0;
+                const now = new Date().getTime();
+                let progress = 0;
+                let elapsedDays = 0;
+                let totalDays = 0;
+
+                if (start && end && end > start) {
+                  totalDays = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+                  if (now >= end) {
+                    progress = 100;
+                    elapsedDays = totalDays;
+                  } else if (now > start) {
+                    elapsedDays = Math.ceil((now - start) / (1000 * 60 * 60 * 24));
+                    progress = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+                  }
+                }
+
+                return (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs font-semibold">
+                      <span className="flex items-center gap-1.5 text-foreground">
+                        <Calendar className="w-3.5 h-3.5 text-brand-purple" />
+                        Progres Pembelajaran Cohort ({elapsedDays} dari {totalDays} Hari Terlewati)
+                      </span>
+                      <span className="text-brand-purple font-bold">{progress}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2 bg-secondary" />
+                  </div>
+                );
+              })()}
 
               {/* Modulo Distribution Banner */}
               {(() => {
@@ -253,8 +343,92 @@ export function MentorClassesView({
                 );
               })()}
 
-              {/* Materials Section */}
+              {/* 1. Competencies Section */}
               <div className="space-y-3">
+                <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">
+                    <Layers className="w-4 h-4 text-brand-purple" />
+                    Kompetensi Pembelajaran ({competencies?.length || 0})
+                  </span>
+                  {!isReadOnly && onOpenAddCompetency && (
+                    <Button
+                      onClick={onOpenAddCompetency}
+                      size="sm"
+                      variant="outline"
+                      className="h-8 text-xs flex items-center gap-1.5 cursor-pointer border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Tambah Kompetensi
+                    </Button>
+                  )}
+                </h4>
+                <div className="grid gap-2">
+                  {competencies && competencies.length > 0 ? (
+                    competencies.map((comp: any, idx: number) => (
+                      <div
+                        key={comp.id || idx}
+                        className="flex items-center justify-between p-3 rounded-lg border border-border bg-brand-purple/5 hover:bg-brand-purple/10 transition-colors h-14"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-xs shrink-0">
+                            K{idx + 1}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-foreground truncate max-w-[180px] sm:max-w-[260px] md:max-w-[320px]" title={comp.name}>
+                              {comp.name}
+                            </p>
+                            <p className="text-[11px] text-muted-foreground truncate max-w-[180px] sm:max-w-[260px] md:max-w-[320px]">
+                              Kategori: {comp.category || "General"} • Phase: {comp.phase || "Micro"} • Bobot: {comp.weight || 0}%
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Link
+                            href={`/dashboard/competency/${comp.id}/rubric`}
+                            className="text-[11px] font-medium text-brand-purple bg-card hover:bg-brand-purple/10 px-2.5 py-1 rounded-md border border-border shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
+                            title="Klik untuk mengedit Rubrik Kriteria"
+                          >
+                            <span>{comp.rubric?.criteria?.length || 0} Rubrik Kriteria</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </Link>
+
+                          {!isReadOnly && onEditCompetency && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 p-0 border-brand-purple/30 hover:bg-brand-purple/10 cursor-pointer"
+                              onClick={() => onEditCompetency(comp)}
+                              title="Edit Kompetensi (Nama, Kategori, Phase)"
+                            >
+                              <Pencil className="w-3.5 h-3.5 text-brand-purple" />
+                            </Button>
+                          )}
+
+                          {!isReadOnly && onDeleteCompetency && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
+                              onClick={() => setDeleteConfirmTarget({ type: "competency", id: comp.id, title: comp.name })}
+                              title="Hapus Kompetensi"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-muted-foreground py-3 text-center border border-dashed rounded-lg">
+                      Belum ada kompetensi terdaftar. Klik "+ Tambah Kompetensi" untuk membuat baru.
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* 2. Materials Section */}
+              <div className="space-y-3 pt-2">
                 <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2">
                     <FileText className="w-4 h-4 text-brand-purple" />
@@ -277,23 +451,23 @@ export function MentorClassesView({
                     selectedCls.materials.map((mat: any, idx: number) => (
                       <div
                         key={mat.id || idx}
-                        className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-lg border border-border bg-secondary/30 hover:bg-secondary/50 transition-colors h-14"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-xs">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-xs shrink-0">
                             #{idx + 1}
                           </div>
-                          <div>
-                            <p className="text-xs font-semibold text-foreground">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-foreground truncate max-w-[180px] sm:max-w-[260px] md:max-w-[320px]" title={mat.title}>
                               {mat.title}
                             </p>
-                            <p className="text-[11px] text-muted-foreground">
+                            <p className="text-[11px] text-muted-foreground truncate max-w-[180px] sm:max-w-[260px] md:max-w-[320px]">
                               {mat.competency || "Kompetensi Umum"} • Tipe:{" "}
                               {mat.type?.toUpperCase()}
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           <Link
                             href={`/dashboard/class/${selectedCls.id}/material/${mat.id}`}
                             target="_blank"
@@ -307,7 +481,7 @@ export function MentorClassesView({
                               variant="outline"
                               size="sm"
                               className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
-                              onClick={() => onDeleteMaterial(mat.id)}
+                              onClick={() => setDeleteConfirmTarget({ type: "material", id: mat.id, title: mat.title })}
                               title="Hapus Materi"
                             >
                               <Trash2 className="w-3.5 h-3.5 text-red-500" />
@@ -324,7 +498,7 @@ export function MentorClassesView({
                 </div>
               </div>
 
-              {/* Assignments Section */}
+              {/* 3. Assignments Section */}
               <div className="space-y-3 pt-2">
                 <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2">
@@ -348,17 +522,17 @@ export function MentorClassesView({
                     selectedCls.assignments.map((ass: any, idx: number) => (
                       <div
                         key={ass.id || idx}
-                        className="flex items-center justify-between p-3 rounded-lg border border-border bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors"
+                        className="flex items-center justify-between p-3 rounded-lg border border-border bg-emerald-500/5 hover:bg-emerald-500/10 transition-colors h-14"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold text-xs">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold text-xs shrink-0">
                             T{idx + 1}
                           </div>
-                          <div>
-                            <p className="text-xs font-semibold text-foreground">
+                          <div className="min-w-0">
+                            <p className="text-xs font-semibold text-foreground truncate max-w-[180px] sm:max-w-[240px] md:max-w-[300px]" title={ass.title}>
                               {ass.title}
                             </p>
-                            <p className="text-[11px] text-muted-foreground">
+                            <p className="text-[11px] text-muted-foreground truncate max-w-[180px] sm:max-w-[240px] md:max-w-[300px]">
                               Batas Waktu:{" "}
                               {ass.dueDate
                                 ? new Date(ass.dueDate).toLocaleDateString("id-ID")
@@ -366,7 +540,7 @@ export function MentorClassesView({
                             </p>
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 shrink-0">
                           <Link href={`/dashboard/class/${selectedCls.id}/assignment/${ass.id}`}>
                             <span className="text-[11px] font-medium text-emerald-600 bg-white dark:bg-card hover:bg-emerald-50 px-2.5 py-1.5 rounded-md border border-border shadow-sm transition-colors cursor-pointer flex items-center gap-1.5">
                               Lihat Detail / Periksa Nilai <ChevronRight className="w-3 h-3" />
@@ -378,7 +552,7 @@ export function MentorClassesView({
                               variant="outline"
                               size="sm"
                               className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
-                              onClick={() => onDeleteAssignment(ass.id)}
+                              onClick={() => setDeleteConfirmTarget({ type: "assignment", id: ass.id, title: ass.title })}
                               title="Hapus Tugas"
                             >
                               <Trash2 className="w-3.5 h-3.5 text-red-500" />
@@ -398,6 +572,57 @@ export function MentorClassesView({
           </Card>
         )}
       </div>
+
+      {/* ── Delete Confirmation Modal Overlay (5-Second Countdown) ── */}
+      {deleteConfirmTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 font-sans animate-in fade-in duration-150">
+          <div className="bg-card border border-border rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3">
+              <div className="p-2.5 rounded-full bg-red-500/10 text-red-600 shrink-0 mt-0.5">
+                <AlertTriangle className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-heading font-bold text-base text-foreground">
+                  Konfirmasi Hapus {deleteConfirmTarget.type === "competency" ? "Kompetensi" : deleteConfirmTarget.type === "material" ? "Materi" : "Tugas"}
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Apakah Anda yakin ingin menghapus{" "}
+                  <strong className="text-foreground">"{deleteConfirmTarget.title}"</strong>?
+                </p>
+                <p className="text-xs text-red-600 dark:text-red-400 font-medium">
+                  ⚠️ Tindakan ini tidak dapat dibatalkan. Data yang terhapus tidak dapat dipulihkan.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDeleteConfirmTarget(null)}
+                className="text-xs cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button
+                size="sm"
+                disabled={deleteCountdown > 0}
+                onClick={handleExecuteDelete}
+                className={`text-xs font-semibold text-white cursor-pointer flex items-center gap-1.5 ${
+                  deleteCountdown > 0
+                    ? "bg-red-500/50 cursor-not-allowed opacity-70"
+                    : "bg-red-600 hover:bg-red-700 shadow-sm"
+                }`}
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                {deleteCountdown > 0
+                  ? `Ya, Hapus (${deleteCountdown}s)`
+                  : "Ya, Hapus Sekarang"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

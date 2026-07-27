@@ -7,6 +7,7 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
   const [attendances, setAttendances] = useState<any[]>([]);
   const [activeDays, setActiveDays] = useState<Date[]>([]);
   const [holidays, setHolidays] = useState<{ date: string, name: string }[]>([]);
+  const [mentorAsyncDays, setMentorAsyncDays] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [batch, setBatch] = useState<any>(null);
   
@@ -26,7 +27,6 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
         const found = data.find((b: any) => b.id === batchId);
         if (found) {
           setBatch(found);
-          // Auto set calendar month to current month if within range, else to start date
           const now = new Date();
           const start = found.startDate ? new Date(found.startDate) : now;
           const end = found.endDate ? new Date(found.endDate) : now;
@@ -49,6 +49,17 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
         if (data.holidays) {
           setHolidays(data.holidays);
         }
+      })
+      .catch(console.error);
+
+    // Fetch student mentor async days
+    fetch(`http://localhost:7000/classes/attendance/async-days/student`, {
+      headers: { Accept: "application/json" },
+      credentials: "include"
+    })
+      .then(res => res.json())
+      .then(data => {
+        setMentorAsyncDays(Array.isArray(data) ? data : []);
       })
       .catch(console.error);
 
@@ -90,6 +101,27 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
   const izin = monthlyAttendances.filter(a => a.status.includes('Izin') || a.status.includes('Sakit')).length;
   const alpha = monthlyAttendances.filter(a => a.status === 'Alpha').length;
 
+  // Calculate Option A Required Days & Attendance Percentage
+  const daysInCurrentMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  let requiredActiveDaysCount = 0;
+  for (let d = 1; d <= daysInCurrentMonth; d++) {
+    const iterDate = new Date(month.getFullYear(), month.getMonth(), d);
+    const iterLocalDateStr = new Date(iterDate.getTime() - iterDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const isDayActive = activeDays.some(ad => ad.getDate() === iterDate.getDate() && ad.getMonth() === iterDate.getMonth());
+    const isHoliday = holidays.some(h => h.date === iterLocalDateStr);
+    const isWeekend = iterDate.getDay() === 0 || iterDate.getDay() === 6;
+    const isFriday = iterDate.getDay() === 5;
+    const isAsync = isFriday || mentorAsyncDays.some((a: any) => a.date === iterLocalDateStr);
+
+    if (isDayActive && !isHoliday && !isWeekend && !isAsync) {
+      requiredActiveDaysCount++;
+    }
+  }
+
+  const attendancePercentage = requiredActiveDaysCount > 0
+    ? Math.min(100, Math.round((hadir / requiredActiveDaysCount) * 100))
+    : 100;
+
   const CustomDayButton = ({ day, modifiers, ...props }: any) => {
     const date = day.date;
     if (modifiers.outside || day.outside) {
@@ -99,34 +131,29 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
     const tzOffset = date.getTimezoneOffset() * 60000;
     const localDateStr = (new Date(date.getTime() - tzOffset)).toISOString().split('T')[0];
 
-    // Check holiday
     const holiday = holidays.find(h => h.date === localDateStr);
     const dayOfWeek = date.getDay();
     const isFriday = dayOfWeek === 5;
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isMentorAsync = mentorAsyncDays.some((a: any) => a.date === localDateStr);
 
-    // Check attendance
     const attendance = attendances.find(a => a.date.startsWith(localDateStr));
     
-    // Check if it's an active day (not weekend, not holiday, not friday asynchronous, and within batch range)
     const isActive = activeDays.some(d => 
       d.getDate() === date.getDate() && 
       d.getMonth() === date.getMonth() && 
       d.getFullYear() === date.getFullYear()
     );
 
-    // Is it a past/future day?
     const today = new Date();
     today.setHours(0,0,0,0);
     const isPast = date < today;
     const isToday = date.getTime() === today.getTime();
 
-    // Determine cell styling
     let cellBg = "bg-card";
     let statusBadge = null;
 
     if (holiday || isWeekend) {
-      // Priority 1: Tanggal Merah (Holiday or Weekend) -> RED
       const label = holiday ? (holiday.name || "Libur Nasional") : "Weekend (Libur)";
       cellBg = "bg-red-500/10 border-red-500/30 text-red-600 font-medium";
       statusBadge = (
@@ -136,13 +163,13 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
           </span>
         </div>
       );
-    } else if (isFriday) {
-      // Priority 2: Hari Jumat Asynchronous -> GREEN (Libur Absen)
+    } else if (isFriday || isMentorAsync) {
+      const badgeText = isFriday ? "Hari Asynchronous (Jumat)" : "Hari Asynchronous";
       cellBg = "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 font-medium";
       statusBadge = (
         <div className="mt-auto pt-2">
           <span className="inline-flex items-center rounded-sm bg-emerald-100 dark:bg-emerald-950 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-300 border border-emerald-200">
-            Hari Asynchronous
+            {badgeText}
           </span>
         </div>
       );
@@ -178,7 +205,6 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
         );
       }
     } else if (isPast) {
-      // Past active day without attendance -> missing
       cellBg = "bg-card";
       statusBadge = (
         <div className="mt-auto pt-2">
@@ -203,7 +229,7 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <Card className="bg-emerald-50 border-emerald-100 shadow-sm">
           <CardHeader className="py-4 pb-2">
             <CardTitle className="text-sm font-semibold text-emerald-800 flex items-center justify-between">
@@ -247,6 +273,21 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-red-700">{alpha}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-brand-purple/5 border-brand-purple/20 shadow-sm">
+          <CardHeader className="py-4 pb-2">
+            <CardTitle className="text-sm font-semibold text-brand-purple flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <CalendarIcon className="w-4 h-4" /> Kehadiran (Opsi A)
+              </span>
+              <span className="text-[10px] font-normal text-brand-purple bg-brand-purple/10 px-2 py-0.5 rounded-md">
+                {requiredActiveDaysCount} Hari Wajib
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-brand-purple">{attendancePercentage}%</div>
           </CardContent>
         </Card>
       </div>

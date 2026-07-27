@@ -30,6 +30,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
   const [selectedPermission, setSelectedPermission] = useState<any | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [mentorAsyncDays, setMentorAsyncDays] = useState<any[]>([]);
 
   const fetchData = async () => {
     if (!batchId) return;
@@ -113,6 +114,16 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
       if (permRes.ok) {
         const permData = await permRes.json();
         setPermissionRequests(Array.isArray(permData) ? permData : []);
+      }
+
+      // Fetch mentor's personal async days
+      const asyncRes = await fetch(`http://localhost:7000/classes/attendance/async-days/mentor`, {
+        headers: { Accept: "application/json" },
+        credentials: "include"
+      });
+      if (asyncRes.ok) {
+        const asyncData = await asyncRes.json();
+        setMentorAsyncDays(Array.isArray(asyncData) ? asyncData : []);
       }
 
     } catch (err) {
@@ -225,6 +236,8 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
     const hadir = dateAtts.filter(a => a.status.includes('Hadir')).length;
     const alpha = dateAtts.filter(a => a.status === 'Alpha').length;
 
+    const isMentorAsync = mentorAsyncDays.some((a: any) => a.date === localDateStr);
+
     let cellBg = "bg-card hover:bg-secondary/20 cursor-pointer";
     let content = null;
 
@@ -239,13 +252,14 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
           </span>
         </div>
       );
-    } else if (isFriday) {
-      // Priority 2: Hari Jumat Asynchronous -> GREEN (Libur Absen)
-      cellBg = "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 cursor-not-allowed font-medium";
+    } else if (isFriday || isMentorAsync) {
+      // Priority 2: Hari Asynchronous (Jumat Wajib / Tambahan Mentor) -> Soft Mint Green
+      const badgeText = isFriday ? "Hari Asynchronous (Jumat)" : "Hari Asynchronous";
+      cellBg = "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 cursor-pointer font-medium";
       content = (
         <div className="mt-auto flex flex-col justify-end w-full">
           <span className="text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 px-1.5 py-0.5 rounded-sm inline-block self-start leading-tight">
-            Hari Asynchronous
+            {badgeText}
           </span>
         </div>
       );
@@ -1041,6 +1055,67 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
               Perbarui status kehadiran masing-masing siswa untuk kelas hari ini. Pastikan Anda mengklik Simpan sebelum menutup jendela ini.
             </DialogDescription>
           </DialogHeader>
+
+          {/* ── HARI ASYNCHRONOUS TOGGLE BANNER ── */}
+          {(() => {
+            if (!selectedDate) return null;
+            const tzOffset = selectedDate.getTimezoneOffset() * 60000;
+            const localDateStr = (new Date(selectedDate.getTime() - tzOffset)).toISOString().split('T')[0];
+            const isFriday = selectedDate.getDay() === 5;
+            const isAsync = isFriday || mentorAsyncDays.some((a: any) => a.date === localDateStr);
+            const isExtraAsync = !isFriday && mentorAsyncDays.some((a: any) => a.date === localDateStr);
+
+            return (
+              <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-sans ${
+                isAsync ? "bg-emerald-500/10 border-emerald-500/30" : "bg-secondary/30 border-border"
+              }`}>
+                <div>
+                  <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
+                    <CalendarDays className="w-4 h-4 text-brand-purple" />
+                    Status Pembelajaran Hari Ini
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {isFriday
+                      ? "✨ Hari Jumat secara otomatis merupakan Hari Asynchronous Wajib (Pembelajaran Mandiri / Tugas). Absensi tatap muka dinonaktifkan."
+                      : isExtraAsync
+                      ? "✨ Hari ini ditandai sebagai +1 Hari Asynchronous Tambahan Mentor. Absensi tatap muka dinonaktifkan."
+                      : "Hari aktif tatap muka reguler. Anda dapat menambah +1 Hari Asynchronous Tambahan (kuota 1x per minggu)."}
+                  </p>
+                </div>
+
+                {!isFriday && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={isExtraAsync ? "default" : "outline"}
+                    onClick={async () => {
+                      try {
+                        const res = await fetch("http://localhost:7000/classes/attendance/async-days/toggle", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          credentials: "include",
+                          body: JSON.stringify({ date: localDateStr, note: "Hari Asynchronous Tambahan Mentor" }),
+                        });
+                        if (res.ok) {
+                          const data = await res.json();
+                          toast.success(data.message);
+                          fetchData();
+                        } else {
+                          const errData = await res.json();
+                          toast.error(errData.message || "Gagal mengubah status Hari Asynchronous.");
+                        }
+                      } catch (e) {
+                        toast.error("Gagal mengubah status Hari Asynchronous.");
+                      }
+                    }}
+                    className={isExtraAsync ? "bg-emerald-600 hover:bg-emerald-700 text-white text-xs cursor-pointer shrink-0" : "text-xs cursor-pointer shrink-0 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10"}
+                  >
+                    {isExtraAsync ? "Batalkan Hari Asynchronous" : "+1 Tandai Hari Asynchronous Tambahan"}
+                  </Button>
+                )}
+              </div>
+            );
+          })()}
 
           <div className="space-y-4 my-2">
             {saveMessage && (

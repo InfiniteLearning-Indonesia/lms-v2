@@ -114,6 +114,8 @@ export function MentorModals({
   handleSaveRubrikAssessmentWeights,
   rubrikAssessments = [],
 }: MentorModalsProps) {
+  const [selectedCompetencyName, setSelectedCompetencyName] = useState("");
+  const [selectedRubricIds, setSelectedRubricIds] = useState<string[]>([]);
   return (
     <>
       {/* Add Competency Modal */}
@@ -378,6 +380,14 @@ export function MentorModals({
                 <select
                   name="competency"
                   required
+                  value={selectedCompetencyName}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    setSelectedCompetencyName(name);
+                    const comp = competencies.find((c) => c.name === name);
+                    const crit = comp?.rubric?.criteria || [];
+                    setSelectedRubricIds(crit.map((c: any) => c.id || c.title));
+                  }}
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
                 >
                   <option value="">Pilih Kompetensi...</option>
@@ -388,6 +398,73 @@ export function MentorModals({
                   ))}
                 </select>
               </div>
+
+              {/* Rubrik Penilaian Terkait (Spesifik AI) */}
+              {selectedCompetencyName && (
+                <div className="p-3 bg-secondary/30 border border-border rounded-lg space-y-2">
+                  <input
+                    type="hidden"
+                    name="selectedRubrics"
+                    value={JSON.stringify(selectedRubricIds)}
+                  />
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-foreground">
+                      Rubrik Penilaian Terkait
+                    </label>
+                    <span className="text-[10px] font-semibold text-brand-purple bg-brand-purple/10 px-2 py-0.5 rounded-full">
+                      {selectedRubricIds.length} Rubrik Terpilih
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Pilih rubrik kriteria spesifik di bawah ini.
+                  </p>
+
+                  {(() => {
+                    const comp = competencies.find((c) => c.name === selectedCompetencyName);
+                    const criteria = comp?.rubric?.criteria || [];
+
+                    if (criteria.length === 0) {
+                      return (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 italic">
+                          Belum ada rubrik detail pada kompetensi ini. AI akan menilai berdasarkan instruksi umum tugas.
+                        </p>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-1.5 pt-1 max-h-36 overflow-y-auto pr-1">
+                        {criteria.map((crit: any) => {
+                          const critKey = crit.id || crit.title;
+                          const isChecked = selectedRubricIds.includes(critKey);
+                          return (
+                            <label
+                              key={critKey}
+                              className="flex items-start gap-2 text-xs text-foreground cursor-pointer hover:bg-secondary/60 p-1.5 rounded-md transition-colors border border-border/50 bg-background"
+                            >
+                              <input
+                                type="checkbox"
+                                value={critKey}
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedRubricIds([...selectedRubricIds, critKey]);
+                                  } else {
+                                    setSelectedRubricIds(
+                                      selectedRubricIds.filter((id) => id !== critKey)
+                                    );
+                                  }
+                                }}
+                                className="mt-0.5 rounded border-input text-brand-purple focus:ring-brand-purple"
+                              />
+                              <span className="leading-tight font-medium">{crit.title}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium mb-1 flex items-center justify-between text-foreground">
                   Tipe Pengumpulan
@@ -402,7 +479,7 @@ export function MentorModals({
                 >
                   <option value="github">Link GitHub (Tugas Kode & Automasi)</option>
                   <option value="figma">Link Figma (Tugas UI/UX)</option>
-                  <option value="drive">Link Google Drive (Gambar/Lainnya)</option>
+                  <option value="drive">Link Google Drive / Docs / Sheets</option>
                   <option value="any">Link Bebas</option>
                 </select>
               </div>

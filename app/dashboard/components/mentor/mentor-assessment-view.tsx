@@ -464,9 +464,19 @@ export function MentorAssessmentView({
 
       <CardContent className="pt-6">
         <Tabs defaultValue="Micro" className="w-full">
-          <TabsList className="grid w-full max-w-sm grid-cols-2 mb-6">
-            <TabsTrigger value="Micro">Phase Micro</TabsTrigger>
-            <TabsTrigger value="Massive">Phase Massive</TabsTrigger>
+          <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex max-w-xs min-h-12 gap-1.5 mb-6">
+            <TabsTrigger
+              value="Micro"
+              className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+            >
+              Phase Micro
+            </TabsTrigger>
+            <TabsTrigger
+              value="Massive"
+              className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+            >
+              Phase Massive
+            </TabsTrigger>
           </TabsList>
 
           {["Micro", "Massive"].map((phase) => {

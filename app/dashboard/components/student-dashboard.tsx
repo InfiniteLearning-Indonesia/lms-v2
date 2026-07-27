@@ -380,6 +380,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
           profile={profile}
           activeClasses={activeClasses}
           classes={classes}
+          onNavigateTab={handleTabChange}
         />
       </TabsContent>
 

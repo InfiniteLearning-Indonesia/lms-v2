@@ -76,26 +76,32 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const searchParams = useSearchParams();
 
-  // Listen to tab query parameter dynamically
+  // Listen to tab query parameter & localStorage dynamically for persistence on refresh
   useEffect(() => {
-    const tab = searchParams.get("tab");
-    if (tab === "settings") {
-      setActiveTab("settings");
-    } else if (!tab && activeTab === "settings") {
-      setActiveTab("classes");
+    const urlTab = searchParams.get("tab");
+    const savedTab = typeof window !== "undefined" ? localStorage.getItem("mentor_dashboard_active_tab") : null;
+    const validTabs = ["classes", "students", "facilitators", "logbook", "attendance", "rubrics", "assessment", "settings"];
+    
+    if (urlTab && validTabs.includes(urlTab)) {
+      setActiveTab(urlTab);
+      if (typeof window !== "undefined") localStorage.setItem("mentor_dashboard_active_tab", urlTab);
+    } else if (savedTab && validTabs.includes(savedTab)) {
+      setActiveTab(savedTab);
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href);
+        url.searchParams.set("tab", savedTab);
+        window.history.replaceState({}, "", url.toString());
+      }
     }
   }, [searchParams]);
 
   const handleTabChange = (val: string) => {
     setActiveTab(val);
     if (typeof window !== "undefined") {
+      localStorage.setItem("mentor_dashboard_active_tab", val);
       const url = new URL(window.location.href);
-      if (val === "settings") {
-        url.searchParams.set("tab", "settings");
-      } else {
-        url.searchParams.delete("tab");
-      }
-      window.history.pushState({}, "", url.toString());
+      url.searchParams.set("tab", val);
+      window.history.replaceState({}, "", url.toString());
     }
   };
 
@@ -664,6 +670,14 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const handleCreateAssignment = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const rawSelectedRubrics = formData.get("selectedRubrics") as string;
+    let selectedRubrics = null;
+    if (rawSelectedRubrics) {
+      try {
+        selectedRubrics = JSON.parse(rawSelectedRubrics);
+      } catch (err) {}
+    }
+
     try {
       const res = await fetch(`http://localhost:7000/classes/${selectedClassId}/assignment`, {
         method: "POST",
@@ -672,6 +686,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           title: formData.get("title"),
           description: formData.get("description"),
           competency: formData.get("competency"),
+          selectedRubrics,
           dueDate: formData.get("dueDate"),
           submissionType: formData.get("submissionType"),
         }),
@@ -1039,8 +1054,12 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             handleDistributeModulo={handleDistributeModulo}
             onOpenAddMaterial={() => setIsAddMaterialModalOpen(true)}
             onOpenAddAssignment={() => setIsAddAssignmentModalOpen(true)}
+            onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
+            onEditCompetency={(comp) => setEditingCompetency(comp)}
+            competencies={competencies}
             onDeleteMaterial={handleDeleteMaterial}
             onDeleteAssignment={handleDeleteAssignment}
+            onDeleteCompetency={handleDeleteCompetency}
           />
         </TabsContent>
 

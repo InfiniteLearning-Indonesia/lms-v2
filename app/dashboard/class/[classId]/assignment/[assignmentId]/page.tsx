@@ -14,6 +14,8 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Navbar } from "@/components/navbar";
+import { BulkAiEvaluateModal } from "@/app/dashboard/components/mentor/modals/bulk-ai-evaluate-modal";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 export default function AssignmentDetailPage() {
   const router = useRouter();
@@ -40,8 +42,7 @@ export default function AssignmentDetailPage() {
   const [isSubmittingManual, setIsSubmittingManual] = useState(false);
 
   // Bulk AI state
-  const [isBulkEvaluating, setIsBulkEvaluating] = useState(false);
-  const [bulkProgress, setBulkProgress] = useState({ total: 0, current: 0 });
+  const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -200,32 +201,7 @@ export default function AssignmentDetailPage() {
     setIsManualModalOpen(true);
   };
 
-  const handleBulkAIEvaluate = async () => {
-    const ungraded = mentorSubmissions.filter(s => s.status !== 'graded');
-    if (ungraded.length === 0) {
-      toast.info("Semua tugas sudah dinilai final.");
-      return;
-    }
 
-    setIsBulkEvaluating(true);
-    setBulkProgress({ total: ungraded.length, current: 0 });
-
-    for (let i = 0; i < ungraded.length; i++) {
-      setBulkProgress(prev => ({ ...prev, current: i + 1 }));
-      try {
-        await fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}/submissions/${ungraded[i].id}/ai-evaluate`, {
-          method: "POST",
-          credentials: "include"
-        });
-      } catch (err) {
-        console.error(`Gagal evaluasi ${ungraded[i].id}`, err);
-      }
-    }
-
-    await fetchMentorSubmissions();
-    setIsBulkEvaluating(false);
-    toast.success("Evaluasi massal AI selesai.");
-  };
 
   const isPastDue = assignmentData.dueDate ? new Date(assignmentData.dueDate) < new Date() : false;
 
@@ -274,12 +250,8 @@ export default function AssignmentDetailPage() {
                   <h2 className="font-heading font-bold text-xl">Daftar Pengumpulan Mentee</h2>
                   <p className="text-xs text-muted-foreground mt-1">Evaluasi pengumpulan mentee secara manual atau gunakan AI secara massal.</p>
                 </div>
-                <Button onClick={handleBulkAIEvaluate} disabled={isBulkEvaluating} className="bg-brand-purple hover:bg-brand-purple-hover text-white">
-                  {isBulkEvaluating ? (
-                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Memproses AI ({bulkProgress.current}/{bulkProgress.total})</>
-                  ) : (
-                    <><Bot className="w-4 h-4 mr-2" /> Evaluasi Massal (AI)</>
-                  )}
+                <Button onClick={() => setIsBulkModalOpen(true)} className="bg-brand-purple hover:bg-brand-purple-hover text-white flex items-center gap-1.5 cursor-pointer">
+                  <Bot className="w-4 h-4" /> Evaluasi Massal (AI)
                 </Button>
               </div>
               <div className="overflow-x-auto">
@@ -377,9 +349,13 @@ export default function AssignmentDetailPage() {
                               <span className="col-span-2 font-bold text-lg text-brand-purple">{submissionData.score} / 100</span>
                             </div>
                             <div className="pt-2">
-                              <span className="text-muted-foreground block mb-1">Umpan Balik Mentor:</span>
-                              <div className="p-3 bg-secondary/50 rounded-md whitespace-pre-line text-foreground">
-                                {submissionData.manualFeedback || "-"}
+                              <span className="text-muted-foreground block mb-1 font-semibold">Umpan Balik Mentor:</span>
+                              <div className="p-4 bg-secondary/30 border border-border rounded-lg text-foreground">
+                                {submissionData.manualFeedback ? (
+                                  <MarkdownRenderer content={submissionData.manualFeedback} />
+                                ) : (
+                                  "-"
+                                )}
                               </div>
                             </div>
                           </>
@@ -491,6 +467,15 @@ export default function AssignmentDetailPage() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <BulkAiEvaluateModal
+        isOpen={isBulkModalOpen}
+        onClose={() => setIsBulkModalOpen(false)}
+        assignment={assignmentData}
+        submissions={mentorSubmissions}
+        classId={classId}
+        onRefreshSubmissions={fetchMentorSubmissions}
+      />
     </div>
   );
 }
