@@ -244,10 +244,23 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
 
     const isMentorAsync = mentorAsyncDays.some((a: any) => a.date === localDateStr);
 
+    let inBatchRange = true;
+    if (batch?.startDate && batch?.endDate) {
+      const bStart = new Date(batch.startDate);
+      bStart.setHours(0, 0, 0, 0);
+      const bEnd = new Date(batch.endDate);
+      bEnd.setHours(23, 59, 59, 999);
+      const target = new Date(date);
+      target.setHours(12, 0, 0, 0);
+      inBatchRange = target >= bStart && target <= bEnd;
+    }
+
     let cellBg = "bg-card hover:bg-secondary/20 cursor-pointer";
     let content = null;
 
-    if (holiday || isWeekend) {
+    if (!inBatchRange) {
+      cellBg = "bg-secondary/20 text-muted-foreground opacity-50 cursor-not-allowed";
+    } else if (holiday || isWeekend) {
       // Priority 1: Tanggal Merah (Holiday or Weekend) -> RED
       const label = holiday ? (holiday.name || "Libur Nasional") : "Weekend (Libur)";
       cellBg = "bg-red-500/10 border-red-500/30 text-red-600 cursor-not-allowed font-medium";
@@ -296,7 +309,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
       <div 
         {...props}
         onClick={(e) => {
-          if (!holiday && !isFriday && !isWeekend) {
+          if (inBatchRange && !holiday && !isFriday && !isWeekend) {
             handleDateSelect(date);
           } else {
             e.preventDefault();

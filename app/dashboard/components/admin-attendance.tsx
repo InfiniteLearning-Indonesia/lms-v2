@@ -150,12 +150,25 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
     const izin = dateAtts.filter(a => a.status.includes('Izin') || a.status.includes('Sakit')).length;
     const alpha = dateAtts.filter(a => a.status === 'Alpha').length;
 
+    let inBatchRange = true;
+    if (batchDetails?.startDate && batchDetails?.endDate) {
+      const bStart = new Date(batchDetails.startDate);
+      bStart.setHours(0, 0, 0, 0);
+      const bEnd = new Date(batchDetails.endDate);
+      bEnd.setHours(23, 59, 59, 999);
+      const target = new Date(date);
+      target.setHours(12, 0, 0, 0);
+      inBatchRange = target >= bStart && target <= bEnd;
+    }
+
     let cellBg = "bg-card hover:bg-secondary/20 cursor-pointer";
     let content = null;
 
     if (selectedBatch === "all") {
       cellBg = "bg-secondary/20 text-muted-foreground opacity-50 cursor-not-allowed";
       content = <div className="mt-auto text-[10px] text-center w-full">Pilih Batch Spesifik</div>;
+    } else if (!inBatchRange) {
+      cellBg = "bg-secondary/20 text-muted-foreground opacity-50 cursor-not-allowed";
     } else if (holiday || isWeekend) {
       // Priority 1: Tanggal Merah (Holiday or Weekend) -> RED
       const label = holiday ? (holiday.name || "Libur Nasional") : "Weekend (Libur)";
@@ -208,7 +221,7 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
       <div
         {...props}
         onClick={(e) => {
-          if (selectedBatch !== "all" && !holiday && !isFriday && !isWeekend) {
+          if (selectedBatch !== "all" && inBatchRange && !holiday && !isFriday && !isWeekend) {
             handleDateSelect(date);
           } else {
             e.preventDefault();
