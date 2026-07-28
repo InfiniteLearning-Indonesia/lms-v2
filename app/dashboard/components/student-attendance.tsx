@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/config";
 import { useEffect, useState } from "react";
 import { Loader2, Calendar as CalendarIcon, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -18,7 +19,7 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
     if (!batchId) return;
 
     // Fetch batch details to get startDate and endDate
-    fetch(`http://localhost:7000/classes/batches`, {
+    fetch(`${API_BASE_URL}/classes/batches`, {
       headers: { Accept: "application/json" },
       credentials: "include"
     })
@@ -37,7 +38,7 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
       })
       .catch(console.error);
 
-    fetch(`http://localhost:7000/attendance/active-days/${batchId}`, {
+    fetch(`${API_BASE_URL}/attendance/active-days/${batchId}`, {
       headers: { Accept: "application/json" },
       credentials: "include"
     })
@@ -53,7 +54,7 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
       .catch(console.error);
 
     // Fetch student mentor async days
-    fetch(`http://localhost:7000/classes/attendance/async-days/student`, {
+    fetch(`${API_BASE_URL}/classes/attendance/async-days/student`, {
       headers: { Accept: "application/json" },
       credentials: "include"
     })
@@ -63,7 +64,7 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
       })
       .catch(console.error);
 
-    fetch(`http://localhost:7000/attendance?batchId=${batchId}&studentId=${studentId}`, {
+    fetch(`${API_BASE_URL}/attendance?batchId=${batchId}&studentId=${studentId}`, {
       headers: { Accept: "application/json" },
       credentials: "include"
     })

@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -34,7 +36,7 @@ export default function ClassDetailPage() {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    fetch("http://localhost:7000/auth/me", {
+    fetch("${API_BASE_URL}/auth/me", {
       headers: { Accept: "application/json" },
       credentials: "include",
     })
@@ -51,7 +53,7 @@ export default function ClassDetailPage() {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("http://localhost:7000/auth/logout", {
+      const res = await fetch("${API_BASE_URL}/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -64,7 +66,7 @@ export default function ClassDetailPage() {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:7000/classes/${classId}`, {
+    fetch(`${API_BASE_URL}/classes/${classId}`, {
       headers: { Accept: "application/json" },
       credentials: "include",
     })

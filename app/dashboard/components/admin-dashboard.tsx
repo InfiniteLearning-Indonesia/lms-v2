@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -93,7 +95,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setProfileSaveSuccess(null);
 
     try {
-      const res = await fetch(`http://localhost:7000/users/${profile.id}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${profile.id}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -261,7 +263,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const fetchUsersList = async () => {
     setIsLoadingUsers(true);
     try {
-      const res = await fetch("http://localhost:7000/users", {
+      const res = await fetch("${API_BASE_URL}/users", {
         credentials: "include",
       });
       if (res.ok) {
@@ -278,7 +280,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const fetchProgramsList = async () => {
     setIsLoadingPrograms(true);
     try {
-      const res = await fetch("http://localhost:7000/classes/programs-list", {
+      const res = await fetch("${API_BASE_URL}/classes/programs-list", {
         credentials: "include",
       });
       if (res.ok) {
@@ -295,7 +297,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const fetchBatchesList = async () => {
     setIsLoadingBatches(true);
     try {
-      const res = await fetch("http://localhost:7000/classes/batches", {
+      const res = await fetch("${API_BASE_URL}/classes/batches", {
         credentials: "include",
       });
       if (res.ok) {
@@ -351,7 +353,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const handleSaveUser = async () => {
     if (!editingUserId) return;
     try {
-      const res = await fetch(`http://localhost:7000/users/${editingUserId}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${editingUserId}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -395,7 +397,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const sendWarningEmail = async (id: string) => {
     setIsSendingEmailMap((prev) => ({ ...prev, [id]: true }));
     try {
-      const res = await fetch(`http://localhost:7000/users/${id}/send-warning-email`, {
+      const res = await fetch(`${API_BASE_URL}/users/${id}/send-warning-email`, {
         method: "POST",
         credentials: "include",
       });
@@ -433,7 +435,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
   const updateUserStatus = async (id: string, status: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/users/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${id}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -462,7 +464,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
   const deleteUser = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/users/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -491,7 +493,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
   const bulkDeleteUsers = async () => {
     try {
-      const res = await fetch("http://localhost:7000/users/bulk-delete", {
+      const res = await fetch("${API_BASE_URL}/users/bulk-delete", {
         method: "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -518,7 +520,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setSuccessMsg("");
 
     try {
-      const res = await fetch("http://localhost:7000/users/invite", {
+      const res = await fetch("${API_BASE_URL}/users/invite", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -617,7 +619,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setSuccessMsg("");
 
     try {
-      const res = await fetch("http://localhost:7000/users/bulk-import-csv", {
+      const res = await fetch("${API_BASE_URL}/users/bulk-import-csv", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -652,7 +654,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setIsSubmittingAssignMentor(true);
     try {
       const res = await fetch(
-        `http://localhost:7000/classes/programs/${selectedProgramDetail.id}/assign-mentor`,
+        `${API_BASE_URL}/classes/programs/${selectedProgramDetail.id}/assign-mentor`,
         {
           method: "POST",
           credentials: "include",
@@ -683,7 +685,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setIsSubmittingEnroll(true);
     try {
       const res = await fetch(
-        `http://localhost:7000/classes/programs/${selectedProgramDetail.id}/enroll-student`,
+        `${API_BASE_URL}/classes/programs/${selectedProgramDetail.id}/enroll-student`,
         {
           method: "POST",
           credentials: "include",
@@ -719,7 +721,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
     setIsSubmittingCreateBatch(true);
     try {
-      const res = await fetch("http://localhost:7000/classes/batches", {
+      const res = await fetch("${API_BASE_URL}/classes/batches", {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -755,7 +757,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
     setIsSubmittingEditBatch(true);
     try {
-      const res = await fetch(`http://localhost:7000/classes/batches/${selectedBatchForEdit.id}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/batches/${selectedBatchForEdit.id}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -784,7 +786,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
   const activateBatch = async (batchId: string, name: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/batches/${batchId}/activate`, {
+      const res = await fetch(`${API_BASE_URL}/classes/batches/${batchId}/activate`, {
         method: "POST",
         credentials: "include",
       });
@@ -815,7 +817,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setIsSubmittingMatrix(true);
     try {
       const res = await fetch(
-        `http://localhost:7000/classes/batches/${selectedBatchForMatrix.id}/mentor-matrix`,
+        `${API_BASE_URL}/classes/batches/${selectedBatchForMatrix.id}/mentor-matrix`,
         {
           method: "POST",
           credentials: "include",

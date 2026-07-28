@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -42,7 +44,7 @@ export function StudentActivityView({
     if (!activeBatchId) return;
 
     setIsLogbookLoading(true);
-    fetch(`http://localhost:7000/classes/batches/${activeBatchId}/logbooks/student`, {
+    fetch(`${API_BASE_URL}/classes/batches/${activeBatchId}/logbooks/student`, {
       credentials: "include",
     })
       .then((res) => (res.ok ? res.json() : null))

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/config";
 import { useEffect, useState } from "react";
 import { Loader2, Users, Search, AlertCircle, CalendarDays, BarChart3, Calendar as CalendarIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -43,7 +44,7 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
 
   const fetchActiveDays = async (batchId: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/attendance/active-days/${batchId}`, {
+      const res = await fetch(`${API_BASE_URL}/attendance/active-days/${batchId}`, {
         headers: { Accept: "application/json" },
         credentials: "include"
       });
@@ -55,7 +56,7 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
         setHolidays(data.holidays);
       }
 
-      const batchRes = await fetch(`http://localhost:7000/classes/batches`, {
+      const batchRes = await fetch(`${API_BASE_URL}/classes/batches`, {
         headers: { Accept: "application/json" },
         credentials: "include"
       });
@@ -86,7 +87,7 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
 
   const fetchAttendances = async () => {
     setLoading(true);
-    let url = "http://localhost:7000/attendance";
+    let url = "${API_BASE_URL}/attendance";
     if (selectedBatch && selectedBatch !== "all") {
       url += `?batchId=${selectedBatch}`;
     }

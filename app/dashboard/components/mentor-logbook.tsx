@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Notebook, Calendar, Loader2, AlertCircle, CheckCircle2, User, Search, FileEdit, MessageSquare } from "lucide-react";
@@ -21,7 +23,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
 
   const fetchLogbooks = async () => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/batches/${batchId}/logbooks/mentor`, {
+      const res = await fetch(`${API_BASE_URL}/classes/batches/${batchId}/logbooks/mentor`, {
         credentials: "include",
       });
       if (res.ok) {
@@ -51,7 +53,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
     
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:7000/classes/batches/logbooks/${logbookId}/review`, {
+      const res = await fetch(`${API_BASE_URL}/classes/batches/logbooks/${logbookId}/review`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status, feedback: feedback.trim() || undefined }),

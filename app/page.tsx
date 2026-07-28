@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { API_BASE_URL } from "@/lib/config";
+
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
   visible: (i: number) => ({
@@ -28,7 +30,7 @@ export default function LandingPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    fetch("http://localhost:7000/auth/me", {
+    fetch(`${API_BASE_URL}/auth/me`, {
       credentials: "include",
     })
       .then((res) => {

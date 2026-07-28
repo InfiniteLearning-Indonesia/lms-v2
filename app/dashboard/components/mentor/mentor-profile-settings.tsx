@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useState, useEffect } from "react";
 import {
   Code2,
@@ -97,7 +99,7 @@ export function MentorProfileSettings({
 
   // Fetch AI Config on Mount
   useEffect(() => {
-    fetch("http://localhost:7000/classes/mentor/ai-config", {
+    fetch("${API_BASE_URL}/classes/mentor/ai-config", {
       credentials: "include",
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -167,7 +169,7 @@ export function MentorProfileSettings({
       else if (provider === "groq") hostOrApiKey = groqKey;
       else if (provider === "gemini") hostOrApiKey = geminiKey;
 
-      const res = await fetch("http://localhost:7000/classes/mentor/ai-models", {
+      const res = await fetch("${API_BASE_URL}/classes/mentor/ai-models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -210,7 +212,7 @@ export function MentorProfileSettings({
       else if (aiProvider === "groq") hostOrApiKey = groqApiKey;
       else if (aiProvider === "gemini") hostOrApiKey = googleAiStudioKey;
 
-      const res = await fetch("http://localhost:7000/classes/mentor/ai-models", {
+      const res = await fetch("${API_BASE_URL}/classes/mentor/ai-models", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -243,7 +245,7 @@ export function MentorProfileSettings({
     setAiConfigError(null);
     setAiConfigSuccess(null);
     try {
-      const res = await fetch("http://localhost:7000/classes/mentor/ai-config", {
+      const res = await fetch("${API_BASE_URL}/classes/mentor/ai-config", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

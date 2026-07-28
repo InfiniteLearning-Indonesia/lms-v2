@@ -1,5 +1,6 @@
-"use strict";
 "use client";
+
+import { API_BASE_URL } from "@/lib/config";
 
 import { useEffect, useState } from "react";
 import { Notebook, Calendar, Loader2, AlertCircle, CheckCircle2, FileEdit, Send, Lock } from "lucide-react";
@@ -22,7 +23,7 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
 
   const fetchLogbooks = async () => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/batches/${batchId}/logbooks/student`, {
+      const res = await fetch(`${API_BASE_URL}/classes/batches/${batchId}/logbooks/student`, {
         credentials: "include",
       });
       if (res.ok) {
@@ -80,7 +81,7 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
     setSubmitError(null);
     
     try {
-      const res = await fetch(`http://localhost:7000/classes/batches/${batchId}/logbooks/student`, {
+      const res = await fetch(`${API_BASE_URL}/classes/batches/${batchId}/logbooks/student`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

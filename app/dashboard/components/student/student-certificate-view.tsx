@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState, useRef } from "react";
 import { Award, Download, FileText, GraduationCap, Loader2, Printer, CheckCircle2, Sparkles, Building2, User, Calendar, Lock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -51,7 +53,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
   const [subTab, setSubTab] = useState<"transcript" | "certificate">("transcript");
 
   useEffect(() => {
-    fetch("http://localhost:7000/classes/my-grades", {
+    fetch("${API_BASE_URL}/classes/my-grades", {
       credentials: "include",
     })
       .then((res) => res.json())

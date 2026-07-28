@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState } from "react";
 import {
   BookOpen,
@@ -68,7 +70,7 @@ export function FacilitatorDashboard({
   const fetchProgramDetails = async () => {
     setLoading(true);
     try {
-      const resBatches = await fetch(`http://localhost:7000/classes/batches`, {
+      const resBatches = await fetch(`${API_BASE_URL}/classes/batches`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -129,7 +131,7 @@ export function FacilitatorDashboard({
     setProfileMsg(null);
 
     try {
-      const res = await fetch(`http://localhost:7000/users/${profile.id}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${profile.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

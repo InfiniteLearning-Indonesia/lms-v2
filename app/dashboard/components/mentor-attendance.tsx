@@ -1,3 +1,4 @@
+import { API_BASE_URL } from "@/lib/config";
 import { useEffect, useState } from "react";
 import { Loader2, Calendar as CalendarIcon, Save, AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, PieChart as PieIcon, CalendarDays, FileSpreadsheet, XCircle, Clock, Eye, FileText, Image as ImageIcon, Paperclip, User } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -37,7 +38,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
     setLoading(true);
     try {
       // Fetch active days and holidays
-      const daysRes = await fetch(`http://localhost:7000/attendance/active-days/${batchId}`, {
+      const daysRes = await fetch(`${API_BASE_URL}/attendance/active-days/${batchId}`, {
         headers: { Accept: "application/json" },
         credentials: "include"
       });
@@ -50,7 +51,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
       }
 
       // Fetch batch details for start and end date
-      const batchRes = await fetch(`http://localhost:7000/classes/batches`, {
+      const batchRes = await fetch(`${API_BASE_URL}/classes/batches`, {
         headers: { Accept: "application/json" },
         credentials: "include"
       });
@@ -69,7 +70,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
       // Fetch students for this batch (Primary: mentor-classes, Fallback: batches program details)
       let batchStudents: any[] = [];
       try {
-        const classesRes = await fetch(`http://localhost:7000/classes/mentor-classes`, {
+        const classesRes = await fetch(`${API_BASE_URL}/classes/mentor-classes`, {
           headers: { Accept: "application/json" },
           credentials: "include"
         });
@@ -98,7 +99,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
       setStudents(batchStudents);
 
       // Fetch attendances for this batch
-      const attUrl = `http://localhost:7000/attendance?batchId=${batchId}`;
+      const attUrl = `${API_BASE_URL}/attendance?batchId=${batchId}`;
       const attRes = await fetch(attUrl, {
         headers: { Accept: "application/json" },
         credentials: "include"
@@ -107,7 +108,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
       setAllAttendances(Array.isArray(attData) ? attData : []);
 
       // Fetch permission requests for this batch
-      const permRes = await fetch(`http://localhost:7000/attendance/permission-requests?batchId=${batchId}`, {
+      const permRes = await fetch(`${API_BASE_URL}/attendance/permission-requests?batchId=${batchId}`, {
         headers: { Accept: "application/json" },
         credentials: "include"
       });
@@ -117,7 +118,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
       }
 
       // Fetch mentor's personal async days
-      const asyncRes = await fetch(`http://localhost:7000/classes/attendance/async-days/mentor`, {
+      const asyncRes = await fetch(`${API_BASE_URL}/classes/attendance/async-days/mentor`, {
         headers: { Accept: "application/json" },
         credentials: "include"
       });
@@ -184,7 +185,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
     };
 
     try {
-      const res = await fetch(`http://localhost:7000/attendance/bulk`, {
+      const res = await fetch(`${API_BASE_URL}/attendance/bulk`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -1090,7 +1091,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
                     variant={isExtraAsync ? "default" : "outline"}
                     onClick={async () => {
                       try {
-                        const res = await fetch("http://localhost:7000/classes/attendance/async-days/toggle", {
+                        const res = await fetch("${API_BASE_URL}/classes/attendance/async-days/toggle", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           credentials: "include",

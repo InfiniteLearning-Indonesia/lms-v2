@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { BookOpen, Calendar, FileText, GraduationCap, Loader2, Settings, User, Award } from "lucide-react";
@@ -75,7 +77,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
 
   useEffect(() => {
     setIsLoading(true);
-    fetch("http://localhost:7000/classes/my-classes", {
+    fetch("${API_BASE_URL}/classes/my-classes", {
       headers: { Accept: "application/json" },
       credentials: "include",
     })
@@ -124,7 +126,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
     setSaveSuccess(null);
 
     try {
-      const res = await fetch(`http://localhost:7000/users/${profile.id}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${profile.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -165,7 +167,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
     const activeCls = classes.find((c) => c.batch?.status === "active");
     if (!activeCls?.batchId) return;
 
-    fetch(`http://localhost:7000/attendance?batchId=${activeCls.batchId}&studentId=${profile.id}`, {
+    fetch(`${API_BASE_URL}/attendance?batchId=${activeCls.batchId}&studentId=${profile.id}`, {
       headers: { Accept: "application/json" },
       credentials: "include"
     })
@@ -236,7 +238,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
           </div>
           <button
             onClick={() => {
-              fetch("http://localhost:7000/auth/logout", { method: "POST", credentials: "include" })
+              fetch("${API_BASE_URL}/auth/logout", { method: "POST", credentials: "include" })
                 .then(() => (window.location.href = "/login"))
                 .catch(() => (window.location.href = "/login"));
             }}

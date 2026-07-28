@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { toast } from "sonner";
 import { useState, useRef, useEffect } from "react";
 import {
@@ -72,7 +74,7 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
     if (!profile?.id) return;
     setLoadingHistory(true);
     try {
-      const res = await fetch(`http://localhost:7000/attendance/permission-requests?studentId=${profile.id}`, {
+      const res = await fetch(`${API_BASE_URL}/attendance/permission-requests?studentId=${profile.id}`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -173,7 +175,7 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
     };
 
     try {
-      const res = await fetch("http://localhost:7000/attendance/permission-requests", {
+      const res = await fetch("${API_BASE_URL}/attendance/permission-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

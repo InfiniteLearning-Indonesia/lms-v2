@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
@@ -54,7 +56,7 @@ export default function AssignmentRubricPage() {
   useEffect(() => {
     // In a real app we'd fetch the specific competency to display its name
     // Assuming we have a /competency/:id endpoint, but for now we might just get the list
-    fetch(`http://localhost:7000/classes/competencies`, {
+    fetch(`${API_BASE_URL}/classes/competencies`, {
       headers: { Accept: "application/json" },
       credentials: "include",
     })
@@ -79,7 +81,7 @@ export default function AssignmentRubricPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const res = await fetch(`http://localhost:7000/classes/competency/${competencyId}/rubric`, {
+      const res = await fetch(`${API_BASE_URL}/classes/competency/${competencyId}/rubric`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

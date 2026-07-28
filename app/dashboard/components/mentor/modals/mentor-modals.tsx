@@ -1,4 +1,6 @@
 "use client";
+
+import { API_BASE_URL } from "@/lib/config";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AlertCircle, Loader2, Save, ShieldAlert, X } from "lucide-react";
@@ -994,7 +996,7 @@ function RubrikAssessmentWeightModal({
         });
       } else {
         const res = await fetch(
-          `http://localhost:7000/classes/rubrik-assessments/${editingWeightRubrikAssessment.id}`,
+          `${API_BASE_URL}/classes/rubrik-assessments/${editingWeightRubrikAssessment.id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },

@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -19,7 +21,7 @@ export default function MaterialDetailPage() {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    fetch("http://localhost:7000/auth/me", {
+    fetch("${API_BASE_URL}/auth/me", {
       headers: { Accept: "application/json" },
       credentials: "include",
     })
@@ -36,7 +38,7 @@ export default function MaterialDetailPage() {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("http://localhost:7000/auth/logout", {
+      const res = await fetch("${API_BASE_URL}/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -49,7 +51,7 @@ export default function MaterialDetailPage() {
   };
 
   useEffect(() => {
-    fetch(`http://localhost:7000/classes/${classId}/material/${materialId}`, {
+    fetch(`${API_BASE_URL}/classes/${classId}/material/${materialId}`, {
       headers: { Accept: "application/json" },
       credentials: "include",
     })

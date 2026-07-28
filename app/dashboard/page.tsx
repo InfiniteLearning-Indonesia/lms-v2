@@ -16,6 +16,7 @@ import { StudentDashboard } from "./components/student-dashboard";
 import { MentorDashboard } from "./components/mentor-dashboard";
 import { AdminDashboard } from "./components/admin-dashboard";
 import { FacilitatorDashboard } from "./components/facilitator-dashboard";
+import { API_BASE_URL } from "@/lib/config";
 
 interface UserProfile {
   id: string;
@@ -41,7 +42,7 @@ export default function DashboardPage() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   const fetchProfile = () => {
-    fetch("http://localhost:7000/auth/me", {
+    fetch(`${API_BASE_URL}/auth/me`, {
       headers: { Accept: "application/json" },
       credentials: "include",
     })
@@ -67,7 +68,7 @@ export default function DashboardPage() {
 
   async function handleLogout() {
     try {
-      const res = await fetch("http://localhost:7000/auth/logout", {
+      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

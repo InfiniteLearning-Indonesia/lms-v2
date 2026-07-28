@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
@@ -47,7 +49,7 @@ export default function AssignmentDetailPage() {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("http://localhost:7000/auth/logout", {
+      const res = await fetch("${API_BASE_URL}/auth/logout", {
         method: "POST",
         credentials: "include",
       });
@@ -62,7 +64,7 @@ export default function AssignmentDetailPage() {
   useEffect(() => {
     // Fetch both assignment, profile, and my submission concurrently
     Promise.all([
-      fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}`, {
+      fetch(`${API_BASE_URL}/classes/${classId}/assignment/${assignmentId}`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       }).then((res) => {
@@ -73,7 +75,7 @@ export default function AssignmentDetailPage() {
         if (!res.ok) throw new Error("Gagal mengambil data tugas");
         return res.json();
       }),
-      fetch("http://localhost:7000/auth/me", {
+      fetch("${API_BASE_URL}/auth/me", {
         headers: { Accept: "application/json" },
         credentials: "include",
       }).then((res) => {
@@ -84,7 +86,7 @@ export default function AssignmentDetailPage() {
         if (!res.ok) throw new Error("Gagal mengambil data profil");
         return res.json();
       }),
-      fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}/submissions/me`, {
+      fetch(`${API_BASE_URL}/classes/${classId}/assignment/${assignmentId}/submissions/me`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       }).then(async (res) => {
@@ -114,7 +116,7 @@ export default function AssignmentDetailPage() {
 
   const fetchMentorSubmissions = async () => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}/submissions`, {
+      const res = await fetch(`${API_BASE_URL}/classes/${classId}/assignment/${assignmentId}/submissions`, {
         credentials: "include"
       });
       if (res.ok) {
@@ -147,7 +149,7 @@ export default function AssignmentDetailPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}/submit`, {
+      const res = await fetch(`${API_BASE_URL}/classes/${classId}/assignment/${assignmentId}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -175,7 +177,7 @@ export default function AssignmentDetailPage() {
     if (!selectedSubmission) return;
     setIsSubmittingManual(true);
     try {
-      const res = await fetch(`http://localhost:7000/classes/${classId}/assignment/${assignmentId}/submissions/${selectedSubmission.id}/grade`, {
+      const res = await fetch(`${API_BASE_URL}/classes/${classId}/assignment/${assignmentId}/submissions/${selectedSubmission.id}/grade`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

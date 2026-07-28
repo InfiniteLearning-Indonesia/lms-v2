@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
@@ -167,7 +169,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     setProfileSaveSuccess(null);
 
     try {
-      const res = await fetch(`http://localhost:7000/users/${profile.id}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${profile.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -233,7 +235,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
     setIsSavingWeights(true);
     try {
-      const res = await fetch("http://localhost:7000/classes/assignments/weights", {
+      const res = await fetch("${API_BASE_URL}/classes/assignments/weights", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -258,7 +260,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     try {
-      const res = await fetch("http://localhost:7000/classes/rubrik-assessments", {
+      const res = await fetch("${API_BASE_URL}/classes/rubrik-assessments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -288,7 +290,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     try {
-      const res = await fetch(`http://localhost:7000/classes/rubrik-assessments/${editingRubrikAssessment.id}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/rubrik-assessments/${editingRubrikAssessment.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -313,7 +315,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const handleDeleteRubrikAssessment = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/rubrik-assessments/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/rubrik-assessments/${id}`, {
         method: "DELETE",
         credentials: "include"
       });
@@ -332,7 +334,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const handleSaveRubrikAssessmentWeights = async (id: string, payload: { competencies: any[]; subAssessments: any[] }) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/rubrik-assessments/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/rubrik-assessments/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -356,7 +358,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     setIsDistributing(true);
     setDistributeMessage(null);
     try {
-      const res = await fetch("http://localhost:7000/classes/program-distribute-modulo", {
+      const res = await fetch("${API_BASE_URL}/classes/program-distribute-modulo", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ programName: progName }),
@@ -395,7 +397,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const fetchCompetencies = async (programId: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/competencies?programId=${programId}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/competencies?programId=${programId}`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -411,8 +413,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const fetchProgramCompetencies = async (programId?: string) => {
     try {
       const url = programId 
-        ? `http://localhost:7000/classes/program-competencies?programId=${programId}`
-        : `http://localhost:7000/classes/program-competencies`;
+        ? `${API_BASE_URL}/classes/program-competencies?programId=${programId}`
+        : `${API_BASE_URL}/classes/program-competencies`;
       const res = await fetch(url, {
         headers: { Accept: "application/json" },
         credentials: "include",
@@ -429,8 +431,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const fetchRubrikAssessments = async (programId?: string) => {
     try {
       const url = programId 
-        ? `http://localhost:7000/classes/programs/${programId}/rubrik-assessments`
-        : `http://localhost:7000/classes/rubrik-assessments`;
+        ? `${API_BASE_URL}/classes/programs/${programId}/rubrik-assessments`
+        : `${API_BASE_URL}/classes/rubrik-assessments`;
       const res = await fetch(url, {
         headers: { Accept: "application/json" },
         credentials: "include",
@@ -446,7 +448,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const fetchExternalScores = async (programId: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/programs/${programId}/rubrik-assessments/scores`, {
+      const res = await fetch(`${API_BASE_URL}/classes/programs/${programId}/rubrik-assessments/scores`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -519,7 +521,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           const progId = selectedProgramId || classes[0]?.program?.id;
           if (!progId) return;
 
-          const res = await fetch(`http://localhost:7000/classes/programs/${progId}/rubrik-assessments/import-scores`, {
+          const res = await fetch(`${API_BASE_URL}/classes/programs/${progId}/rubrik-assessments/import-scores`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ scores: scoresToImport }),
@@ -554,7 +556,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     try {
-      const res = await fetch("http://localhost:7000/classes/competencies", {
+      const res = await fetch("${API_BASE_URL}/classes/competencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -617,7 +619,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     if (!editingCompetency) return;
     const formData = new FormData(e.currentTarget);
     try {
-      const res = await fetch(`http://localhost:7000/classes/competencies/${editingCompetency.id}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/competencies/${editingCompetency.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -644,7 +646,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const handleDeleteCompetency = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/competencies/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/competencies/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -664,7 +666,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const handleDeleteProgramCompetency = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/program-competencies/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/program-competencies/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -693,7 +695,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       const formIsGlobal = fd.get("isGlobal");
       const isGlobal = formIsGlobal === "true" || activeRubrikTab === "professional";
 
-      const res = await fetch("http://localhost:7000/classes/program-competencies", {
+      const res = await fetch("${API_BASE_URL}/classes/program-competencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -735,7 +737,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
     
     try {
-      const res = await fetch(`http://localhost:7000/classes/${selectedClassId}/material`, {
+      const res = await fetch(`${API_BASE_URL}/classes/${selectedClassId}/material`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -774,7 +776,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
 
     try {
-      const res = await fetch(`http://localhost:7000/classes/${selectedClassId}/assignment`, {
+      const res = await fetch(`${API_BASE_URL}/classes/${selectedClassId}/assignment`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -803,7 +805,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const handleDeleteMaterial = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/materials/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/materials/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -821,7 +823,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const handleDeleteAssignment = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/assignments/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/classes/assignments/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -840,7 +842,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const fetchMentorData = async () => {
     setIsLoading(true);
     try {
-      const resClasses = await fetch("http://localhost:7000/classes/mentor-classes", {
+      const resClasses = await fetch("${API_BASE_URL}/classes/mentor-classes", {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -868,7 +870,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     setSuspendError(null);
     const endpoint = suspendActionType === "suspend" ? "suspend" : "unsuspend";
     try {
-      const res = await fetch(`http://localhost:7000/users/${selectedStudentForSuspend.id}/${endpoint}`, {
+      const res = await fetch(`${API_BASE_URL}/users/${selectedStudentForSuspend.id}/${endpoint}`, {
         method: "PATCH",
         credentials: "include",
       });

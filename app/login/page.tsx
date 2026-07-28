@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { API_BASE_URL } from "@/lib/config";
 import {
   ArrowLeft,
   AlertCircle,
@@ -61,7 +62,7 @@ function LoginContent() {
 
         {/* Continue with Google button */}
         <motion.a
-          href="http://localhost:7000/auth/google"
+          href={`${API_BASE_URL}/auth/google`}
           whileHover={{ scale: 1.015 }}
           whileTap={{ scale: 0.985 }}
           className="w-full py-3 rounded-lg border border-border bg-card text-foreground font-sans font-medium text-sm hover:bg-muted/50 transition-colors flex items-center justify-center gap-2.5 shadow-sm"

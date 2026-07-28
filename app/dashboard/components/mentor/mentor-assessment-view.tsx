@@ -1,5 +1,7 @@
 "use client";
 
+import { API_BASE_URL } from "@/lib/config";
+
 import Link from "next/link";
 import { useState } from "react";
 import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award } from "lucide-react";
@@ -565,7 +567,7 @@ export function MentorAssessmentView({
                 onClick={async () => {
                   if (!selectedProgramId) return;
                   try {
-                    const res = await fetch(`http://localhost:7000/classes/programs/${selectedProgramId}/release-certificate`, {
+                    const res = await fetch(`${API_BASE_URL}/classes/programs/${selectedProgramId}/release-certificate`, {
                       method: "POST",
                       credentials: "include"
                     });
