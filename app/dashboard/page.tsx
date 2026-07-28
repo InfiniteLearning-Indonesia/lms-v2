@@ -42,8 +42,25 @@ export default function DashboardPage() {
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   const fetchProfile = () => {
-    fetch(`${API_BASE_URL}/auth/me`, {
-      headers: { Accept: "application/json" },
+    let token = new URLSearchParams(window.location.search).get("token");
+    if (token) {
+      localStorage.setItem("auth_token", token);
+      const url = new URL(window.location.href);
+      url.searchParams.delete("token");
+      window.history.replaceState({}, "", url.toString());
+    } else {
+      token = localStorage.getItem("auth_token");
+    }
+
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    const url = `${API_BASE_URL}/auth/me${token ? `?token=${token}` : ""}`;
+
+    fetch(url, {
+      headers,
       credentials: "include",
     })
       .then((res) => {
@@ -58,100 +75,99 @@ export default function DashboardPage() {
       })
       .catch((err) => {
         console.error(err);
+        localStorage.removeItem("auth_token");
         router.push("/login?error=" + encodeURIComponent(err.message));
       });
   };
 
   useEffect(() => {
     fetchProfile();
-  }, [router]);
+  }, []);
 
-  async function handleLogout() {
+  const handleLogout = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
+      const token = localStorage.getItem("auth_token");
+      const headers: Record<string, string> = { Accept: "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
+      await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
+        headers,
         credentials: "include",
       });
-      if (res.ok) {
-        router.push("/login");
-      }
     } catch (err) {
       console.error(err);
+    } finally {
+      localStorage.removeItem("auth_token");
+      router.push("/login");
     }
-  }
-
-  const roleColors = {
-    admin: "bg-red-500/10 text-red-500 border-red-500/20",
-    facilitator: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
-    mentor: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-    student: "bg-brand-purple/10 text-brand-purple border-brand-purple/20",
-  };
-
-  const roleLabels = {
-    admin: "Administrator",
-    facilitator: "Facilitator Program",
-    mentor: "Mentor Kelas",
-    student: "Siswa LMS",
   };
 
   if (isLoadingProfile) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-        <Loader2 className="w-10 h-10 text-brand-purple animate-spin" />
-        <p className="mt-4 text-sm text-muted-foreground animate-pulse font-heading">
-          Memuat halaman dasbor…
-        </p>
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <Navbar profile={null} onLogout={handleLogout} />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-purple" />
+          <p className="text-sm font-medium text-muted-foreground">Memuat data dasbor...</p>
+        </div>
       </div>
     );
   }
 
+  const activeRoles = profile?.roles || (profile?.role ? [profile.role] : []);
+  const isAdmin = activeRoles.includes("admin");
+  const isFacilitator = activeRoles.includes("facilitator");
+  const isMentor = activeRoles.includes("mentor");
+  const isStudent = activeRoles.includes("student");
+
   return (
-    <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
-      <Navbar profile={profile} onLogout={handleLogout} title="Dasbor Utama" />
+    <div className="min-h-screen bg-background flex flex-col font-sans">
+      <Navbar profile={profile} onLogout={handleLogout} />
 
-      {/* ── Main Content ── */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
-        <div className="space-y-6">
-
-          {/* Welcome Panel */}
-          <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-            <div className="flex items-center gap-4">
-              {profile && (
-                <img
-                  src={profile.avatarUrl || `/avatars/avatar_${((profile.id ? (profile.id.charCodeAt(0) + profile.id.charCodeAt(profile.id.length - 1)) : 1) % 5) + 1}.png`}
-                  alt={profile.name}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-brand-purple/20 shadow-sm"
-                />
-              )}
-              <div className="space-y-1.5">
-                <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border ${profile ? roleColors[profile.role] : ""}`}>
-                  <Shield className="w-2.5 h-2.5" />
-                  {profile ? roleLabels[profile.role] : ""}
-                </span>
-                <h1 className="font-heading font-bold text-2xl tracking-tight text-foreground">
-                  Selamat datang kembali, {profile?.name}!
-                </h1>
-                <p className="text-xs text-muted-foreground">
-                  Email Anda: <span className="font-medium text-foreground">{profile?.email}</span>
-                </p>
-              </div>
-            </div>
-
+      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <LayoutDashboard className="w-5 h-5 text-brand-purple" />
+            <span className="font-heading font-bold text-lg text-foreground">Dasbor Utama</span>
           </div>
 
-          {/* Views Routing based on Role */}
-          {profile?.roles?.includes("student") && !profile?.roles?.includes("mentor") && !profile?.roles?.includes("facilitator") && !profile?.roles?.includes("admin") && <StudentDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-          {profile?.roles?.includes("facilitator") && !profile?.roles?.includes("admin") && <FacilitatorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-          {profile?.roles?.includes("mentor") && !profile?.roles?.includes("facilitator") && !profile?.roles?.includes("admin") && <MentorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-          {profile?.roles?.includes("admin") && <AdminDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <div className="flex items-center gap-2 pl-3 border-l border-border">
+              {profile?.avatarUrl ? (
+                <img
+                  src={profile.avatarUrl}
+                  alt={profile.name}
+                  className="w-8 h-8 rounded-full object-cover border border-border"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full bg-brand-purple/10 text-brand-purple font-bold flex items-center justify-center text-xs">
+                  {profile?.name?.charAt(0) || "U"}
+                </div>
+              )}
+              <span className="text-sm font-medium text-foreground hidden sm:inline">
+                {profile?.name}
+              </span>
+            </div>
 
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
+              title="Keluar"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
         </div>
-      </main>
+      </header>
 
-      {/* Footer */}
-      <footer className="bg-card border-t border-border py-6 text-center text-xs text-muted-foreground mt-12">
-        <p>&copy; {new Date().getFullYear()} Infinite Learning.</p>
-      </footer>
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {isAdmin && profile && <AdminDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {!isAdmin && isFacilitator && profile && <FacilitatorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {!isAdmin && !isFacilitator && isMentor && profile && <MentorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {!isAdmin && !isFacilitator && !isMentor && isStudent && profile && <StudentDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+      </main>
     </div>
   );
 }
