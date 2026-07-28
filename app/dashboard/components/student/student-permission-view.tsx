@@ -175,7 +175,7 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
     };
 
     try {
-      const res = await fetch("${API_BASE_URL}/attendance/permission-requests", {
+      const res = await fetch(`${API_BASE_URL}/attendance/permission-requests`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),

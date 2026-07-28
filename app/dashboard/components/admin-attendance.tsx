@@ -87,7 +87,7 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
 
   const fetchAttendances = async () => {
     setLoading(true);
-    let url = "${API_BASE_URL}/attendance";
+    let url = `${API_BASE_URL}/attendance`;
     if (selectedBatch && selectedBatch !== "all") {
       url += `?batchId=${selectedBatch}`;
     }

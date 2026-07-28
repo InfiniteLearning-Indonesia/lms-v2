@@ -235,7 +235,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
     setIsSavingWeights(true);
     try {
-      const res = await fetch("${API_BASE_URL}/classes/assignments/weights", {
+      const res = await fetch(`${API_BASE_URL}/classes/assignments/weights`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -260,7 +260,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     try {
-      const res = await fetch("${API_BASE_URL}/classes/rubrik-assessments", {
+      const res = await fetch(`${API_BASE_URL}/classes/rubrik-assessments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -358,7 +358,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     setIsDistributing(true);
     setDistributeMessage(null);
     try {
-      const res = await fetch("${API_BASE_URL}/classes/program-distribute-modulo", {
+      const res = await fetch(`${API_BASE_URL}/classes/program-distribute-modulo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ programName: progName }),
@@ -556,7 +556,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     try {
-      const res = await fetch("${API_BASE_URL}/classes/competencies", {
+      const res = await fetch(`${API_BASE_URL}/classes/competencies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -695,7 +695,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       const formIsGlobal = fd.get("isGlobal");
       const isGlobal = formIsGlobal === "true" || activeRubrikTab === "professional";
 
-      const res = await fetch("${API_BASE_URL}/classes/program-competencies", {
+      const res = await fetch(`${API_BASE_URL}/classes/program-competencies`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -842,7 +842,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const fetchMentorData = async () => {
     setIsLoading(true);
     try {
-      const resClasses = await fetch("${API_BASE_URL}/classes/mentor-classes", {
+      const resClasses = await fetch(`${API_BASE_URL}/classes/mentor-classes`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });

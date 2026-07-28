@@ -100,7 +100,7 @@ ${sessionResult?.analysis || sub.aiAnalysis || 'Berhasil membaca file/repositori
   useEffect(() => {
     if (!isOpen) return;
 
-    fetch("${API_BASE_URL}/classes/mentor/ai-config", {
+    fetch(`${API_BASE_URL}/classes/mentor/ai-config`, {
       credentials: "include",
     })
       .then((res) => (res.ok ? res.json() : null))
@@ -147,7 +147,7 @@ ${sessionResult?.analysis || sub.aiAnalysis || 'Berhasil membaca file/repositori
       else if (provider === "groq") hostOrApiKey = groqKey;
       else if (provider === "gemini") hostOrApiKey = geminiKey;
 
-      const res = await fetch("${API_BASE_URL}/classes/mentor/ai-models", {
+      const res = await fetch(`${API_BASE_URL}/classes/mentor/ai-models`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -179,7 +179,7 @@ ${sessionResult?.analysis || sub.aiAnalysis || 'Berhasil membaca file/repositori
       else if (aiProvider === "groq") hostOrApiKey = groqApiKey;
       else if (aiProvider === "gemini") hostOrApiKey = googleAiStudioKey;
 
-      const res = await fetch("${API_BASE_URL}/classes/mentor/ai-models", {
+      const res = await fetch(`${API_BASE_URL}/classes/mentor/ai-models`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

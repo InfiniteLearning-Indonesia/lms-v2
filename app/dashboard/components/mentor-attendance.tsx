@@ -1091,7 +1091,7 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
                     variant={isExtraAsync ? "default" : "outline"}
                     onClick={async () => {
                       try {
-                        const res = await fetch("${API_BASE_URL}/classes/attendance/async-days/toggle", {
+                        const res = await fetch(`${API_BASE_URL}/classes/attendance/async-days/toggle`, {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
                           credentials: "include",

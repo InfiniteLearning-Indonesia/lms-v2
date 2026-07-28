@@ -49,7 +49,7 @@ export default function AssignmentDetailPage() {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("${API_BASE_URL}/auth/logout", {
+      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -75,7 +75,7 @@ export default function AssignmentDetailPage() {
         if (!res.ok) throw new Error("Gagal mengambil data tugas");
         return res.json();
       }),
-      fetch("${API_BASE_URL}/auth/me", {
+      fetch(`${API_BASE_URL}/auth/me`, {
         headers: { Accept: "application/json" },
         credentials: "include",
       }).then((res) => {

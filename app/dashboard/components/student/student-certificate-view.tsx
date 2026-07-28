@@ -53,7 +53,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
   const [subTab, setSubTab] = useState<"transcript" | "certificate">("transcript");
 
   useEffect(() => {
-    fetch("${API_BASE_URL}/classes/my-grades", {
+    fetch(`${API_BASE_URL}/classes/my-grades`, {
       credentials: "include",
     })
       .then((res) => res.json())

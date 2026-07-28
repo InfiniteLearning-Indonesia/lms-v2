@@ -36,7 +36,7 @@ export default function ClassDetailPage() {
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    fetch("${API_BASE_URL}/auth/me", {
+    fetch(`${API_BASE_URL}/auth/me`, {
       headers: { Accept: "application/json" },
       credentials: "include",
     })
@@ -53,7 +53,7 @@ export default function ClassDetailPage() {
 
   const handleLogout = async () => {
     try {
-      const res = await fetch("${API_BASE_URL}/auth/logout", {
+      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

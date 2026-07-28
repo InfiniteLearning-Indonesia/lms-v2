@@ -263,7 +263,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const fetchUsersList = async () => {
     setIsLoadingUsers(true);
     try {
-      const res = await fetch("${API_BASE_URL}/users", {
+      const res = await fetch(`${API_BASE_URL}/users`, {
         credentials: "include",
       });
       if (res.ok) {
@@ -280,7 +280,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const fetchProgramsList = async () => {
     setIsLoadingPrograms(true);
     try {
-      const res = await fetch("${API_BASE_URL}/classes/programs-list", {
+      const res = await fetch(`${API_BASE_URL}/classes/programs-list`, {
         credentials: "include",
       });
       if (res.ok) {
@@ -297,7 +297,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const fetchBatchesList = async () => {
     setIsLoadingBatches(true);
     try {
-      const res = await fetch("${API_BASE_URL}/classes/batches", {
+      const res = await fetch(`${API_BASE_URL}/classes/batches`, {
         credentials: "include",
       });
       if (res.ok) {
@@ -493,7 +493,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
   const bulkDeleteUsers = async () => {
     try {
-      const res = await fetch("${API_BASE_URL}/users/bulk-delete", {
+      const res = await fetch(`${API_BASE_URL}/users/bulk-delete`, {
         method: "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -520,7 +520,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setSuccessMsg("");
 
     try {
-      const res = await fetch("${API_BASE_URL}/users/invite", {
+      const res = await fetch(`${API_BASE_URL}/users/invite`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -619,7 +619,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setSuccessMsg("");
 
     try {
-      const res = await fetch("${API_BASE_URL}/users/bulk-import-csv", {
+      const res = await fetch(`${API_BASE_URL}/users/bulk-import-csv`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -721,7 +721,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
     setIsSubmittingCreateBatch(true);
     try {
-      const res = await fetch("${API_BASE_URL}/classes/batches", {
+      const res = await fetch(`${API_BASE_URL}/classes/batches`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },

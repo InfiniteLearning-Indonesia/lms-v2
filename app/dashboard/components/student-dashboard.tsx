@@ -77,7 +77,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
 
   useEffect(() => {
     setIsLoading(true);
-    fetch("${API_BASE_URL}/classes/my-classes", {
+    fetch(`${API_BASE_URL}/classes/my-classes`, {
       headers: { Accept: "application/json" },
       credentials: "include",
     })
@@ -238,7 +238,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
           </div>
           <button
             onClick={() => {
-              fetch("${API_BASE_URL}/auth/logout", { method: "POST", credentials: "include" })
+              fetch(`${API_BASE_URL}/auth/logout`, { method: "POST", credentials: "include" })
                 .then(() => (window.location.href = "/login"))
                 .catch(() => (window.location.href = "/login"));
             }}
