@@ -7,7 +7,7 @@ function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
     if (host === 'lms-v2.infinitelearningstudent.id' || host.endsWith('.infinitelearningstudent.id')) {
-      return 'https://api.lms-v2.infinitelearningstudent.id';
+      return 'https://api-lms-v2.infinitelearningstudent.id';
     }
   }
   return 'http://localhost:7000';
