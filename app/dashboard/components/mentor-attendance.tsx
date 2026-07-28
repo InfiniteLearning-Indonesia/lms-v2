@@ -244,6 +244,8 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
 
     const isMentorAsync = mentorAsyncDays.some((a: any) => a.date === localDateStr);
 
+    const isFuture = date > today;
+
     let cellBg = "bg-card hover:bg-secondary/20 cursor-pointer";
     let content = null;
 
@@ -270,8 +272,17 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
         </div>
       );
     } else if (!isActive) {
-      cellBg = "bg-secondary/20 text-muted-foreground opacity-50 cursor-not-allowed";
+      // Priority 3: Tanggal di luar periode batch
+      cellBg = "bg-secondary/20 text-muted-foreground/60 opacity-60 cursor-not-allowed";
+      content = (
+        <div className="mt-auto flex flex-col justify-end w-full">
+          <span className="text-[9px] font-medium text-muted-foreground bg-secondary/60 px-1.5 py-0.5 rounded-sm inline-block self-start leading-tight">
+            Di Luar Periode Batch
+          </span>
+        </div>
+      );
     } else {
+      // Priority 4: Hari Aktif Kerja (Senin, Selasa, Rabu, Kamis)
       content = (
         <div className="mt-auto pt-2 flex flex-col gap-1 w-full">
           {dateAtts.length > 0 ? (
@@ -285,6 +296,10 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
                 <span className="text-[10px] font-bold">{alpha}</span>
               </div>
             </>
+          ) : isFuture ? (
+            <div className="text-[10px] italic text-amber-700 dark:text-amber-400 font-medium text-center bg-amber-50 dark:bg-amber-950/50 border border-amber-200/60 rounded-sm py-0.5">
+              Mendatang
+            </div>
           ) : (
             <div className="text-[10px] italic text-muted-foreground text-center bg-secondary/50 rounded-sm py-0.5">
               Belum Diisi
