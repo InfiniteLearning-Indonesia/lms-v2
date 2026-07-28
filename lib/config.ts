@@ -3,10 +3,14 @@ function getApiBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_API_URL) {
     return process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
   }
-  // Automatic client-side domain detection fallback for production URL
+  // Automatic client-side domain detection fallback for production/testing URL
   if (typeof window !== 'undefined') {
     const host = window.location.hostname;
-    if (host === 'lms-v2.infinitelearningstudent.id' || host.endsWith('.infinitelearningstudent.id')) {
+    if (
+      host === 'dev-lms-v2.infinitelearningstudent.id' ||
+      host === 'lms-v2.infinitelearningstudent.id' ||
+      host.endsWith('.infinitelearningstudent.id')
+    ) {
       return 'https://api-lms-v2.infinitelearningstudent.id';
     }
   }
