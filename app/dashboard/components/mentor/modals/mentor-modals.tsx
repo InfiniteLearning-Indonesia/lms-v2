@@ -78,6 +78,7 @@ interface MentorModalsProps {
   setEditingProgramCompetency?: (v: any) => void;
   handleCreateProgramCompetency?: (e: React.FormEvent<HTMLFormElement>) => void;
   programCompetencies?: any[];
+  activeRubrikTab?: string;
 }
 
 export function MentorModals({
@@ -127,6 +128,7 @@ export function MentorModals({
   setEditingWeightRubrikAssessment,
   handleSaveRubrikAssessmentWeights,
   rubrikAssessments = [],
+  activeRubrikTab,
 }: MentorModalsProps) {
   const [selectedCompetencyName, setSelectedCompetencyName] = useState("");
   const [selectedRubricIds, setSelectedRubricIds] = useState<string[]>([]);
@@ -151,9 +153,16 @@ export function MentorModals({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
           <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
             <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
-              Tambah Kompetensi Induk Baru
+              {activeRubrikTab === "professional"
+                ? "Tambah Kompetensi Professional (Global)"
+                : "Tambah Kompetensi Induk Baru"}
             </h3>
             <form onSubmit={handleCreateProgramCompetency} className="space-y-4">
+              <input
+                type="hidden"
+                name="isGlobal"
+                value={activeRubrikTab === "professional" ? "true" : "false"}
+              />
               <div>
                 <label className="block text-sm font-medium mb-1 text-foreground">
                   Nama Kompetensi

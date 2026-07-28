@@ -387,7 +387,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   useEffect(() => {
     if (selectedProgramId) {
       fetchCompetencies(selectedProgramId);
-      fetchProgramCompetencies();
+      fetchProgramCompetencies(selectedProgramId || undefined);
       fetchRubrikAssessments(selectedProgramId);
       fetchExternalScores(selectedProgramId);
     }
@@ -408,9 +408,12 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   };
 
-  const fetchProgramCompetencies = async () => {
+  const fetchProgramCompetencies = async (programId?: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/program-competencies`, {
+      const url = programId 
+        ? `http://localhost:7000/classes/program-competencies?programId=${programId}`
+        : `http://localhost:7000/classes/program-competencies`;
+      const res = await fetch(url, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -423,9 +426,12 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   };
 
-  const fetchRubrikAssessments = async (programId: string) => {
+  const fetchRubrikAssessments = async (programId?: string) => {
     try {
-      const res = await fetch(`http://localhost:7000/classes/programs/${programId}/rubrik-assessments`, {
+      const url = programId 
+        ? `http://localhost:7000/classes/programs/${programId}/rubrik-assessments`
+        : `http://localhost:7000/classes/rubrik-assessments`;
+      const res = await fetch(url, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -664,7 +670,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       });
       if (res.ok) {
         toast.success("Kompetensi (Sertifikat) berhasil dihapus!");
-        fetchProgramCompetencies();
+        fetchProgramCompetencies(selectedProgramId || undefined);
       } else {
         const error = await res.json();
         toast.error(error.message || "Gagal menghapus kompetensi (sertifikat).");
@@ -683,6 +689,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       try {
         syllabuses = JSON.parse(fd.get("syllabuses") as string || "[]");
       } catch(e) {}
+
+      const formIsGlobal = fd.get("isGlobal");
+      const isGlobal = formIsGlobal === "true" || activeRubrikTab === "professional";
+
       const res = await fetch("http://localhost:7000/classes/program-competencies", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -690,21 +700,22 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         body: JSON.stringify({
           name: fd.get("name"),
           category: fd.get("category"),
-          programId: selectedProgramId,
+          programId: isGlobal ? undefined : selectedProgramId,
+          isGlobal: isGlobal,
           syllabuses,
         }),
       });
       if (res.ok) {
-        toast.success("Kompetensi (Sertifikat) berhasil dibuat!");
+        toast.success(isGlobal ? "Kompetensi Professional berhasil dibuat!" : "Kompetensi Program berhasil dibuat!");
         setIsAddProgramCompetencyModalOpen(false);
-        fetchProgramCompetencies();
+        fetchProgramCompetencies(selectedProgramId || undefined);
+        fetchRubrikAssessments(selectedProgramId || undefined);
         if (selectedProgramId) {
           fetchCompetencies(selectedProgramId);
-          fetchRubrikAssessments(selectedProgramId);
         }
       } else {
         const error = await res.json();
-        toast.error(error.message || "Gagal membuat kompetensi (sertifikat).");
+        toast.error(error.message || "Gagal membuat kompetensi.");
       }
     } catch (err) {
       console.error(err);
@@ -1294,7 +1305,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         <TabsContent value="rubric" className="space-y-6">
           <MentorAssessmentView
             programCompetencies={programCompetencies}
-            fetchProgramCompetencies={fetchProgramCompetencies}
+            fetchProgramCompetencies={() => fetchProgramCompetencies(selectedProgramId || undefined)}
             activeSubTab="rubric"
             competencies={competencies}
             rubrikAssessments={rubrikAssessments}
@@ -1327,7 +1338,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         <TabsContent value="assessment" className="space-y-6">
           <MentorAssessmentView
             programCompetencies={programCompetencies}
-            fetchProgramCompetencies={fetchProgramCompetencies}
+            fetchProgramCompetencies={() => fetchProgramCompetencies(selectedProgramId || undefined)}
             activeSubTab="assessment"
             competencies={competencies}
             rubrikAssessments={rubrikAssessments}
@@ -1390,6 +1401,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
       {/* Modal Dialogs */}
       <MentorModals
+        activeRubrikTab={activeRubrikTab}
         isAddCompetencyModalOpen={isAddCompetencyModalOpen}
         setIsAddCompetencyModalOpen={setIsAddCompetencyModalOpen}
         isAddProgramCompetencyModalOpen={isAddProgramCompetencyModalOpen}

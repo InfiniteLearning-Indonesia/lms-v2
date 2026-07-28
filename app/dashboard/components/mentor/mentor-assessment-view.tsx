@@ -226,7 +226,7 @@ export function MentorAssessmentView({
                   </thead>
                   <tbody className="divide-y divide-border/60 text-xs">
                     {programCompetencies?.filter((c: any) =>
-                      activeRubrikTab === "professional" ? !c.programId : !!c.programId
+                      activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
                     ).length === 0 ? (
                       <tr>
                         <td colSpan={3} className="py-8 text-center text-muted-foreground">
@@ -236,7 +236,7 @@ export function MentorAssessmentView({
                     ) : (
                       programCompetencies
                         ?.filter((c: any) =>
-                          activeRubrikTab === "professional" ? !c.programId : !!c.programId
+                          activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
                         )
                         .map((comp: any) => (
                           <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
@@ -319,7 +319,7 @@ export function MentorAssessmentView({
                   </thead>
                   <tbody className="divide-y divide-border/60 text-xs">
                     {competencies.filter((c: any) =>
-                      activeRubrikTab === "professional" ? c.isGlobal : !c.isGlobal
+                      activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
                     ).length === 0 ? (
                       <tr>
                         <td colSpan={4} className="py-8 text-center text-muted-foreground">
@@ -329,7 +329,7 @@ export function MentorAssessmentView({
                     ) : (
                       competencies
                         .filter((c: any) =>
-                          activeRubrikTab === "professional" ? c.isGlobal : !c.isGlobal
+                          activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
                         )
                         .map((comp: any) => (
                           <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
@@ -427,7 +427,7 @@ export function MentorAssessmentView({
                         </thead>
                         <tbody className="divide-y divide-border/60 text-xs">
                           {rubrikAssessments.filter((r: any) =>
-                            (activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal) &&
+                            (activeRubrikTab === "professional" ? (r.isGlobal || !r.programId) : (!r.isGlobal && !!r.programId)) &&
                             (r.phase === phase || (!r.phase && phase === "Micro"))
                           ).length === 0 ? (
                             <tr>
@@ -438,7 +438,7 @@ export function MentorAssessmentView({
                           ) : (
                             rubrikAssessments
                               .filter((r: any) =>
-                                (activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal) &&
+                                (activeRubrikTab === "professional" ? (r.isGlobal || !r.programId) : (!r.isGlobal && !!r.programId)) &&
                                 (r.phase === phase || (!r.phase && phase === "Micro"))
                               )
                               .map((ra: any) => (

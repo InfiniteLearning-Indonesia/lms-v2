@@ -76,6 +76,7 @@ export interface CompetencyItem {
   programId?: string;
   rubric?: any;
   programCompetency?: any;
+  isGlobal?: boolean;
 }
 
 export interface ProgramCompetency {
@@ -85,4 +86,5 @@ export interface ProgramCompetency {
   phase?: string;
   programId?: string;
   syllabuses?: CompetencyItem[];
+  isGlobal?: boolean;
 }
