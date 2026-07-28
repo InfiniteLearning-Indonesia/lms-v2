@@ -16,6 +16,7 @@ import {
   Lock,
   Users,
   Video,
+  ExternalLink,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -218,16 +219,21 @@ export default function ClassDetailPage() {
                           <div className="border-t border-border/50 pt-3" />
                           {items.map((item: any) => {
                             if (item.itemType === 'material') {
+                              const isExternalLink = item.content && (item.content.startsWith('http://') || item.content.startsWith('https://'));
+                              const materialHref = isExternalLink ? item.content : `/dashboard/class/${classId}/material/${item.id}`;
+                              const linkTarget = isExternalLink ? "_blank" : undefined;
+                              const linkRel = isExternalLink ? "noopener noreferrer" : undefined;
+                              
                               return (
-                                <Link href={`/dashboard/class/${classId}/material/${item.id}`} key={`mat-${item.id}`} className="block">
+                                <Link href={materialHref} target={linkTarget} rel={linkRel} key={`mat-${item.id}`} className="block">
                                   <div className="p-4 border border-border rounded-xl flex items-center gap-4 hover:border-brand-purple/50 hover:bg-background transition-colors cursor-pointer bg-background">
                                     <div className="w-10 h-10 rounded-lg bg-brand-purple/10 text-brand-purple flex items-center justify-center shrink-0">
-                                      {item.type === "video" ? <Video className="w-5 h-5" /> : <BookOpen className="w-5 h-5" />}
+                                      {item.type === "video" ? <Video className="w-5 h-5" /> : (isExternalLink ? <ExternalLink className="w-5 h-5" /> : <BookOpen className="w-5 h-5" />)}
                                     </div>
                                     <div>
                                       <h4 className="font-heading font-semibold text-sm text-foreground">{item.title}</h4>
                                       <p className="text-xs text-muted-foreground mt-0.5">
-                                        {item.type === "video" ? "Video Pembelajaran" : "Materi Teks / PDF"}
+                                        {item.type === "video" ? "Video Pembelajaran" : (isExternalLink ? "Tautan Eksternal" : "Materi Teks / PDF")}
                                         {item.createdAt ? ` • Diunggah pada ${new Date(item.createdAt).toLocaleDateString("id-ID")}` : ""}
                                       </p>
                                     </div>

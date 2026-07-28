@@ -470,7 +470,6 @@ export function MentorClassesView({
                         <div className="flex items-center gap-2 shrink-0">
                           <Link
                             href={`/dashboard/class/${selectedCls.id}/material/${mat.id}`}
-                            target="_blank"
                             className="text-xs font-medium text-brand-purple flex items-center gap-1 bg-card px-2.5 py-1 rounded border border-border shadow-2xs hover:bg-brand-purple/5 transition-colors"
                           >
                             Lihat Modul

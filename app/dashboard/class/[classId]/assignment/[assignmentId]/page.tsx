@@ -32,6 +32,7 @@ export default function AssignmentDetailPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [submissionData, setSubmissionData] = useState<any>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Mentor Grading States
   const [mentorSubmissions, setMentorSubmissions] = useState<any[]>([]);
@@ -159,6 +160,7 @@ export default function AssignmentDetailPage() {
         setSubmissionData(data.submission);
       }
       setIsSubmitted(true);
+      setIsEditing(false);
       toast.success("Tugas berhasil dikirim!");
     } catch (err) {
       console.error(err);
@@ -308,10 +310,20 @@ export default function AssignmentDetailPage() {
             </div>
           ) : (
             <div className="bg-card border border-border rounded-xl p-6 shadow-sm flex flex-col mt-8">
-              <h3 className="font-heading font-bold text-lg mb-1">Pengumpulan Tugas</h3>
+              <div className="flex justify-between items-center mb-1">
+                <h3 className="font-heading font-bold text-lg">Pengumpulan Tugas</h3>
+                {isSubmitted && !isPastDue && !isEditing && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setSubmissionLink(submissionData?.link || "");
+                    setIsEditing(true);
+                  }}>
+                    <Pencil className="w-4 h-4 mr-2" /> Edit Tugas
+                  </Button>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground mb-6">Status: {isSubmitted ? <span className="text-emerald-600 font-semibold">Terkumpul</span> : <span className="text-amber-600 font-semibold">Belum Terkumpul</span>}</p>
 
-              {isSubmitted ? (
+              {isSubmitted && !isEditing ? (
                 <div className="space-y-4">
                   <Alert className="bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400 mb-4">
                     <CheckCircle2 className="h-4 w-4 stroke-current" />
@@ -366,6 +378,15 @@ export default function AssignmentDetailPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5 max-w-lg">
+                  {isEditing && (
+                    <Alert className="bg-brand-yellow/10 border-brand-yellow/30 text-amber-600 dark:text-amber-500 mb-4">
+                      <AlertCircle className="h-4 w-4 stroke-current" />
+                      <AlertTitle className="text-sm font-semibold">Mode Edit</AlertTitle>
+                      <AlertDescription className="text-xs mt-1">
+                        Anda sedang mengubah tautan tugas Anda. Jangan lupa simpan perubahan.
+                      </AlertDescription>
+                    </Alert>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="link-input" className="text-xs">
                       {assignmentData.submissionType === 'github' ? 'Tautan Repository GitHub' :
@@ -403,21 +424,26 @@ export default function AssignmentDetailPage() {
                       </p>
                     )}
                   </div>
-
-                  <Button
-                    type="submit"
-                    className="w-full bg-brand-purple hover:bg-brand-purple-hover text-white transition-all shadow-sm h-10 text-sm font-semibold"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                        Mengirim...
-                      </>
-                    ) : (
-                      "Kirim Tugas"
-                    )}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="submit"
+                        disabled={isSubmitting || !submissionLink}
+                        className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold transition-all flex items-center gap-2 px-6"
+                      >
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <UploadCloud className="w-4 h-4" />}
+                        {isSubmitting ? "Mengirim..." : (isEditing ? "Simpan Perubahan" : "Kumpulkan Tugas")}
+                      </Button>
+                      {isEditing && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => setIsEditing(false)}
+                          disabled={isSubmitting}
+                        >
+                          Batal
+                        </Button>
+                      )}
+                    </div>
 
                   {isPastDue && (
                     <p className="text-[10px] text-amber-600 font-medium text-center mt-2 flex items-center justify-center gap-1.5">

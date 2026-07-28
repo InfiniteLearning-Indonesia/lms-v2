@@ -81,7 +81,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     const urlTab = searchParams.get("tab");
     const savedTab = typeof window !== "undefined" ? localStorage.getItem("mentor_dashboard_active_tab") : null;
     const validTabs = ["classes", "students", "facilitators", "logbook", "attendance", "rubrics", "assessment", "settings"];
-    
+
     if (urlTab && validTabs.includes(urlTab)) {
       setActiveTab(urlTab);
       if (typeof window !== "undefined") localStorage.setItem("mentor_dashboard_active_tab", urlTab);
@@ -201,11 +201,14 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [isDistributing, setIsDistributing] = useState(false);
 
   const [competencies, setCompetencies] = useState<any[]>([]);
+  const [programCompetencies, setProgramCompetencies] = useState<any[]>([]);
   const [rubrikAssessments, setRubrikAssessments] = useState<any[]>([]);
   const [externalScores, setExternalScores] = useState<any[]>([]);
   const [isImportingCSV, setIsImportingCSV] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
   const [isAddCompetencyModalOpen, setIsAddCompetencyModalOpen] = useState(false);
+  const [isAddProgramCompetencyModalOpen, setIsAddProgramCompetencyModalOpen] = useState(false);
+  const [editingProgramCompetency, setEditingProgramCompetency] = useState<any>(null);
   const [isAddRubrikAssessmentModalOpen, setIsAddRubrikAssessmentModalOpen] = useState(false);
   const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
   const [isAddAssignmentModalOpen, setIsAddAssignmentModalOpen] = useState(false);
@@ -384,6 +387,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   useEffect(() => {
     if (selectedProgramId) {
       fetchCompetencies(selectedProgramId);
+      fetchProgramCompetencies();
       fetchRubrikAssessments(selectedProgramId);
       fetchExternalScores(selectedProgramId);
     }
@@ -398,6 +402,21 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       if (res.ok) {
         const data = await res.json();
         setCompetencies(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchProgramCompetencies = async () => {
+    try {
+      const res = await fetch(`http://localhost:7000/classes/program-competencies`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setProgramCompetencies(data);
       }
     } catch (err) {
       console.error(err);
@@ -535,9 +554,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         body: JSON.stringify({
           name: formData.get("name"),
           category: formData.get("category"),
-          phase: formData.get("phase"),
           programId: selectedProgramId,
-          isGlobal: activeRubrikTab === "professional"
+          isGlobal: activeRubrikTab === "professional",
+          programCompetencyId: formData.get("programCompetencyId") || undefined,
         }),
         credentials: "include",
       });
@@ -598,7 +617,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         body: JSON.stringify({
           name: formData.get("name"),
           category: formData.get("category"),
-          phase: formData.get("phase"),
+          programCompetencyId: formData.get("programCompetencyId") || undefined,
         }),
         credentials: "include",
       });
@@ -637,9 +656,73 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   };
 
+  const handleDeleteProgramCompetency = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:7000/classes/program-competencies/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      if (res.ok) {
+        toast.success("Kompetensi (Sertifikat) berhasil dihapus!");
+        fetchProgramCompetencies();
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Gagal menghapus kompetensi (sertifikat).");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
+    }
+  };
+
+  const handleCreateProgramCompetency = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    try {
+      let syllabuses = [];
+      try {
+        syllabuses = JSON.parse(fd.get("syllabuses") as string || "[]");
+      } catch(e) {}
+      const res = await fetch("http://localhost:7000/classes/program-competencies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name: fd.get("name"),
+          category: fd.get("category"),
+          programId: selectedProgramId,
+          syllabuses,
+        }),
+      });
+      if (res.ok) {
+        toast.success("Kompetensi (Sertifikat) berhasil dibuat!");
+        setIsAddProgramCompetencyModalOpen(false);
+        fetchProgramCompetencies();
+        if (selectedProgramId) {
+          fetchCompetencies(selectedProgramId);
+          fetchRubrikAssessments(selectedProgramId);
+        }
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Gagal membuat kompetensi (sertifikat).");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
+    }
+  };
+
   const handleCreateMaterial = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const rawSelectedRubrics = formData.get("selectedRubrics") as string;
+    let selectedRubrics = null;
+    if (rawSelectedRubrics) {
+      try {
+        selectedRubrics = JSON.parse(rawSelectedRubrics);
+      } catch (err) { }
+    }
+    
     try {
       const res = await fetch(`http://localhost:7000/classes/${selectedClassId}/material`, {
         method: "POST",
@@ -650,6 +733,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           competency: formData.get("competency"),
           url: formData.get("url") || formData.get("caption") || "",
           content: formData.get("content") || "",
+          selectedRubrics,
         }),
         credentials: "include",
       });
@@ -675,7 +759,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     if (rawSelectedRubrics) {
       try {
         selectedRubrics = JSON.parse(rawSelectedRubrics);
-      } catch (err) {}
+      } catch (err) { }
     }
 
     try {
@@ -1209,14 +1293,19 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         {/* ── TAB RUBRIK ── */}
         <TabsContent value="rubric" className="space-y-6">
           <MentorAssessmentView
+            programCompetencies={programCompetencies}
+            fetchProgramCompetencies={fetchProgramCompetencies}
             activeSubTab="rubric"
             competencies={competencies}
             rubrikAssessments={rubrikAssessments}
             allStudents={allStudents}
             onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
+            onOpenAddProgramCompetency={() => setIsAddProgramCompetencyModalOpen(true)}
             onOpenAddRubrikAssessment={() => setIsAddRubrikAssessmentModalOpen(true)}
             setEditingCompetency={setEditingCompetency}
+            setEditingProgramCompetency={setEditingProgramCompetency}
             handleDeleteCompetency={handleDeleteCompetency}
+            handleDeleteProgramCompetency={handleDeleteProgramCompetency}
             setEditingWeightCompetency={setEditingWeightCompetency}
             setEditingRubrikAssessment={setEditingRubrikAssessment}
             handleDeleteRubrikAssessment={handleDeleteRubrikAssessment}
@@ -1237,6 +1326,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         {/* ── TAB ASSESSMENT (GRADEBOOK) ── */}
         <TabsContent value="assessment" className="space-y-6">
           <MentorAssessmentView
+            programCompetencies={programCompetencies}
+            fetchProgramCompetencies={fetchProgramCompetencies}
             activeSubTab="assessment"
             competencies={competencies}
             rubrikAssessments={rubrikAssessments}
@@ -1301,6 +1392,11 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       <MentorModals
         isAddCompetencyModalOpen={isAddCompetencyModalOpen}
         setIsAddCompetencyModalOpen={setIsAddCompetencyModalOpen}
+        isAddProgramCompetencyModalOpen={isAddProgramCompetencyModalOpen}
+        setIsAddProgramCompetencyModalOpen={setIsAddProgramCompetencyModalOpen}
+        editingProgramCompetency={editingProgramCompetency}
+        setEditingProgramCompetency={setEditingProgramCompetency}
+        handleCreateProgramCompetency={handleCreateProgramCompetency}
         handleCreateCompetency={handleCreateCompetency}
         editingCompetency={editingCompetency}
         setEditingCompetency={setEditingCompetency}
@@ -1310,6 +1406,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         materialType={materialType}
         setMaterialType={setMaterialType}
         handleCreateMaterial={handleCreateMaterial}
+        programCompetencies={programCompetencies}
         competencies={competencies}
         isAddAssignmentModalOpen={isAddAssignmentModalOpen}
         setIsAddAssignmentModalOpen={setIsAddAssignmentModalOpen}

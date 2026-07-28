@@ -70,6 +70,14 @@ interface MentorModalsProps {
   setEditingWeightRubrikAssessment?: (v: any) => void;
   handleSaveRubrikAssessmentWeights?: (id: string, payload: { competencies: any[]; subAssessments: any[] }) => Promise<void>;
   rubrikAssessments?: any[];
+
+  // Program Competency Modals
+  isAddProgramCompetencyModalOpen?: boolean;
+  setIsAddProgramCompetencyModalOpen?: (v: boolean) => void;
+  editingProgramCompetency?: any;
+  setEditingProgramCompetency?: (v: any) => void;
+  handleCreateProgramCompetency?: (e: React.FormEvent<HTMLFormElement>) => void;
+  programCompetencies?: any[];
 }
 
 export function MentorModals({
@@ -85,6 +93,12 @@ export function MentorModals({
   setMaterialType,
   handleCreateMaterial,
   competencies,
+  programCompetencies = [],
+  isAddProgramCompetencyModalOpen,
+  setIsAddProgramCompetencyModalOpen,
+  editingProgramCompetency,
+  setEditingProgramCompetency,
+  handleCreateProgramCompetency,
   isAddAssignmentModalOpen,
   setIsAddAssignmentModalOpen,
   handleCreateAssignment,
@@ -116,21 +130,35 @@ export function MentorModals({
 }: MentorModalsProps) {
   const [selectedCompetencyName, setSelectedCompetencyName] = useState("");
   const [selectedRubricIds, setSelectedRubricIds] = useState<string[]>([]);
+  const [syllabusesList, setSyllabusesList] = useState<{ name: string }[]>([]);
+  const [newSyllabusName, setNewSyllabusName] = useState("");
+
+  const addSyllabus = () => {
+    if (newSyllabusName.trim()) {
+      setSyllabusesList([...syllabusesList, { name: newSyllabusName.trim() }]);
+      setNewSyllabusName("");
+    }
+  };
+
+  const removeSyllabus = (idx: number) => {
+    setSyllabusesList(syllabusesList.filter((_, i) => i !== idx));
+  };
+
   return (
     <>
-      {/* Add Competency Modal */}
-      {isAddCompetencyModalOpen && (
+      {/* Add Program Competency Modal (Kompetensi Induk) */}
+      {isAddProgramCompetencyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
             <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
-              Tambah Kompetensi Baru
+              Tambah Kompetensi Induk Baru
             </h3>
-            <form onSubmit={handleCreateCompetency} className="space-y-4">
+            <form onSubmit={handleCreateProgramCompetency} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1 text-foreground">
                   Nama Kompetensi
                 </label>
-                <Input name="name" required placeholder="Contoh: Intro to React" />
+                <Input name="name" required placeholder="Contoh: Web Development Fundamentals" />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-foreground">
@@ -146,17 +174,67 @@ export function MentorModals({
                   <option value="Capstone Project">Capstone Project</option>
                 </select>
               </div>
+
+              <div className="flex justify-end gap-2 mt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsAddProgramCompetencyModalOpen?.(false)}
+                >
+                  Batal
+                </Button>
+                <Button type="submit" className="bg-brand-purple hover:bg-brand-purple-hover text-white">
+                  Simpan
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Competency Modal (Syllabus Modal) */}
+      {isAddCompetencyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
+            <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
+              Tambah Daftar Syllabus Baru
+            </h3>
+            <form onSubmit={handleCreateCompetency} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium mb-1 text-foreground">
-                  Fase
+                  Nama Syllabus
+                </label>
+                <Input name="name" required placeholder="Contoh: Intro to React" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Pilih Kompetensi Induk
                 </label>
                 <select
-                  name="phase"
+                  name="programCompetencyId"
                   required
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
                 >
-                  <option value="Micro">Micro</option>
-                  <option value="Massive">Massive</option>
+                  <option value="" disabled selected>-- Pilih Kompetensi Induk --</option>
+                  {programCompetencies.map((pc: any) => (
+                    <option key={pc.id} value={pc.id}>
+                      {pc.name} ({pc.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Kategori
+                </label>
+                <select
+                  name="category"
+                  required
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
+                >
+                  <option value="Technical Skill">Technical Skill</option>
+                  <option value="Soft Skills (CCA)">Soft Skills (CCA)</option>
+                  <option value="Capstone Project">Capstone Project</option>
                 </select>
               </div>
               <div className="flex justify-end gap-2 mt-4">
@@ -181,7 +259,7 @@ export function MentorModals({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
           <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[400px]">
             <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
-              Edit Kompetensi
+              Edit Syllabus
             </h3>
             <form onSubmit={handleUpdateCompetency} className="space-y-4">
               <div>
@@ -207,16 +285,20 @@ export function MentorModals({
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-foreground">
-                  Fase
+                  Pilih Kompetensi Induk
                 </label>
                 <select
-                  name="phase"
+                  name="programCompetencyId"
                   required
-                  defaultValue={editingCompetency.phase || "Micro"}
+                  defaultValue={editingCompetency.programCompetency?.id || ""}
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
                 >
-                  <option value="Micro">Micro</option>
-                  <option value="Massive">Massive</option>
+                  <option value="" disabled>-- Pilih Kompetensi Induk --</option>
+                  {programCompetencies.map((pc: any) => (
+                    <option key={pc.id} value={pc.id}>
+                      {pc.name} ({pc.category})
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex justify-end gap-2 mt-4">
@@ -705,8 +787,8 @@ export function MentorModals({
               disabled={isSuspending || countdown > 0}
               onClick={handleSuspendStudent}
               className={`text-xs font-semibold gap-1.5 cursor-pointer ${suspendActionType === "unsuspend"
-                  ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                  : "bg-red-600 hover:bg-red-700 text-white"
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                : "bg-red-600 hover:bg-red-700 text-white"
                 }`}
             >
               {isSuspending ? (
@@ -739,15 +821,19 @@ export function MentorModals({
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-foreground">
-                  Fase Assessment
+                  Pilih Kompetensi Induk
                 </label>
                 <select
-                  name="phase"
+                  name="programCompetencyId"
                   required
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
                 >
-                  <option value="Micro">Phase Micro</option>
-                  <option value="Massive">Phase Massive</option>
+                  <option value="" disabled>-- Pilih Kompetensi Induk --</option>
+                  {programCompetencies.map((pc: any) => (
+                    <option key={pc.id} value={pc.id}>
+                      {pc.name} ({pc.category})
+                    </option>
+                  ))}
                 </select>
               </div>
               <div className="flex justify-end gap-2 pt-2">
@@ -868,7 +954,16 @@ function RubrikAssessmentWeightModal({
   const [isSaving, setIsSaving] = useState(false);
 
   const availableOtherRAs = rubrikAssessments.filter(
-    (r) => r.id !== editingWeightRubrikAssessment.id
+    (r) => 
+      r.id !== editingWeightRubrikAssessment.id &&
+      !r.isGlobal &&
+      r.programCompetency?.id === editingWeightRubrikAssessment.programCompetency?.id
+  );
+
+  const filteredCompetencies = competencies.filter(
+    (comp) => 
+      !comp.isGlobal && 
+      comp.programCompetency?.id === editingWeightRubrikAssessment.programCompetency?.id
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -951,11 +1046,11 @@ function RubrikAssessmentWeightModal({
                 Subtotal Bobot: {totalCompWeight.toFixed(2)}
               </span>
             </h4>
-            {competencies.length === 0 ? (
+            {filteredCompetencies.length === 0 ? (
               <p className="text-xs text-muted-foreground italic">Belum ada kompetensi.</p>
             ) : (
               <div className="space-y-2">
-                {competencies.map((comp) => {
+                {filteredCompetencies.map((comp) => {
                   const currentWeight = compWeights[comp.id] ?? 0;
                   return (
                     <div

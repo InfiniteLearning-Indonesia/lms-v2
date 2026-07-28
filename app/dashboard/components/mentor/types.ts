@@ -75,4 +75,14 @@ export interface CompetencyItem {
   phase?: string;
   programId?: string;
   rubric?: any;
+  programCompetency?: any;
+}
+
+export interface ProgramCompetency {
+  id: string;
+  name: string;
+  category: string;
+  phase?: string;
+  programId?: string;
+  syllabuses?: CompetencyItem[];
 }

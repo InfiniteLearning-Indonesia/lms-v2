@@ -10,12 +10,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompetencyItem } from "./types";
 
 interface MentorAssessmentViewProps {
+  programCompetencies?: any[];
+  fetchProgramCompetencies?: () => void;
   competencies: CompetencyItem[];
   rubrikAssessments?: any[];
   allStudents: any[];
+  onOpenAddProgramCompetency?: () => void;
   onOpenAddCompetency: () => void;
   onOpenAddRubrikAssessment?: () => void;
+  setEditingProgramCompetency?: (comp: any) => void;
   setEditingCompetency: (comp: any) => void;
+  handleDeleteProgramCompetency?: (id: string) => void;
   handleDeleteCompetency: (id: string) => void;
   setEditingWeightCompetency: (comp: any) => void;
   setEditingRubrikAssessment?: (ra: any) => void;
@@ -35,12 +40,17 @@ interface MentorAssessmentViewProps {
 }
 
 export function MentorAssessmentView({
+  programCompetencies = [],
+  fetchProgramCompetencies,
   competencies,
   rubrikAssessments = [],
   allStudents,
+  onOpenAddProgramCompetency,
   onOpenAddCompetency,
   onOpenAddRubrikAssessment,
+  setEditingProgramCompetency,
   setEditingCompetency,
+  handleDeleteProgramCompetency,
   handleDeleteCompetency,
   setEditingWeightCompetency,
   setEditingRubrikAssessment,
@@ -120,13 +130,23 @@ export function MentorAssessmentView({
           <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-xl w-fit border border-border">
             <button
               className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                activeRubrikTab === "program_competensi"
+                  ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveRubrikTab("program_competensi")}
+            >
+              Manajemen Kompetensi
+            </button>
+            <button
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
                 activeRubrikTab === "kompetensi"
                   ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
               onClick={() => setActiveRubrikTab("kompetensi")}
             >
-              Rubrik Kompetensi
+              Daftar Syllabus
             </button>
             <button
               className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -136,7 +156,7 @@ export function MentorAssessmentView({
               }`}
               onClick={() => setActiveRubrikTab("assessment")}
             >
-              Rubrik Assessment
+              Kolom Penilaian (Gradebook)
             </button>
             <button
               className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
@@ -168,18 +188,112 @@ export function MentorAssessmentView({
           )}
         </div>
 
-        {/* Competencies Table */}
+        {/* Program Competencies (Manajemen Kompetensi) Table */}
+        {(activeRubrikTab === "program_competensi" || activeRubrikTab === "professional") && (
+          <Card className="border-border bg-card shadow-sm mb-6">
+            <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-heading font-bold text-foreground">
+                  {activeRubrikTab === "program_competensi"
+                    ? "Manajemen Kompetensi"
+                    : "Manajemen Kompetensi Professional (Global)"}
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-1">
+                  Atur daftar kompetensi utama yang menaungi berbagai syllabus.
+                </CardDescription>
+              </div>
+              {onOpenAddProgramCompetency && (
+                <Button
+                  onClick={onOpenAddProgramCompetency}
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Tambah Kompetensi
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                      <th className="py-3 px-4">Nama Kompetensi Induk</th>
+                      <th className="py-3 px-4">Kategori</th>
+                      <th className="py-3 px-4 text-right">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60 text-xs">
+                    {programCompetencies?.filter((c: any) =>
+                      activeRubrikTab === "professional" ? !c.programId : !!c.programId
+                    ).length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="py-8 text-center text-muted-foreground">
+                          Belum ada kompetensi induk.
+                        </td>
+                      </tr>
+                    ) : (
+                      programCompetencies
+                        ?.filter((c: any) =>
+                          activeRubrikTab === "professional" ? !c.programId : !!c.programId
+                        )
+                        .map((comp: any) => (
+                          <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
+                            <td className="py-3.5 px-4 font-semibold text-foreground">
+                              {comp.name}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
+                                {comp.category}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                {setEditingProgramCompetency && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 cursor-pointer"
+                                    onClick={() => setEditingProgramCompetency(comp)}
+                                  >
+                                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                                  </Button>
+                                )}
+                                {handleDeleteProgramCompetency && (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
+                                    onClick={() => handleDeleteProgramCompetency(comp.id)}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                  </Button>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Competencies (Syllabus) Table */}
         {(activeRubrikTab === "kompetensi" || activeRubrikTab === "professional") && (
           <Card className="border-border bg-card shadow-sm">
             <CardHeader className="border-b border-border pb-4 flex flex-row items-center justify-between">
               <div>
                 <CardTitle className="text-lg font-heading font-bold text-foreground">
                   {activeRubrikTab === "kompetensi"
-                    ? "Manajemen Rubrik Kompetensi"
-                    : "Manajemen Kompetensi Professional (Global)"}
+                    ? "Daftar Syllabus"
+                    : "Daftar Syllabus Professional (Global)"}
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground mt-1">
-                  Atur patokan nilai dan kriteria evaluasi (rubrik) untuk masing-masing kompetensi.
+                  Kelola syllabus spesifik dan atur kriteria rubrik penilainnya.
                 </CardDescription>
               </div>
               <Button
@@ -189,7 +303,7 @@ export function MentorAssessmentView({
                 className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Tambah Kompetensi
+                Tambah Syllabus
               </Button>
             </CardHeader>
             <CardContent className="p-0">
@@ -197,9 +311,9 @@ export function MentorAssessmentView({
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      <th className="py-3 px-4">Nama Kompetensi</th>
+                      <th className="py-3 px-4">Syllabus</th>
+                      <th className="py-3 px-4">Kompetensi Induk</th>
                       <th className="py-3 px-4">Kategori</th>
-                      <th className="py-3 px-4">Fase</th>
                       <th className="py-3 px-4 text-right">Aksi</th>
                     </tr>
                   </thead>
@@ -209,7 +323,7 @@ export function MentorAssessmentView({
                     ).length === 0 ? (
                       <tr>
                         <td colSpan={4} className="py-8 text-center text-muted-foreground">
-                          Belum ada kompetensi {activeRubrikTab === "professional" ? "professional" : ""}.
+                          Belum ada syllabus {activeRubrikTab === "professional" ? "professional" : ""}.
                         </td>
                       </tr>
                     ) : (
@@ -223,13 +337,13 @@ export function MentorAssessmentView({
                               {comp.name}
                             </td>
                             <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                {comp.category}
+                              <span className="text-muted-foreground text-[11px]">
+                                {comp.programCompetency?.name || "-"}
                               </span>
                             </td>
                             <td className="py-3.5 px-4">
                               <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                {comp.phase || "Micro"}
+                                {comp.category}
                               </span>
                             </td>
                             <td className="py-3.5 px-4 text-right">
@@ -274,97 +388,110 @@ export function MentorAssessmentView({
               <div>
                 <CardTitle className="text-lg font-heading font-bold text-foreground">
                   {activeRubrikTab === "assessment"
-                    ? "Manajemen Rubrik Assessment"
-                    : "Manajemen Rubrik Assessment Professional (Global)"}
+                    ? "Manajemen Kolom Penilaian"
+                    : "Manajemen Kolom Penilaian Professional (Global)"}
                 </CardTitle>
                 <CardDescription className="text-xs text-muted-foreground mt-1">
-                  Atur Rubrik Assessment yang menaungi beberapa Rubrik Kompetensi / Subassessment beserta bobotnya.
+                  Daftar kolom penilaian berdasarkan fase, yang akan tampil di Gradebook.
                 </CardDescription>
               </div>
-              {onOpenAddRubrikAssessment && (
-                <Button
-                  onClick={onOpenAddRubrikAssessment}
-                  size="sm"
-                  variant="outline"
-                  className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/20 hover:bg-brand-purple/5 text-brand-purple cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Tambah Rubrik Assessment
-                </Button>
-              )}
+
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-                      <th className="py-3 px-4">Nama Rubrik Assessment</th>
-                      <th className="py-3 px-4">Fase</th>
-                      <th className="py-3 px-4 text-right">Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border/60 text-xs">
-                    {rubrikAssessments.filter((r: any) =>
-                      activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal
-                    ).length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="py-8 text-center text-muted-foreground">
-                          Belum ada Rubrik Assessment.
-                        </td>
-                      </tr>
-                    ) : (
-                      rubrikAssessments
-                        .filter((r: any) =>
-                          activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal
-                        )
-                        .map((ra: any) => (
-                          <tr key={ra.id} className="hover:bg-secondary/20 transition-colors">
-                            <td className="py-3.5 px-4 font-semibold text-foreground">
-                              {ra.name}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                {ra.phase || "Micro"}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {setEditingWeightRubrikAssessment && (
-                                  <span
-                                    onClick={() => setEditingWeightRubrikAssessment(ra)}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer"
-                                  >
-                                    <Settings className="w-3.5 h-3.5" /> Atur Bobot Kompetensi
-                                  </span>
-                                )}
-                                {setEditingRubrikAssessment && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 cursor-pointer"
-                                    onClick={() => setEditingRubrikAssessment(ra)}
-                                  >
-                                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                                  </Button>
-                                )}
-                                {handleDeleteRubrikAssessment && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
-                                    onClick={() => handleDeleteRubrikAssessment(ra.id)}
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                                  </Button>
-                                )}
-                              </div>
-                            </td>
+            <CardContent className="p-4">
+              <Tabs defaultValue="Micro" className="w-full">
+                <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex max-w-xs min-h-12 gap-1.5 mb-6">
+                  <TabsTrigger
+                    value="Micro"
+                    className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+                  >
+                    Phase Micro
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="Massive"
+                    className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+                  >
+                    Phase Massive
+                  </TabsTrigger>
+                </TabsList>
+
+                {["Micro", "Massive"].map((phase) => (
+                  <TabsContent key={phase} value={phase}>
+                    <div className="overflow-x-auto border border-border rounded-xl">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="border-b border-border bg-secondary/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            <th className="py-3 px-4">Nama Kolom Penilaian</th>
+                            <th className="py-3 px-4">Fase</th>
+                            <th className="py-3 px-4 text-right">Aksi</th>
                           </tr>
-                        ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                        </thead>
+                        <tbody className="divide-y divide-border/60 text-xs">
+                          {rubrikAssessments.filter((r: any) =>
+                            (activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal) &&
+                            (r.phase === phase || (!r.phase && phase === "Micro"))
+                          ).length === 0 ? (
+                            <tr>
+                              <td colSpan={3} className="py-8 text-center text-muted-foreground">
+                                Belum ada Kolom Penilaian untuk phase ini.
+                              </td>
+                            </tr>
+                          ) : (
+                            rubrikAssessments
+                              .filter((r: any) =>
+                                (activeRubrikTab === "professional" ? r.isGlobal : !r.isGlobal) &&
+                                (r.phase === phase || (!r.phase && phase === "Micro"))
+                              )
+                              .map((ra: any) => (
+                                <tr key={ra.id} className="hover:bg-secondary/20 transition-colors">
+                                  <td className="py-3.5 px-4 font-semibold text-foreground">
+                                    {ra.name}
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
+                                      {ra.phase || "Micro"}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 px-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                      {setEditingWeightRubrikAssessment && (
+                                        <span
+                                          onClick={() => setEditingWeightRubrikAssessment(ra)}
+                                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer"
+                                        >
+                                          <Settings className="w-3.5 h-3.5" /> Atur Bobot Syllabus
+                                        </span>
+                                      )}
+                                      {setEditingRubrikAssessment && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 w-7 p-0 cursor-pointer"
+                                          onClick={() => setEditingRubrikAssessment(ra)}
+                                        >
+                                          <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                                        </Button>
+                                      )}
+                                      {handleDeleteRubrikAssessment && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
+                                          onClick={() => handleDeleteRubrikAssessment(ra.id)}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
             </CardContent>
           </Card>
         )}
