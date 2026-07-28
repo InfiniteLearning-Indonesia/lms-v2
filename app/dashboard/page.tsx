@@ -125,43 +125,6 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background flex flex-col font-sans">
       <Navbar profile={profile} onLogout={handleLogout} />
 
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <LayoutDashboard className="w-5 h-5 text-brand-purple" />
-            <span className="font-heading font-bold text-lg text-foreground">Dasbor Utama</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <div className="flex items-center gap-2 pl-3 border-l border-border">
-              {profile?.avatarUrl ? (
-                <img
-                  src={profile.avatarUrl}
-                  alt={profile.name}
-                  className="w-8 h-8 rounded-full object-cover border border-border"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-brand-purple/10 text-brand-purple font-bold flex items-center justify-center text-xs">
-                  {profile?.name?.charAt(0) || "U"}
-                </div>
-              )}
-              <span className="text-sm font-medium text-foreground hidden sm:inline">
-                {profile?.name}
-              </span>
-            </div>
-
-            <button
-              onClick={handleLogout}
-              className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors cursor-pointer"
-              title="Keluar"
-            >
-              <LogOut className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </header>
-
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isAdmin && profile && <AdminDashboard profile={profile} onProfileUpdate={fetchProfile} />}
         {!isAdmin && isFacilitator && profile && <FacilitatorDashboard profile={profile} onProfileUpdate={fetchProfile} />}

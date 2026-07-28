@@ -44,7 +44,12 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
       });
       const daysData = await daysRes.json();
       if (daysData.days) {
-        setActiveDays(daysData.days.map((d: string) => new Date(d)));
+        setActiveDays(
+          daysData.days.map((dStr: string) => {
+            const parts = dStr.split("T")[0].split("-");
+            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+          })
+        );
       }
       if (daysData.holidays) {
         setHolidays(daysData.holidays);

@@ -50,7 +50,12 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
       });
       const data = await res.json();
       if (data.days) {
-        setActiveDays(data.days.map((d: string) => new Date(d)));
+        setActiveDays(
+          data.days.map((dStr: string) => {
+            const parts = dStr.split("T")[0].split("-");
+            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+          })
+        );
       }
       if (data.holidays) {
         setHolidays(data.holidays);
