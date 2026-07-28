@@ -103,8 +103,9 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
 
       setStudents(batchStudents);
 
-      // Fetch attendances for this batch
-      const attUrl = `${API_BASE_URL}/attendance?batchId=${batchId}`;
+      // Fetch attendances for this batch filtered by mentorId
+      let attUrl = `${API_BASE_URL}/attendance?batchId=${batchId}`;
+      if (mentorId) attUrl += `&mentorId=${mentorId}`;
       const attRes = await fetch(attUrl, {
         headers: { Accept: "application/json" },
         credentials: "include"
@@ -112,8 +113,10 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
       const attData = await attRes.json();
       setAllAttendances(Array.isArray(attData) ? attData : []);
 
-      // Fetch permission requests for this batch
-      const permRes = await fetch(`${API_BASE_URL}/attendance/permission-requests?batchId=${batchId}`, {
+      // Fetch permission requests for this batch filtered by mentorId
+      let permUrl = `${API_BASE_URL}/attendance/permission-requests?batchId=${batchId}`;
+      if (mentorId) permUrl += `&mentorId=${mentorId}`;
+      const permRes = await fetch(permUrl, {
         headers: { Accept: "application/json" },
         credentials: "include"
       });
