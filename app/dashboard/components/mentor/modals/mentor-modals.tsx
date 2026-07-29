@@ -968,21 +968,35 @@ function RubrikAssessmentWeightModal({
 
   const [isSaving, setIsSaving] = useState(false);
 
-  const targetIsGlobal = Boolean(editingWeightRubrikAssessment?.isGlobal);
+  const targetIsGlobal = Boolean(editingWeightRubrikAssessment?.isGlobal || !editingWeightRubrikAssessment?.programId);
   const targetProgramCompetencyId = editingWeightRubrikAssessment?.programCompetency?.id || editingWeightRubrikAssessment?.programCompetencyId;
 
-  const availableOtherRAs = rubrikAssessments.filter(
-    (r) => 
-      r.id !== editingWeightRubrikAssessment.id &&
-      Boolean(r.isGlobal) === targetIsGlobal &&
-      (!targetProgramCompetencyId || (r.programCompetency?.id || r.programCompetencyId) === targetProgramCompetencyId)
-  );
+  // Filter competencies based on scope (Professional vs Program-specific)
+  const scopedCompetencies = competencies.filter((comp) => {
+    const isCompGlobal = Boolean(comp.isGlobal || !comp.programId);
+    return isCompGlobal === targetIsGlobal;
+  });
 
-  const filteredCompetencies = competencies.filter(
-    (comp) => 
-      Boolean(comp.isGlobal) === targetIsGlobal && 
-      (!targetProgramCompetencyId || (comp.programCompetency?.id || comp.programCompetencyId) === targetProgramCompetencyId)
-  );
+  const filteredCompetencies = scopedCompetencies.filter((comp) => {
+    if (!targetProgramCompetencyId) return true;
+    const compPcId = comp.programCompetency?.id || comp.programCompetencyId;
+    if (!compPcId) return targetIsGlobal;
+    return compPcId === targetProgramCompetencyId;
+  });
+
+  // Filter sub-assessments (other RAs) based on scope
+  const scopedRAs = rubrikAssessments.filter((r) => {
+    if (r.id === editingWeightRubrikAssessment.id) return false;
+    const isRGlobal = Boolean(r.isGlobal || !r.programId);
+    return isRGlobal === targetIsGlobal;
+  });
+
+  const availableOtherRAs = scopedRAs.filter((r) => {
+    if (!targetProgramCompetencyId) return true;
+    const rPcId = r.programCompetency?.id || r.programCompetencyId;
+    if (!rPcId) return targetIsGlobal;
+    return rPcId === targetProgramCompetencyId;
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
