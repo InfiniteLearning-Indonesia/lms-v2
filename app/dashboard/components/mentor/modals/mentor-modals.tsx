@@ -939,6 +939,83 @@ export function MentorModals({
           handleSaveRubrikAssessmentWeights={handleSaveRubrikAssessmentWeights}
         />
       )}
+
+      {/* Phase Dates Modal */}
+      {isPhaseDatesModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px] max-w-[95vw]">
+            <h3 className="font-heading font-bold text-lg mb-1 text-foreground">
+              Atur Rentang Tanggal Phase
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Tentukan tanggal mulai dan selesai untuk Phase Micro dan Phase Massive guna menghitung nilai absensi (Hari Synchronous) secara presisi.
+            </p>
+            <form onSubmit={handleUpdateBatchPhaseDates} className="space-y-4">
+              <div className="p-3 rounded-lg border border-border bg-secondary/20 space-y-3">
+                <h4 className="font-bold text-xs text-brand-purple uppercase tracking-wider">Phase Micro</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">Tanggal Mulai</label>
+                    <Input
+                      type="date"
+                      name="microStartDate"
+                      defaultValue={phaseDates?.microStartDate ? new Date(phaseDates.microStartDate).toISOString().split('T')[0] : ''}
+                      className="h-9 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">Tanggal Selesai</label>
+                    <Input
+                      type="date"
+                      name="microEndDate"
+                      defaultValue={phaseDates?.microEndDate ? new Date(phaseDates.microEndDate).toISOString().split('T')[0] : ''}
+                      className="h-9 text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-lg border border-border bg-secondary/20 space-y-3">
+                <h4 className="font-bold text-xs text-brand-purple uppercase tracking-wider">Phase Massive</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">Tanggal Mulai</label>
+                    <Input
+                      type="date"
+                      name="massiveStartDate"
+                      defaultValue={phaseDates?.massiveStartDate ? new Date(phaseDates.massiveStartDate).toISOString().split('T')[0] : ''}
+                      className="h-9 text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium mb-1 text-foreground">Tanggal Selesai</label>
+                    <Input
+                      type="date"
+                      name="massiveEndDate"
+                      defaultValue={phaseDates?.massiveEndDate ? new Date(phaseDates.massiveEndDate).toISOString().split('T')[0] : ''}
+                      className="h-9 text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsPhaseDatesModalOpen?.(false)}
+                >
+                  Batal
+                </Button>
+                <Button type="submit" size="sm" className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold cursor-pointer">
+                  Simpan Tanggal Phase
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -1205,82 +1282,7 @@ function RubrikAssessmentWeightModal({
             </Button>
           </div>
         </form>
-      {/* Phase Dates Modal */}
-      {isPhaseDatesModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px] max-w-[95vw]">
-            <h3 className="font-heading font-bold text-lg mb-1 text-foreground">
-              Atur Rentang Tanggal Phase
-            </h3>
-            <p className="text-xs text-muted-foreground mb-4">
-              Tentukan tanggal mulai dan selesai untuk Phase Micro dan Phase Massive guna menghitung nilai absensi ($T_{\text{sync}}$) secara presisi.
-            </p>
-            <form onSubmit={handleUpdateBatchPhaseDates} className="space-y-4">
-              <div className="p-3 rounded-lg border border-border bg-secondary/20 space-y-3">
-                <h4 className="font-bold text-xs text-brand-purple uppercase tracking-wider">Phase Micro</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-medium mb-1 text-foreground">Tanggal Mulai</label>
-                    <Input
-                      type="date"
-                      name="microStartDate"
-                      defaultValue={phaseDates?.microStartDate ? new Date(phaseDates.microStartDate).toISOString().split('T')[0] : ''}
-                      className="h-9 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-medium mb-1 text-foreground">Tanggal Selesai</label>
-                    <Input
-                      type="date"
-                      name="microEndDate"
-                      defaultValue={phaseDates?.microEndDate ? new Date(phaseDates.microEndDate).toISOString().split('T')[0] : ''}
-                      className="h-9 text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-3 rounded-lg border border-border bg-secondary/20 space-y-3">
-                <h4 className="font-bold text-xs text-brand-purple uppercase tracking-wider">Phase Massive</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-medium mb-1 text-foreground">Tanggal Mulai</label>
-                    <Input
-                      type="date"
-                      name="massiveStartDate"
-                      defaultValue={phaseDates?.massiveStartDate ? new Date(phaseDates.massiveStartDate).toISOString().split('T')[0] : ''}
-                      className="h-9 text-xs"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-medium mb-1 text-foreground">Tanggal Selesai</label>
-                    <Input
-                      type="date"
-                      name="massiveEndDate"
-                      defaultValue={phaseDates?.massiveEndDate ? new Date(phaseDates.massiveEndDate).toISOString().split('T')[0] : ''}
-                      className="h-9 text-xs"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-border">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsPhaseDatesModalOpen?.(false)}
-                >
-                  Batal
-                </Button>
-                <Button type="submit" size="sm" className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold cursor-pointer">
-                  Simpan Tanggal Phase
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 }
