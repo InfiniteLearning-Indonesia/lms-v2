@@ -207,6 +207,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [rubrikAssessments, setRubrikAssessments] = useState<any[]>([]);
   const [externalScores, setExternalScores] = useState<any[]>([]);
   const [attendanceScores, setAttendanceScores] = useState<Record<string, any>>({});
+  const [phaseDates, setPhaseDates] = useState<any>(null);
+  const [isPhaseDatesModalOpen, setIsPhaseDatesModalOpen] = useState(false);
   const [isImportingCSV, setIsImportingCSV] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
   const [isAddCompetencyModalOpen, setIsAddCompetencyModalOpen] = useState(false);
@@ -477,10 +479,42 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       });
       if (res.ok) {
         const data = await res.json();
-        setAttendanceScores(data);
+        setAttendanceScores(data.scores || data);
+        if (data.phaseDates) setPhaseDates(data.phaseDates);
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleUpdateBatchPhaseDates = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const targetBatchId = classes.find((c) => c.programId === selectedProgramId)?.batchId || classes[0]?.batchId;
+    if (!targetBatchId) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/classes/batches/${targetBatchId}/phase-dates`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          microStartDate: fd.get("microStartDate") || undefined,
+          microEndDate: fd.get("microEndDate") || undefined,
+          massiveStartDate: fd.get("massiveStartDate") || undefined,
+          massiveEndDate: fd.get("massiveEndDate") || undefined,
+        }),
+      });
+      if (res.ok) {
+        toast.success("Rentang tanggal phase berhasil disimpan!");
+        setIsPhaseDatesModalOpen(false);
+        fetchAttendanceScores(targetBatchId);
+      } else {
+        toast.error("Gagal menyimpan tanggal phase.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
     }
   };
 
@@ -1386,6 +1420,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             csvInputRef={csvInputRef}
             handleImportCSV={handleImportCSV}
             isImportingCSV={isImportingCSV}
+            attendanceScores={attendanceScores}
+            phaseDates={phaseDates}
+            setIsPhaseDatesModalOpen={setIsPhaseDatesModalOpen}
           />
         </TabsContent>
 
@@ -1473,6 +1510,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         setEditingWeightRubrikAssessment={setEditingWeightRubrikAssessment}
         handleSaveRubrikAssessmentWeights={handleSaveRubrikAssessmentWeights}
         rubrikAssessments={rubrikAssessments}
+        isPhaseDatesModalOpen={isPhaseDatesModalOpen}
+        setIsPhaseDatesModalOpen={setIsPhaseDatesModalOpen}
+        handleUpdateBatchPhaseDates={handleUpdateBatchPhaseDates}
+        phaseDates={phaseDates}
       />
     </div>
   );

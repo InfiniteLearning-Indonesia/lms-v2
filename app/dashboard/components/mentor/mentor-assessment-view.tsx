@@ -4,7 +4,7 @@ import { API_BASE_URL } from "@/lib/config";
 
 import Link from "next/link";
 import { useState } from "react";
-import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award } from "lucide-react";
+import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +40,8 @@ interface MentorAssessmentViewProps {
   handleImportCSV?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isImportingCSV?: boolean;
   attendanceScores?: Record<string, any>;
+  phaseDates?: any;
+  setIsPhaseDatesModalOpen?: (v: boolean) => void;
 }
 
 export function MentorAssessmentView({
@@ -71,6 +73,8 @@ export function MentorAssessmentView({
   handleImportCSV,
   isImportingCSV = false,
   attendanceScores = {},
+  phaseDates,
+  setIsPhaseDatesModalOpen,
 }: MentorAssessmentViewProps) {
   const [internalActiveRubrikTab, setInternalActiveRubrikTab] = useState("kompetensi");
   const activeRubrikTab = externalActiveRubrikTab || internalActiveRubrikTab;
@@ -593,7 +597,37 @@ export function MentorAssessmentView({
         </div>
       </CardHeader>
 
-      <CardContent className="pt-6">
+      <CardContent className="pt-6 space-y-4">
+        {/* Phase Dates Info Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-secondary/30 border border-border/80 text-xs font-sans">
+          <div className="flex flex-wrap items-center gap-4 text-foreground">
+            <div className="flex items-center gap-1.5 font-medium">
+              <Calendar className="w-3.5 h-3.5 text-brand-purple" />
+              <span className="text-muted-foreground">Phase Micro:</span>
+              <span className="font-semibold">
+                {phaseDates?.microStartDate ? new Date(phaseDates.microStartDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Awal Batch'} s/d {phaseDates?.microEndDate ? new Date(phaseDates.microEndDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Pertengahan Batch'}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 font-medium">
+              <Calendar className="w-3.5 h-3.5 text-brand-purple" />
+              <span className="text-muted-foreground">Phase Massive:</span>
+              <span className="font-semibold">
+                {phaseDates?.massiveStartDate ? new Date(phaseDates.massiveStartDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Pertengahan Batch'} s/d {phaseDates?.massiveEndDate ? new Date(phaseDates.massiveEndDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Akhir Batch'}
+              </span>
+            </div>
+          </div>
+          {setIsPhaseDatesModalOpen && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPhaseDatesModalOpen(true)}
+              className="h-7 text-xs flex items-center gap-1.5 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10 cursor-pointer font-semibold"
+            >
+              <Pencil className="w-3 h-3" /> Atur Tanggal Phase
+            </Button>
+          )}
+        </div>
+
         <Tabs defaultValue="Micro" className="w-full">
           <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex max-w-xs min-h-12 gap-1.5 mb-6">
             <TabsTrigger
