@@ -660,11 +660,6 @@ export function MentorAssessmentView({
                           Mentee
                         </th>
 
-                        {/* Summary Column */}
-                        <th className="px-4 py-3 bg-brand-purple/10 text-brand-purple border-x border-border text-center font-bold">
-                          {phase === "Micro" ? "Total Micro" : "Total Massive"}
-                        </th>
-
                         {/* Attendance Score Column */}
                         <th className="px-4 py-3 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-r border-border text-center font-bold" title="Nilai Kehadiran Synchronous Mentee">
                           Kehadiran (Absensi)
@@ -702,7 +697,7 @@ export function MentorAssessmentView({
                       {allStudents.length === 0 ? (
                         <tr>
                           <td
-                            colSpan={(hasRAs ? displayRAs.length : displayComps.length) + 3}
+                            colSpan={(hasRAs ? displayRAs.length : displayComps.length) + 2}
                             className="px-4 py-8 text-center text-muted-foreground"
                           >
                             Belum ada mentee yang terdaftar.
@@ -735,11 +730,6 @@ export function MentorAssessmentView({
                                 <div className="text-[10px] text-muted-foreground">
                                   {student.email}
                                 </div>
-                              </td>
-
-                              {/* Summary Cell */}
-                              <td className="px-4 py-3 text-center border-x border-border font-bold text-brand-purple bg-brand-purple/5">
-                                {ensureMinScore(summaryScore).toFixed(1)}
                               </td>
 
                               {/* Attendance Cell */}
