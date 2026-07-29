@@ -395,9 +395,12 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   }, [selectedProgramId]);
 
-  const fetchCompetencies = async (programId: string) => {
+  const fetchCompetencies = async (programId?: string) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/classes/competencies?programId=${programId}`, {
+      const url = programId
+        ? `${API_BASE_URL}/classes/competencies?programId=${programId}`
+        : `${API_BASE_URL}/classes/competencies`;
+      const res = await fetch(url, {
         headers: { Accept: "application/json" },
         credentials: "include",
       });
@@ -555,6 +558,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const handleCreateCompetency = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    const isGlobal = activeRubrikTab === "professional";
     try {
       const res = await fetch(`${API_BASE_URL}/classes/competencies`, {
         method: "POST",
@@ -562,17 +566,16 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         body: JSON.stringify({
           name: formData.get("name"),
           category: formData.get("category"),
-          programId: selectedProgramId,
-          isGlobal: activeRubrikTab === "professional",
+          programId: isGlobal ? undefined : selectedProgramId,
+          isGlobal: isGlobal,
           programCompetencyId: formData.get("programCompetencyId") || undefined,
         }),
         credentials: "include",
       });
       if (res.ok) {
-        toast.success("Kompetensi berhasil ditambahkan!");
+        toast.success(isGlobal ? "Syllabus Professional berhasil ditambahkan!" : "Syllabus berhasil ditambahkan!");
         setIsAddCompetencyModalOpen(false);
-        const progId = selectedProgramId || classes[0]?.program?.id;
-        if (progId) fetchCompetencies(progId);
+        fetchCompetencies(selectedProgramId || undefined);
       } else {
         const error = await res.json();
         toast.error(error.message || "Gagal menambahkan kompetensi.");

@@ -227,11 +227,15 @@ export function MentorModals({
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
                 >
                   <option value="" disabled selected>-- Pilih Kompetensi Induk --</option>
-                  {programCompetencies.map((pc: any) => (
-                    <option key={pc.id} value={pc.id}>
-                      {pc.name} ({pc.category})
-                    </option>
-                  ))}
+                  {programCompetencies
+                    .filter((pc: any) =>
+                      activeRubrikTab === "professional" ? (pc.isGlobal || !pc.programId) : (!pc.isGlobal && !!pc.programId)
+                    )
+                    .map((pc: any) => (
+                      <option key={pc.id} value={pc.id}>
+                        {pc.name} ({pc.category})
+                      </option>
+                    ))}
                 </select>
               </div>
               <div>
@@ -964,17 +968,20 @@ function RubrikAssessmentWeightModal({
 
   const [isSaving, setIsSaving] = useState(false);
 
+  const targetIsGlobal = Boolean(editingWeightRubrikAssessment?.isGlobal);
+  const targetProgramCompetencyId = editingWeightRubrikAssessment?.programCompetency?.id || editingWeightRubrikAssessment?.programCompetencyId;
+
   const availableOtherRAs = rubrikAssessments.filter(
     (r) => 
       r.id !== editingWeightRubrikAssessment.id &&
-      !r.isGlobal &&
-      r.programCompetency?.id === editingWeightRubrikAssessment.programCompetency?.id
+      Boolean(r.isGlobal) === targetIsGlobal &&
+      (!targetProgramCompetencyId || (r.programCompetency?.id || r.programCompetencyId) === targetProgramCompetencyId)
   );
 
   const filteredCompetencies = competencies.filter(
     (comp) => 
-      !comp.isGlobal && 
-      comp.programCompetency?.id === editingWeightRubrikAssessment.programCompetency?.id
+      Boolean(comp.isGlobal) === targetIsGlobal && 
+      (!targetProgramCompetencyId || (comp.programCompetency?.id || comp.programCompetencyId) === targetProgramCompetencyId)
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
