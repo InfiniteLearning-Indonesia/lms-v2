@@ -153,10 +153,14 @@ export function EditUserModal({
                   onChange={(e) => setSelectedProgramValue(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-brand-purple"
                 >
-                  <option value="AI Development">AI Development</option>
+                  {user?.specialization !== "Professional" && (
+                    <option value="AI Development">AI Development</option>
+                  )}
                   <option value="Web Development and UI/UX Design">Web Development and UI/UX Design</option>
                   <option value="Mobile Development and UI/UX Design">Mobile Development and UI/UX Design</option>
-                  <option value="Game Development">Game Development</option>
+                  {user?.specialization !== "Professional" && (
+                    <option value="Game Development">Game Development</option>
+                  )}
                 </select>
               </div>
 

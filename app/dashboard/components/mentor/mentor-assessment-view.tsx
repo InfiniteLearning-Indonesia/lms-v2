@@ -186,6 +186,7 @@ export function MentorAssessmentView({
                 onChange={(e) => setSelectedProgramId(e.target.value)}
                 className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[200px] truncate"
               >
+                <option value="all">Semua Program (Global)</option>
                 {uniquePrograms.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
@@ -534,6 +535,7 @@ export function MentorAssessmentView({
                 onChange={(e) => setSelectedProgramId(e.target.value)}
                 className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[180px] truncate"
               >
+                <option value="all">Semua Program (Global)</option>
                 {uniquePrograms.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}

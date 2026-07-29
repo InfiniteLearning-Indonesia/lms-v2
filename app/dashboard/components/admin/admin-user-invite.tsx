@@ -245,14 +245,18 @@ export function AdminUserInvite({
                     required
                   >
                     <option value="">-- Pilih Program --</option>
-                    <option value="AI Development">AI Development</option>
+                    {inviteSpecialization !== "Professional" && (
+                      <option value="AI Development">AI Development</option>
+                    )}
                     <option value="Web Development and UI/UX Design">
                       Web Development & UI/UX Design
                     </option>
                     <option value="Mobile Development and UI/UX Design">
                       Mobile Development & UI/UX Design
                     </option>
-                    <option value="Game Development">Game Development</option>
+                    {inviteSpecialization !== "Professional" && (
+                      <option value="Game Development">Game Development</option>
+                    )}
                   </select>
                 </div>
                 <div className="space-y-1.5">
