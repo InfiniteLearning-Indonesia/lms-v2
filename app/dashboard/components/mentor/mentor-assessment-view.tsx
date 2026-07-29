@@ -39,6 +39,7 @@ interface MentorAssessmentViewProps {
   csvInputRef?: React.RefObject<HTMLInputElement | null>;
   handleImportCSV?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isImportingCSV?: boolean;
+  attendanceScores?: Record<string, any>;
 }
 
 export function MentorAssessmentView({
@@ -69,6 +70,7 @@ export function MentorAssessmentView({
   csvInputRef,
   handleImportCSV,
   isImportingCSV = false,
+  attendanceScores = {},
 }: MentorAssessmentViewProps) {
   const [internalActiveRubrikTab, setInternalActiveRubrikTab] = useState("kompetensi");
   const activeRubrikTab = externalActiveRubrikTab || internalActiveRubrikTab;
@@ -629,6 +631,11 @@ export function MentorAssessmentView({
                           {phase === "Micro" ? "Total Micro" : "Total Massive"}
                         </th>
 
+                        {/* Attendance Score Column */}
+                        <th className="px-4 py-3 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-r border-border text-center font-bold" title="Nilai Kehadiran Synchronous Mentee">
+                          Kehadiran (Absensi)
+                        </th>
+
                         {/* Rubrik Assessment Columns */}
                         {hasRAs ? (
                           displayRAs.map((ra) => (
@@ -661,7 +668,7 @@ export function MentorAssessmentView({
                       {allStudents.length === 0 ? (
                         <tr>
                           <td
-                            colSpan={(hasRAs ? displayRAs.length : displayComps.length) + 2}
+                            colSpan={(hasRAs ? displayRAs.length : displayComps.length) + 3}
                             className="px-4 py-8 text-center text-muted-foreground"
                           >
                             Belum ada mentee yang terdaftar.
@@ -700,6 +707,22 @@ export function MentorAssessmentView({
                               <td className="px-4 py-3 text-center border-x border-border font-bold text-brand-purple bg-brand-purple/5">
                                 {ensureMinScore(summaryScore).toFixed(1)}
                               </td>
+
+                              {/* Attendance Cell */}
+                              {(() => {
+                                const att = attendanceScores?.[student.id];
+                                const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
+                                const scoreVal = phaseScore !== undefined ? phaseScore : 65.0;
+                                const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
+                                return (
+                                  <td
+                                    className="px-4 py-3 text-center border-r border-border text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 cursor-help"
+                                    title={details && details.totalSyncDays > 0 ? `Kehadiran Synchronous: ${details.cleanAttendance}/${details.totalSyncDays} Hari (Alpha: ${details.alphaDays})` : "Nilai Absensi Minimal: 65.0"}
+                                  >
+                                    {scoreVal.toFixed(1)}
+                                  </td>
+                                );
+                              })()}
 
                               {/* RA Cells or Competency Cells */}
                               {hasRAs

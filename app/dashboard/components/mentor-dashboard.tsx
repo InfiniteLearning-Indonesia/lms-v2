@@ -206,6 +206,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [programCompetencies, setProgramCompetencies] = useState<any[]>([]);
   const [rubrikAssessments, setRubrikAssessments] = useState<any[]>([]);
   const [externalScores, setExternalScores] = useState<any[]>([]);
+  const [attendanceScores, setAttendanceScores] = useState<Record<string, any>>({});
   const [isImportingCSV, setIsImportingCSV] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
   const [isAddCompetencyModalOpen, setIsAddCompetencyModalOpen] = useState(false);
@@ -392,8 +393,12 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       fetchProgramCompetencies(selectedProgramId || undefined);
       fetchRubrikAssessments(selectedProgramId);
       fetchExternalScores(selectedProgramId);
+      const targetBatchId = classes.find((c) => c.programId === selectedProgramId)?.batchId || classes[0]?.batchId;
+      if (targetBatchId) {
+        fetchAttendanceScores(targetBatchId);
+      }
     }
-  }, [selectedProgramId]);
+  }, [selectedProgramId, classes]);
 
   const fetchCompetencies = async (programId?: string) => {
     try {
@@ -458,6 +463,21 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       if (res.ok) {
         const data = await res.json();
         setExternalScores(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const fetchAttendanceScores = async (batchId: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/attendance/scores?batchId=${batchId}`, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAttendanceScores(data);
       }
     } catch (err) {
       console.error(err);
