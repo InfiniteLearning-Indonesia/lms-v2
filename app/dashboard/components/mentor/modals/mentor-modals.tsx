@@ -971,31 +971,38 @@ function RubrikAssessmentWeightModal({
   const targetIsGlobal = Boolean(editingWeightRubrikAssessment?.isGlobal || !editingWeightRubrikAssessment?.programId);
   const targetProgramCompetencyId = editingWeightRubrikAssessment?.programCompetency?.id || editingWeightRubrikAssessment?.programCompetencyId;
 
-  // Filter competencies based on scope (Professional vs Program-specific)
-  const scopedCompetencies = competencies.filter((comp) => {
+  // Simplifikasi: Pada Rubrik Professional, tampilkan seluruh kompetensi KECUALI Technical Skill
+  const filteredCompetencies = competencies.filter((comp) => {
+    if (targetIsGlobal) {
+      return comp.category !== "Technical Skill";
+    }
+
+    // Program-specific Rubrik: Tetap filter berdasarkan programCompetencyId
     const isCompGlobal = Boolean(comp.isGlobal || !comp.programId);
-    return isCompGlobal === targetIsGlobal;
+    if (isCompGlobal) return false;
+    
+    if (targetProgramCompetencyId) {
+      const compPcId = comp.programCompetency?.id || comp.programCompetencyId;
+      return compPcId === targetProgramCompetencyId;
+    }
+    return true;
   });
 
-  const filteredCompetencies = scopedCompetencies.filter((comp) => {
-    if (!targetProgramCompetencyId) return true;
-    const compPcId = comp.programCompetency?.id || comp.programCompetencyId;
-    if (!compPcId) return targetIsGlobal;
-    return compPcId === targetProgramCompetencyId;
-  });
-
-  // Filter sub-assessments (other RAs) based on scope
-  const scopedRAs = rubrikAssessments.filter((r) => {
+  // Filter sub-assessments (other RAs)
+  const availableOtherRAs = rubrikAssessments.filter((r) => {
     if (r.id === editingWeightRubrikAssessment.id) return false;
     const isRGlobal = Boolean(r.isGlobal || !r.programId);
-    return isRGlobal === targetIsGlobal;
-  });
+    
+    if (targetIsGlobal) {
+      return isRGlobal;
+    }
 
-  const availableOtherRAs = scopedRAs.filter((r) => {
-    if (!targetProgramCompetencyId) return true;
-    const rPcId = r.programCompetency?.id || r.programCompetencyId;
-    if (!rPcId) return targetIsGlobal;
-    return rPcId === targetProgramCompetencyId;
+    if (isRGlobal) return false;
+    if (targetProgramCompetencyId) {
+      const rPcId = r.programCompetency?.id || r.programCompetencyId;
+      return rPcId === targetProgramCompetencyId;
+    }
+    return true;
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
