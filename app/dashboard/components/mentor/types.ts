@@ -76,6 +76,7 @@ export interface CompetencyItem {
   programId?: string;
   rubric?: any;
   programCompetency?: any;
+  programCompetencyId?: string;
   isGlobal?: boolean;
 }
 
