@@ -34,6 +34,14 @@ export function AdminProgramsList({
   const activeBatch = batchesList.find((b) => b.status === "active");
   const allPrograms = programsData?.programs || [];
 
+  const activePrograms = allPrograms.filter((prog: any) => {
+    if (!activeBatch) return true;
+    if (activeBatch.includedProgramIds && activeBatch.includedProgramIds.length > 0) {
+      return activeBatch.includedProgramIds.includes(prog.id);
+    }
+    return true;
+  });
+
   return (
     <div className="space-y-6 font-sans">
       {isLoadingPrograms ? (
@@ -86,16 +94,16 @@ export function AdminProgramsList({
           )}
 
           {/* Programs Grid */}
-          {allPrograms.length === 0 ? (
+          {activePrograms.length === 0 ? (
             <div className="text-center py-12 border border-dashed border-border rounded-xl bg-secondary/15">
               <BookOpen className="w-8 h-8 text-muted-foreground mx-auto mb-2 opacity-50 animate-pulse" />
               <p className="text-xs text-muted-foreground font-semibold">
-                Belum ada program studi yang terdaftar.
+                Belum ada program studi yang diikutsertakan pada batch aktif ini.
               </p>
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-6">
-              {allPrograms.map((prog: any) => (
+              {activePrograms.map((prog: any) => (
                 <div
                   key={prog.id}
                   className="bg-card border border-border rounded-xl p-5 shadow-sm hover:border-brand-purple/40 transition-all flex flex-col justify-between space-y-4"
