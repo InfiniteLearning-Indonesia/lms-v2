@@ -163,6 +163,7 @@ export function AdminUsersList({
             <option value="">Semua Status</option>
             <option value="active">Aktif</option>
             <option value="invited">Invited</option>
+            <option value="graduated">Graduated (Lulus)</option>
             <option value="suspended">Suspended</option>
           </select>
         </div>
@@ -310,6 +311,8 @@ export function AdminUsersList({
                         className={`inline-block px-2 py-0.5 rounded-full text-3xs font-semibold ${
                           user.status === "active"
                             ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                            : user.status === "graduated"
+                            ? "bg-purple-500/10 text-purple-600 border border-purple-500/20 font-bold"
                             : user.status === "suspended"
                             ? "bg-red-500/10 text-red-500 border border-red-500/20"
                             : "bg-secondary text-muted-foreground border border-border"

@@ -261,6 +261,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
   const activeClasses = classes.filter((cls) => cls.batchId === currentBatch?.id);
   const pastClasses = classes.filter((cls) => cls.batchId !== currentBatch?.id);
   const hasPastClasses = pastClasses.length > 0;
+  const isGraduated = profile?.status === "graduated" || (classes.length > 0 && activeClasses.length === 0);
 
   const tabCols = hasPastClasses ? "grid-cols-7" : "grid-cols-6";
 
@@ -422,8 +423,18 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
       <TabsContent value="logbook" className="space-y-6 outline-hidden">
         {activeClasses.length > 0 ? (
           <StudentLogbook batchId={activeClasses[0].batchId} />
+        ) : isGraduated ? (
+          <Alert className="border-brand-purple/30 bg-brand-purple/5 text-foreground p-5 font-sans">
+            <Award className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <AlertTitle className="font-heading font-bold text-base">Kegiatan Logbook Selesai</AlertTitle>
+              <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+                Seluruh kegiatan logbook harian telah selesai untuk batch ini. Anda dapat melihat rekapan penilaian dan transkrip nilai pada tab <strong>Transkrip & Sertifikat</strong> atau meninjau modul lama di tab <strong>Batch Lama</strong>.
+              </AlertDescription>
+            </div>
+          </Alert>
         ) : (
-          <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600">
+          <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600 font-sans">
             <Info className="w-5 h-5" />
             <AlertTitle>Tidak dapat mengakses logbook</AlertTitle>
             <AlertDescription>
@@ -440,8 +451,18 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
             batchId={activeClasses[0].batchId}
             studentId={profile.id}
           />
+        ) : isGraduated ? (
+          <Alert className="border-brand-purple/30 bg-brand-purple/5 text-foreground p-5 font-sans">
+            <Award className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <AlertTitle className="font-heading font-bold text-base">Kegiatan Absensi Selesai</AlertTitle>
+              <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+                Kegiatan perkuliahan dan absensi harian telah berakhir untuk batch ini. Rekapan nilai kehadiran Anda dapat dilihat di tab <strong>Transkrip & Sertifikat</strong>.
+              </AlertDescription>
+            </div>
+          </Alert>
         ) : (
-          <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600">
+          <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600 font-sans">
             <Info className="w-5 h-5" />
             <AlertTitle>Tidak dapat mengakses absensi</AlertTitle>
             <AlertDescription>

@@ -22,6 +22,8 @@ interface EditUserModalProps {
   setStudyProgramValue: (v: string) => void;
   selectedProgramValue: string;
   setSelectedProgramValue: (v: string) => void;
+  statusValue?: string;
+  setStatusValue?: (v: string) => void;
   userBatches: string[];
   setUserBatches: (v: string[]) => void;
   onSave: () => void;
@@ -45,6 +47,8 @@ export function EditUserModal({
   setStudyProgramValue,
   selectedProgramValue,
   setSelectedProgramValue,
+  statusValue,
+  setStatusValue,
   userBatches,
   setUserBatches,
   onSave,
@@ -163,6 +167,22 @@ export function EditUserModal({
                   )}
                 </select>
               </div>
+
+              {statusValue !== undefined && setStatusValue && (
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-muted-foreground">Status Akun</label>
+                  <select
+                    value={statusValue}
+                    onChange={(e) => setStatusValue(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-brand-purple capitalize"
+                  >
+                    <option value="active">Active (Aktif)</option>
+                    <option value="invited">Invited</option>
+                    <option value="graduated font-bold">Graduated (Lulus)</option>
+                    <option value="suspended">Suspended</option>
+                  </select>
+                </div>
+              )}
 
               {isFacilitator && (
                 <div className="col-span-2 space-y-1.5 pt-2 border-t border-border/60">

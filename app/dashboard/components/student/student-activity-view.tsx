@@ -5,6 +5,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  Award,
   Bell,
   BookOpen,
   Calendar,
@@ -38,6 +39,7 @@ export function StudentActivityView({
   const [isLogbookLoading, setIsLogbookLoading] = useState(false);
 
   const activeBatchId = activeClasses[0]?.batchId;
+  const isGraduated = profile?.status === "graduated" || (classes.length > 0 && activeClasses.length === 0);
 
   // Live fetch logbook status for current active batch
   useEffect(() => {
@@ -81,29 +83,52 @@ export function StudentActivityView({
         </h2>
 
         {activeClasses.length === 0 ? (
-          <Alert className="border-border bg-card shadow-sm p-5">
-            <Info className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
-            <div className="space-y-2">
-              <AlertTitle className="font-heading font-bold text-base text-foreground">
-                Program Terdaftar: {profile?.selectedProgram || "Belum Ditentukan"}
-              </AlertTitle>
-              <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
-                {profile?.selectedProgram ? (
-                  <>
-                    Anda terdaftar pada program <strong>{profile.selectedProgram}</strong>.
-                    Saat ini kelas pembelajaran belum dijadwalkan oleh Mentor Utama atau
-                    Admin belum meluncurkan/mengaktifkan Batch Cohort berjalan. Silakan
-                    tunggu atau hubungi administrator Anda.
-                  </>
-                ) : (
-                  <>
-                    Akun Anda belum dikaitkan dengan Program Studi manapun. Harap hubungi
-                    administrator untuk menentukan program Anda.
-                  </>
-                )}
-              </AlertDescription>
-            </div>
-          </Alert>
+          isGraduated ? (
+            <Card className="border-brand-purple/30 bg-gradient-to-br from-brand-purple/10 via-card to-amber-500/10 shadow-md overflow-hidden relative p-6 space-y-4 font-sans">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-brand-purple/20 border border-brand-purple/30 flex items-center justify-center text-brand-purple shrink-0 mt-1">
+                  <Award className="w-7 h-7" />
+                </div>
+                <div className="space-y-1.5 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-brand-purple text-white">
+                      🎓 Status: Lulus (Alumni)
+                    </span>
+                  </div>
+                  <h3 className="font-heading font-extrabold text-lg text-foreground">
+                    Selamat! Anda Telah Lulus dari Program {profile?.selectedProgram || "Studi IL"}
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed pt-1">
+                    Seluruh rangkaian pembelajaran dan modul pada Cohort ini telah dinyatakan selesai. Anda dapat meninjau kembali riwayat materi, nilai, dan mengunduh sertifikat kelulusan pada tab <strong>Batch Lama</strong> dan <strong>Transkrip & Sertifikat</strong>.
+                  </p>
+                </div>
+              </div>
+            </Card>
+          ) : (
+            <Alert className="border-border bg-card shadow-sm p-5">
+              <Info className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <AlertTitle className="font-heading font-bold text-base text-foreground">
+                  Program Terdaftar: {profile?.selectedProgram || "Belum Ditentukan"}
+                </AlertTitle>
+                <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+                  {profile?.selectedProgram ? (
+                    <>
+                      Anda terdaftar pada program <strong>{profile.selectedProgram}</strong>.
+                      Saat ini kelas pembelajaran belum dijadwalkan oleh Mentor Utama atau
+                      Admin belum meluncurkan/mengaktifkan Batch Cohort berjalan. Silakan
+                      tunggu atau hubungi administrator Anda.
+                    </>
+                  ) : (
+                    <>
+                      Akun Anda belum dikaitkan dengan Program Studi manapun. Harap hubungi
+                      administrator untuk menentukan program Anda.
+                    </>
+                  )}
+                </AlertDescription>
+              </div>
+            </Alert>
+          )
         ) : (
           <div className="grid gap-6">
             {activeClasses.map((cls) => (
@@ -254,9 +279,19 @@ export function StudentActivityView({
               <CheckCircle2 className="w-4 h-4 text-brand-purple" />
               Tugas Mendatang
             </h3>
-            {classes.length > 0 ? (
+            {isGraduated ? (
+              <div className="text-center py-6 space-y-2">
+                <div className="w-10 h-10 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <p className="text-xs font-bold text-foreground">🎉 Selamat atas Kelulusan Anda!</p>
+                <p className="text-[11px] text-muted-foreground max-w-[200px] mx-auto leading-relaxed">
+                  Seluruh tugas pembelajaran telah diselesaikan dengan baik.
+                </p>
+              </div>
+            ) : classes.length > 0 ? (
               (() => {
-                const allAssignments = classes.flatMap((c) =>
+                const allAssignments = activeClasses.flatMap((c) =>
                   (c.assignments || []).map((a: any) => ({
                     ...a,
                     classId: c.id,

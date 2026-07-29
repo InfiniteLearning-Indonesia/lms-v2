@@ -4,7 +4,7 @@ export interface UserListItem {
   email: string;
   role: "admin" | "facilitator" | "mentor" | "student";
   roles?: ("admin" | "facilitator" | "mentor" | "student")[];
-  status: "invited" | "active" | "suspended";
+  status: "invited" | "active" | "suspended" | "graduated";
   createdAt: string;
   lastLoginAt: string | null;
   whatsapp?: string | null;
