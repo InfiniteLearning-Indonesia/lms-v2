@@ -4,7 +4,7 @@ import { API_BASE_URL } from "@/lib/config";
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText, AlertTriangle, ShieldAlert, X } from "lucide-react";
+import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText, AlertTriangle, ShieldAlert, X, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,8 @@ interface MentorAssessmentViewProps {
   handleImportCSV?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isImportingCSV?: boolean;
   isReadOnly?: boolean;
+  isCertificateReleased?: boolean;
+  onToggleReleaseCertificate?: (newStatus: boolean) => void;
   attendanceScores?: Record<string, any>;
   competencyScores?: any[];
   handleSaveDirectCompetencyScore?: (studentId: string, competencyId: string, score: number) => void;
@@ -77,6 +79,8 @@ export function MentorAssessmentView({
   handleImportCSV,
   isImportingCSV = false,
   isReadOnly = false,
+  isCertificateReleased: initialIsReleased = false,
+  onToggleReleaseCertificate,
   attendanceScores = {},
   competencyScores = [],
   handleSaveDirectCompetencyScore,
@@ -84,6 +88,11 @@ export function MentorAssessmentView({
   setIsPhaseDatesModalOpen,
 }: MentorAssessmentViewProps) {
   const [assessmentTab, setAssessmentTab] = useState<"Micro" | "Massive">("Micro");
+  const [isReleased, setIsReleased] = useState<boolean>(Boolean(initialIsReleased));
+
+  useEffect(() => {
+    setIsReleased(Boolean(initialIsReleased));
+  }, [initialIsReleased]);
   const [internalActiveRubrikTab, setInternalActiveRubrikTab] = useState("kompetensi");
   const activeRubrikTab = externalActiveRubrikTab || internalActiveRubrikTab;
   const setActiveRubrikTab = externalSetActiveRubrikTab || setInternalActiveRubrikTab;
@@ -602,7 +611,7 @@ export function MentorAssessmentView({
               </Button>
 
               <Button
-                variant="default"
+                variant={isReleased ? "outline" : "default"}
                 size="sm"
                 onClick={() => {
                   if (!selectedProgramId) {
@@ -612,17 +621,30 @@ export function MentorAssessmentView({
                   setReleaseCountdown(5);
                   setIsReleaseModalOpen(true);
                 }}
-                className="h-8 text-xs flex items-center gap-1.5 bg-brand-purple hover:bg-brand-purple/90 text-white cursor-pointer shadow-xs font-semibold"
+                className={
+                  isReleased
+                    ? "h-8 text-xs flex items-center gap-1.5 border-brand-purple text-brand-purple bg-brand-purple/5 hover:bg-brand-purple/10 cursor-pointer font-bold shadow-xs transition-all"
+                    : "h-8 text-xs flex items-center gap-1.5 bg-brand-purple hover:bg-brand-purple/90 text-white cursor-pointer shadow-xs font-semibold transition-all"
+                }
               >
-                {assessmentTab === "Micro" ? (
+                {isReleased ? (
                   <>
-                    <FileText className="w-3.5 h-3.5" />
-                    Rilis Transkrip Nilai (Micro)
+                    <CheckCircle2 className="w-3.5 h-3.5 text-brand-purple" />
+                    {assessmentTab === "Micro" ? "Transkrip Sudah Rilis" : "Sertifikat Sudah Rilis"}
                   </>
                 ) : (
                   <>
-                    <Award className="w-3.5 h-3.5" />
-                    Rilis Sertifikat (Kelulusan & Magang)
+                    {assessmentTab === "Micro" ? (
+                      <>
+                        <FileText className="w-3.5 h-3.5" />
+                        Rilis Transkrip Nilai (Micro)
+                      </>
+                    ) : (
+                      <>
+                        <Award className="w-3.5 h-3.5" />
+                        Rilis Sertifikat (Kelulusan & Magang)
+                      </>
+                    )}
                   </>
                 )}
               </Button>
@@ -858,19 +880,21 @@ export function MentorAssessmentView({
             </div>
 
             <div className="space-y-3 text-xs text-foreground/90 font-sans">
-              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 space-y-2">
+              <div className={`p-3.5 rounded-xl border space-y-2 ${isReleased ? "bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-300" : "bg-brand-purple/10 border-brand-purple/20 text-brand-purple"}`}>
                 <div className="flex items-center gap-2 font-bold text-xs">
-                  <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
-                  PERINGATAN PENTING:
+                  <AlertTriangle className="w-4 h-4 shrink-0" />
+                  {isReleased ? "KONFIRMASI PENARIKAN RILIS:" : "KONFIRMASI RILIS DOKUMEN:"}
                 </div>
                 <p className="text-2xs leading-relaxed">
-                  Menerbitkan sertifikat akan mengubah status seluruh siswa yang terdaftar di program ini secara permanen menjadi <strong className="font-bold uppercase tracking-wider text-amber-700 dark:text-amber-200 font-mono">GRADUATED (Lulus)</strong> dan menandai periode pembelajaran angkatan ini telah selesai.
+                  {isReleased
+                    ? `Dokumen saat ini BERSTATUS SUDAH DIRILIS. Apakah Anda yakin ingin MENARIK KEMBALI rilis ${assessmentTab === "Micro" ? "Transkrip Nilai (Micro)" : "Sertifikat Kelulusan & Magang"} untuk program ini?`
+                    : `Menerbitkan ${assessmentTab === "Micro" ? "Transkrip Nilai (Micro)" : "Sertifikat Kelulusan & Magang"} akan mengizinkan seluruh mentee pada program ini untuk mengunduh dan mencetak dokumen resmi akademik mereka.`}
                 </p>
               </div>
 
               <ul className="list-disc pl-4 space-y-1 text-2xs text-muted-foreground">
-                <li>Pastikan seluruh rekap nilai absensi, tugas, dan rubrik penilaian sudah final.</li>
-                <li>Status akun seluruh mentee di program ini akan diperbarui menjadi <strong>Graduated</strong>.</li>
+                <li>Pastikan rekap penilaian absensi, tugas, dan kompetensi sudah diperiksa.</li>
+                <li>Mentee dapat mengakses transkrip / sertifikat secara real-time setelah rilis aktif.</li>
               </ul>
             </div>
 
@@ -899,6 +923,10 @@ export function MentorAssessmentView({
                     });
                     if (res.ok) {
                       const d = await res.json();
+                      setIsReleased(Boolean(d.isCertificateReleased));
+                      if (onToggleReleaseCertificate) {
+                        onToggleReleaseCertificate(Boolean(d.isCertificateReleased));
+                      }
                       setIsReleaseModalOpen(false);
                       if (assessmentTab === "Micro") {
                         toast.success(d.isCertificateReleased ? "Transkrip Nilai (Micro) berhasil dirilis untuk mentee!" : "Rilis Transkrip Nilai ditarik kembali.");
@@ -914,17 +942,26 @@ export function MentorAssessmentView({
                     setIsSubmittingRelease(false);
                   }
                 }}
-                className="text-xs bg-amber-600 hover:bg-amber-700 text-white font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs flex items-center gap-1.5"
+                className={
+                  isReleased
+                    ? "text-xs bg-amber-600 hover:bg-amber-700 text-white font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs flex items-center gap-1.5"
+                    : "text-xs bg-brand-purple hover:bg-brand-purple/90 text-white font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs flex items-center gap-1.5"
+                }
               >
                 {isSubmittingRelease ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Memproses Rilis...
+                    Memproses...
                   </>
                 ) : releaseCountdown > 0 ? (
                   <>
                     <AlertTriangle className="w-3.5 h-3.5" />
                     Tunggu ({releaseCountdown}s)...
+                  </>
+                ) : isReleased ? (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Tarik Kembali Rilis
                   </>
                 ) : (
                   <>

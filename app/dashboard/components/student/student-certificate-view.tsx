@@ -192,7 +192,24 @@ export function StudentCertificateView({ profile }: { profile: any }) {
 
       {/* Print Target Wrapper */}
       <div id="printable-area" className="space-y-6">
-        {subTab === "transcript" ? (
+        {!activeGrade.isCertificateReleased ? (
+          <Card className="border border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 p-12 text-center space-y-4 font-sans">
+            <div className="w-16 h-16 rounded-full bg-amber-500/20 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+              <Lock className="w-8 h-8" />
+            </div>
+            <h3 className="font-heading font-bold text-xl text-foreground">
+              Dokumen Akademik Belum Dirilis oleh Mentor
+            </h3>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+              Transkrip Nilai dan Sertifikat Kelulusan untuk program <strong className="text-foreground">{activeGrade.program.name}</strong> belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.
+            </p>
+            <div className="pt-2">
+              <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-500/10 px-3 py-1 font-semibold text-xs">
+                Status: Menunggu Rilis Official Mentor
+              </Badge>
+            </div>
+          </Card>
+        ) : subTab === "transcript" ? (
           /* ── VIEW TRANSKRIP NILAI (MICRO PHASE) ── */
           <Card className="border border-border/60 shadow-md bg-card overflow-hidden">
             <CardHeader className="border-b border-border/60 bg-secondary/20 pb-6">
@@ -318,23 +335,6 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                 </div>
               </div>
             </CardContent>
-          </Card>
-        ) : !activeGrade.isCertificateReleased ? (
-          <Card className="border border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 p-12 text-center space-y-4 font-sans">
-            <div className="w-16 h-16 rounded-full bg-amber-500/20 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
-              <Lock className="w-8 h-8" />
-            </div>
-            <h3 className="font-heading font-bold text-xl text-foreground">
-              Sertifikat Belum Dirilis oleh Mentor
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-              Sertifikat Kelulusan Fase Massive untuk program <strong className="text-foreground">{activeGrade.program.name}</strong> belum dikonfirmasi atau dirilis secara resmi oleh mentor pembimbing Anda. Transkrip nilai Fase Micro tetap dapat diakses pada tab Transkrip.
-            </p>
-            <div className="pt-2">
-              <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-500/10 px-3 py-1 font-semibold text-xs">
-                Status: Menunggu Konfirmasi Kelulusan Mentor
-              </Badge>
-            </div>
           </Card>
         ) : (
           /* ── VIEW SERTIFIKAT KELULUSAN (MASSIVE PHASE) ── */

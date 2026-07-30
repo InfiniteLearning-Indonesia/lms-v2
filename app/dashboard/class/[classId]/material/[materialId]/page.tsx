@@ -111,9 +111,9 @@ export default function MaterialDetailPage() {
         </div>
 
         {/* Content Viewer Placeholder */}
-        <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden min-h-[400px] flex flex-col">
+        <div className={`bg-card border border-border rounded-xl shadow-sm overflow-hidden flex flex-col ${isText ? "" : "min-h-[400px]"}`}>
           {isText ? (
-            <div className="p-6 md:p-8 border-b border-border bg-card">
+            <div className="p-6 md:p-8 bg-card">
               <div
                 className="prose prose-sm dark:prose-invert max-w-none font-sans text-foreground leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded"
                 dangerouslySetInnerHTML={{ __html: materialData.content || "<p>Tidak ada konten artikel.</p>" }}
