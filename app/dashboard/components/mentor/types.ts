@@ -10,6 +10,7 @@ export interface MentorProfile {
   specialization?: string | null;
   selectedProgram?: string | null;
   avatarUrl?: string | null;
+  isPasswordChanged?: boolean;
 }
 
 export interface MentorDashboardProps {

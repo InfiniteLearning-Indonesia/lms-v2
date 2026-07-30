@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CompetencyItem, MentorClass } from "../types";
+import { RichTextEditor } from "../../editor/rich-text-editor";
 
 interface MentorModalsProps {
   // Add Competency Modal
@@ -154,6 +155,7 @@ export function MentorModals({
   const [selectedRubricIds, setSelectedRubricIds] = useState<string[]>([]);
   const [syllabusesList, setSyllabusesList] = useState<{ name: string }[]>([]);
   const [newSyllabusName, setNewSyllabusName] = useState("");
+  const [materialRichContent, setMaterialRichContent] = useState("");
 
   const addSyllabus = () => {
     if (newSyllabusName.trim()) {
@@ -385,6 +387,7 @@ export function MentorModals({
                 >
                   <option value="pdf">PDF</option>
                   <option value="video">Video</option>
+                  <option value="text">Rich Text Artikel (Tiptap Editor)</option>
                   <option value="link">Tautan Luar</option>
                   <option value="custom">Custom Editor (HTML Embed)</option>
                 </select>
@@ -416,7 +419,18 @@ export function MentorModals({
                   ))}
                 </select>
               </div>
-              {materialType === "custom" ? (
+              {materialType === "text" ? (
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-foreground">
+                    Isi Materi & Artikel (Rich Text Format)
+                  </label>
+                  <RichTextEditor
+                    content={materialRichContent}
+                    onChange={(html) => setMaterialRichContent(html)}
+                  />
+                  <input type="hidden" name="content" value={materialRichContent} />
+                </div>
+              ) : materialType === "custom" ? (
                 <>
                   <div>
                     <label className="block text-sm font-medium mb-1 text-foreground">

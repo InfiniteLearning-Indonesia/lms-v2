@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { StudentProfile } from "./types";
+import { ChangePasswordSection } from "../settings/change-password-section";
 
 interface StudentProfileSettingsProps {
   profile: StudentProfile;
@@ -71,6 +72,7 @@ export function StudentProfileSettings({
   };
 
   return (
+    <div className="space-y-6">
     <Card className="border-border bg-card shadow-sm w-full font-sans">
       <CardHeader className="border-b border-border pb-4">
         <CardTitle className="font-heading font-bold text-lg flex items-center gap-2 text-foreground">
@@ -231,5 +233,7 @@ export function StudentProfileSettings({
         </form>
       </CardContent>
     </Card>
+    <ChangePasswordSection />
+    </div>
   );
 }

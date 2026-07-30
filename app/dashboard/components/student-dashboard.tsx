@@ -17,7 +17,8 @@ import { StudentPastBatches } from "./student/student-past-batches";
 import { StudentPermissionView } from "./student/student-permission-view";
 import { StudentCertificateView } from "./student/student-certificate-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info, AlertTriangle, Lock } from "lucide-react";
+import { Info, AlertTriangle, Lock, KeyRound } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -318,6 +319,29 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+      )}
+
+      {profile?.isPasswordChanged === false && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-700 dark:text-amber-300 font-sans shadow-sm mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold font-heading">Peringatan Keamanan Akun</h4>
+              <p className="text-[11px] opacity-90">
+                Anda masih menggunakan password default (<code className="font-mono font-bold bg-amber-500/20 px-1 py-0.5 rounded">Student123!</code>). Harap segera ganti password Anda demi keamanan akun.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => handleTabChange("settings")}
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold h-9 px-4 shrink-0 cursor-pointer"
+          >
+            Ganti Password Sekarang
+          </Button>
+        </div>
       )}
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6 w-full font-sans">

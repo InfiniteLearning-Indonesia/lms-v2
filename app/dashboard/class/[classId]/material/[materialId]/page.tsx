@@ -86,6 +86,7 @@ export default function MaterialDetailPage() {
 
   const isVideo = materialData.type === "video";
   const isCustom = materialData.type === "custom";
+  const isText = materialData.type === "text";
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
@@ -96,7 +97,7 @@ export default function MaterialDetailPage() {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="border-brand-purple text-brand-purple bg-brand-purple/5 font-mono text-[10px] tracking-wider uppercase">
-              {isCustom ? "Materi Interaktif" : isVideo ? "Video" : "PDF / Teks"}
+              {isText ? "Artikel / Rich Text" : isCustom ? "Materi Interaktif" : isVideo ? "Video" : "PDF / Teks"}
             </Badge>
             <span className="text-xs text-muted-foreground flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
@@ -111,7 +112,14 @@ export default function MaterialDetailPage() {
 
         {/* Content Viewer Placeholder */}
         <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden min-h-[400px] flex flex-col">
-          {isCustom ? (
+          {isText ? (
+            <div className="p-6 md:p-8 border-b border-border bg-card">
+              <div
+                className="prose prose-sm dark:prose-invert max-w-none font-sans text-foreground leading-relaxed [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-semibold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded"
+                dangerouslySetInnerHTML={{ __html: materialData.content || "<p>Tidak ada konten artikel.</p>" }}
+              />
+            </div>
+          ) : isCustom ? (
             <div className="w-full bg-black/5 dark:bg-black/50 border-b border-border p-4 flex justify-center">
               <div
                 className="w-full max-w-5xl aspect-video rounded-xl [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0 [&_iframe]:rounded-lg [&>div]:!mt-0 [&>div]:!mb-0 [&>div]:!mx-auto"

@@ -13,6 +13,8 @@ import {
   User,
 } from "lucide-react";
 
+import { ChangePasswordSection } from "../settings/change-password-section";
+
 interface AdminProfileSettingsProps {
   profile?: {
     id: string;
@@ -243,6 +245,8 @@ export function AdminProfileSettings({
           </div>
         </form>
       </div>
+
+      <ChangePasswordSection />
     </div>
   );
 }

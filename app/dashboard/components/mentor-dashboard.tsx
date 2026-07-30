@@ -18,6 +18,7 @@ import {
   Layers,
   Loader2,
   Lock,
+  KeyRound,
   Notebook,
   Pencil,
   Phone,
@@ -1067,6 +1068,29 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   return (
     <div className="space-y-8 font-sans">
+      {profile?.isPasswordChanged === false && (
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-700 dark:text-amber-300 font-sans shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+              <KeyRound className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-xs font-bold font-heading">Peringatan Keamanan Akun</h4>
+              <p className="text-[11px] opacity-90">
+                Anda masih menggunakan password default (<code className="font-mono font-bold bg-amber-500/20 px-1 py-0.5 rounded">Student123!</code>). Harap segera ganti password Anda demi keamanan akun.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={() => setActiveTab("settings")}
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold h-9 px-4 shrink-0 cursor-pointer"
+          >
+            Ganti Password Sekarang
+          </Button>
+        </div>
+      )}
+
       {/* Banner / Welcome Mentor */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

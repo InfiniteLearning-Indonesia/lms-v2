@@ -24,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { MentorProfile } from "./types";
+import { ChangePasswordSection } from "../settings/change-password-section";
 
 interface MentorProfileSettingsProps {
   profile?: MentorProfile;
@@ -703,6 +704,9 @@ export function MentorProfileSettings({
           </form>
         </CardContent>
       </Card>
+
+      {/* Card 3: Keamanan & Ganti Password */}
+      <ChangePasswordSection />
     </div>
   );
 }

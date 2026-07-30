@@ -10,6 +10,7 @@ export interface StudentProfile {
   studyProgram?: string | null;
   selectedProgram?: string | null;
   avatarUrl?: string | null;
+  isPasswordChanged?: boolean;
 }
 
 export interface StudentDashboardProps {

@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   Check,
   Copy,
+  Download,
   FileSpreadsheet,
   ShieldAlert,
   Upload,
@@ -305,28 +306,39 @@ export function AdminUserInvite({
                 Masukkan data murid dari spreadsheet/Airtable sesuai standar spesifikasi kolom.
               </p>
             </div>
-            <div className="flex items-center justify-between gap-2 bg-secondary/60 border border-border px-3 py-1.5 rounded-lg w-full">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 bg-secondary/60 border border-border px-3 py-2 rounded-lg w-full">
               <span className="text-2xs font-mono text-muted-foreground font-semibold overflow-x-auto whitespace-nowrap scrollbar-none">
                 name,email,whatsapp,institution,studyProgram,selectedProgram
               </span>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    "name,email,whatsapp,institution,studyProgram,selectedProgram"
-                  );
-                  setCopiedHeader(true);
-                  setTimeout(() => setCopiedHeader(false), 2000);
-                }}
-                className="p-1 hover:bg-muted rounded text-foreground transition-colors shrink-0 cursor-pointer"
-                title="Salin Template Header"
-              >
-                {copiedHeader ? (
-                  <Check className="w-3.5 h-3.5 text-emerald-500" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                )}
-              </button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <a
+                  href="/templates/template-import-siswa-lms.csv"
+                  download="template-import-siswa-lms.csv"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-brand-purple/10 hover:bg-brand-purple text-brand-purple hover:text-white text-3xs font-semibold font-heading transition-colors"
+                  title="Unduh File Template CSV"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>Unduh Template CSV (.csv)</span>
+                </a>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      "name,email,whatsapp,institution,studyProgram,selectedProgram"
+                    );
+                    setCopiedHeader(true);
+                    setTimeout(() => setCopiedHeader(false), 2000);
+                  }}
+                  className="p-1 hover:bg-muted rounded text-foreground transition-colors cursor-pointer"
+                  title="Salin Template Header"
+                >
+                  {copiedHeader ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 

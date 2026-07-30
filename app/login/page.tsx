@@ -1,19 +1,40 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { API_BASE_URL } from "@/lib/config";
 import {
   ArrowLeft,
   AlertCircle,
+  KeyRound,
+  Lock,
+  Mail,
+  Loader2,
+  CheckCircle2,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 function LoginContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Setup Password Dialog States
+  const [isSetupModalOpen, setIsSetupModalOpen] = useState(false);
+  const [setupEmail, setSetupEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isSettingUp, setIsSettingUp] = useState(false);
+  const [setupError, setSetupError] = useState("");
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
@@ -22,8 +43,90 @@ function LoginContent() {
     }
   }, [searchParams]);
 
+  const handleLocalLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+    setIsSubmitting(true);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login-local`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 400 && data.message?.includes("Password belum dibuat")) {
+          setSetupEmail(email);
+          setIsSetupModalOpen(true);
+          setSetupError("Akun Anda belum memiliki password. Silakan buat password pertama Anda di bawah ini.");
+        } else {
+          setError(data.message || "Login gagal. Periksa kembali email dan password Anda.");
+        }
+        return;
+      }
+
+      setSuccess("Login berhasil! Mengalihkan ke dasbor...");
+      setTimeout(() => {
+        router.push(`/dashboard?token=${data.token}`);
+      }, 500);
+    } catch (err: any) {
+      console.error(err);
+      setError("Terjadi kesalahan koneksi ke server.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleSetupPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSetupError("");
+
+    if (newPassword.length < 6) {
+      setSetupError("Password minimal 6 karakter.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setSetupError("Konfirmasi password tidak cocok.");
+      return;
+    }
+
+    setIsSettingUp(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/setup-password`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ email: setupEmail, password: newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setSetupError(data.message || "Gagal membuat password.");
+        return;
+      }
+
+      setIsSetupModalOpen(false);
+      setSuccess("Password berhasil dibuat! Mengalihkan ke dasbor...");
+      setTimeout(() => {
+        router.push(`/dashboard?token=${data.token}`);
+      }, 500);
+    } catch (err) {
+      console.error(err);
+      setSetupError("Terjadi kesalahan koneksi ke server.");
+    } finally {
+      setIsSettingUp(false);
+    }
+  };
+
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-sm font-sans">
       {/* Mobile back link */}
       <Link
         href="/"
@@ -33,26 +136,24 @@ function LoginContent() {
         <span className="text-sm font-medium">Kembali</span>
       </Link>
 
-      <div className="mb-8">
+      <div className="mb-6">
         <div className="lg:hidden mb-6 flex items-center">
           <img src="/logo-black.png" alt="Infinite Learning Logo" className="dark:hidden h-7 w-auto" />
           <img src="/logo-white.png" alt="Infinite Learning Logo" className="hidden dark:block h-7 w-auto" />
         </div>
         <h1 className="font-heading font-bold text-2xl tracking-tight text-foreground">
-          Masuk ke akunmu
+          Masuk ke LMS
         </h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">
-          Portal login untuk siswa Infinite Learning.
+        <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+          Selamat datang kembali. Silakan masuk menggunakan Email & Password atau akun Google Anda.
         </p>
       </div>
 
-      <div className="space-y-5">
+      <div className="space-y-4">
         {error && (
           <motion.div
             initial={{ opacity: 0, y: -4 }}
             animate={{ opacity: 1, y: 0 }}
-            role="alert"
-            aria-live="polite"
             className="flex items-start gap-2.5 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs"
           >
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -60,14 +161,79 @@ function LoginContent() {
           </motion.div>
         )}
 
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-start gap-2.5 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs"
+          >
+            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{success}</span>
+          </motion.div>
+        )}
+
+        {/* Email & Password Form */}
+        <form onSubmit={handleLocalLogin} className="space-y-3">
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">Email</label>
+            <div className="relative">
+              <Mail className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="nama@email.com"
+                className="pl-9 text-xs h-10 border-border"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-foreground">Password</label>
+            <div className="relative">
+              <Lock className="w-4 h-4 absolute left-3 top-3 text-muted-foreground" />
+              <Input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="pl-9 text-xs h-10 border-border"
+              />
+            </div>
+          </div>
+
+          <Button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full h-10 bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-bold font-heading transition-colors shadow-sm cursor-pointer mt-2"
+          >
+            {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+            Masuk dengan Email & Password
+          </Button>
+        </form>
+
+        {/* Divider */}
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground font-mono text-[10px] tracking-wider">
+              Atau
+            </span>
+          </div>
+        </div>
+
         {/* Continue with Google button */}
         <motion.a
           href={`${API_BASE_URL}/auth/google`}
           whileHover={{ scale: 1.015 }}
           whileTap={{ scale: 0.985 }}
-          className="w-full py-3 rounded-lg border border-border bg-card text-foreground font-sans font-medium text-sm hover:bg-muted/50 transition-colors flex items-center justify-center gap-2.5 shadow-sm"
+          className="w-full py-2.5 rounded-lg border border-border bg-card text-foreground font-sans font-medium text-xs hover:bg-muted/50 transition-colors flex items-center justify-center gap-2.5 shadow-xs cursor-pointer"
         >
-          <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -88,28 +254,105 @@ function LoginContent() {
           <span>Masuk dengan Google</span>
         </motion.a>
 
-        <div className="mt-8 pt-6 border-t border-border text-center">
-          <p className="text-xs text-muted-foreground">
-            Mentor atau Admin?{" "}
-            <Link
-              href="/login/staff"
-              className="font-medium text-brand-purple hover:text-brand-purple-hover transition-colors"
-            >
-              Masuk di portal staf
-            </Link>
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Pastikan kamu sudah cek email kamu dan terima undangan sebelum login!
+        <div className="mt-6 pt-4 border-t border-border text-center">
+          <p className="text-[11px] text-muted-foreground leading-relaxed">
+            Pastikan email Anda sudah terdaftar di sistem Infinite Learning.
           </p>
         </div>
       </div>
+
+      {/* Setup Password Modal */}
+      {isSetupModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-card border border-border rounded-xl p-6 shadow-xl w-full max-w-md space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-brand-purple/10 text-brand-purple rounded-lg">
+                <KeyRound className="w-5 h-5 text-brand-purple" />
+              </div>
+              <div>
+                <h3 className="font-heading font-bold text-base text-foreground">
+                  Buat Password Pertama Anda
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Untuk akun terdaftar yang belum memiliki password.
+                </p>
+              </div>
+            </div>
+
+            {setupError && (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 text-xs">
+                {setupError}
+              </div>
+            )}
+
+            <form onSubmit={handleSetupPasswordSubmit} className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Email Terdaftar (Terkunci)</label>
+                <Input
+                  type="email"
+                  required
+                  disabled
+                  readOnly
+                  value={setupEmail}
+                  className="text-xs h-10 border-border bg-muted text-muted-foreground opacity-90 cursor-not-allowed"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Password Baru</label>
+                <Input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimal 6 karakter"
+                  className="text-xs h-10 border-border"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Konfirmasi Password Baru</label>
+                <Input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Ulangi password baru"
+                  className="text-xs h-10 border-border"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsSetupModalOpen(false)}
+                  className="text-xs"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSettingUp}
+                  className="bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-bold"
+                >
+                  {isSettingUp ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Simpan & Login
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function StudentLoginPage() {
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
+    <div className="min-h-screen grid lg:grid-cols-2 font-sans">
       {/* ── Left: Branding panel ── */}
       <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-brand-purple to-brand-gradient-end text-white p-12">
         <Link href="/" className="flex items-center">
@@ -121,8 +364,8 @@ export default function StudentLoginPage() {
             Kelola kelas, kerjakan tugas, dan pantau progresmu di satu tempat.
           </h2>
           <p className="mt-4 text-white/60 text-sm leading-relaxed">
-            Platform ini dirancang khusus untuk siswa Infinite Learning.
-            Masuk dengan akun Google yang telah terdaftar di sistem.
+            Platform Learning Management System resmi Infinite Learning.
+            Masuk menggunakan Email & Password atau akun Google yang telah terdaftar.
           </p>
         </div>
 
