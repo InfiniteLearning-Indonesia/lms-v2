@@ -1032,12 +1032,29 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const pastClasses = classes.filter((cls) => !activeClasses.some((ac) => ac.id === cls.id));
   const hasPastClasses = pastClasses.length > 0;
 
+  const selectedCls = classes.find((c) => c.id === selectedClassId) || classes[0];
+  const currentFacilitators = selectedCls?.facilitators || (classes && classes[0]?.facilitators) || [];
+  const isReadOnly = selectedCls?.batch?.status === "completed";
+
   // Calculate stats
   const totalClasses = activeClasses.length;
-  const totalStudents = activeClasses.reduce((acc, cls) => acc + (cls.enrolledStudentsCount || 0), 0);
-  const allStudents = activeClasses
-    .filter((cls) => !selectedProgramId || cls.program?.id === selectedProgramId)
-    .flatMap((cls) => cls.enrolledStudents || []);
+  const totalStudents = selectedCls?.enrolledStudentsCount ?? selectedCls?.enrolledStudents?.length ?? 0;
+
+  // Personal Student Filtering:
+  // Prioritize students enrolled in selectedCls, deduplicated by student ID
+  const rawStudentList = (selectedCls?.enrolledStudents && selectedCls.enrolledStudents.length > 0)
+    ? selectedCls.enrolledStudents
+    : activeClasses
+        .filter((cls) => !selectedProgramId || cls.program?.id === selectedProgramId)
+        .flatMap((cls) => cls.enrolledStudents || []);
+
+  const allStudents = rawStudentList.reduce((acc: any[], current: any) => {
+    if (!acc.some((s) => s.id === current.id)) {
+      acc.push(current);
+    }
+    return acc;
+  }, []);
+
   const totalMaterials = activeClasses.reduce((acc, cls) => acc + (cls.materials?.length || 0), 0);
   const totalAssignments = activeClasses.reduce((acc, cls) => acc + (cls.assignments?.length || 0), 0);
 
@@ -1050,10 +1067,6 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       (student.selectedProgram && student.selectedProgram.toLowerCase().includes(query))
     );
   });
-
-  const selectedCls = classes.find((c) => c.id === selectedClassId) || classes[0];
-  const currentFacilitators = selectedCls?.facilitators || (classes && classes[0]?.facilitators) || [];
-  const isReadOnly = selectedCls?.batch?.status === "completed";
 
   // 🎓 Dual-Scope Mentorship Architecture:
   // Professional & UI/UX mentors can access secondary programs with restricted tab scope
