@@ -1055,6 +1055,30 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const currentFacilitators = selectedCls?.facilitators || (classes && classes[0]?.facilitators) || [];
   const isReadOnly = selectedCls?.batch?.status === "completed";
 
+  // 🎓 Dual-Scope Mentorship Architecture:
+  // Professional & UI/UX mentors can access secondary programs with restricted tab scope
+  const specStr = String(profile?.specialization || "").toLowerCase();
+  const isProfessionalMentor = specStr.includes("prof");
+  const isUiUxMentor = specStr.includes("ui") || specStr.includes("ux");
+  const isDualScopeMentor = isProfessionalMentor || isUiUxMentor;
+  const mentorPrimaryProgram = profile?.selectedProgram || "";
+  const selectedClassProgram = selectedCls?.program?.name || "";
+
+  const isSecondaryProgram = Boolean(
+    isDualScopeMentor &&
+    selectedClassProgram &&
+    mentorPrimaryProgram &&
+    !selectedClassProgram.toLowerCase().includes(mentorPrimaryProgram.toLowerCase()) &&
+    !mentorPrimaryProgram.toLowerCase().includes(selectedClassProgram.toLowerCase())
+  );
+
+  // Auto-switch restricted tabs if user currently on facilitator/logbook/attendance while viewing a Secondary Program
+  useEffect(() => {
+    if (isSecondaryProgram && ["facilitator", "logbook", "attendance"].includes(activeTab)) {
+      setActiveTab("classes");
+    }
+  }, [isSecondaryProgram, activeTab]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center p-16 bg-card border border-border rounded-xl shadow-sm">
@@ -1234,24 +1258,42 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           </TabsTrigger>
           <TabsTrigger
             value="facilitator"
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+            disabled={isSecondaryProgram}
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-1.5 py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <UserCheck className="w-4 h-4 shrink-0" />
             <span>Facilitator ({currentFacilitators.length})</span>
+            {isSecondaryProgram && (
+              <span className="text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-normal">
+                Khusus Program Utama
+              </span>
+            )}
           </TabsTrigger>
           <TabsTrigger
             value="logbook"
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+            disabled={isSecondaryProgram}
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-1.5 py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Notebook className="w-4 h-4 shrink-0" />
             <span>Logbook Student</span>
+            {isSecondaryProgram && (
+              <span className="text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-normal">
+                Khusus Program Utama
+              </span>
+            )}
           </TabsTrigger>
           <TabsTrigger
             value="attendance"
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+            disabled={isSecondaryProgram}
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-1.5 py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <CalendarDays className="w-4 h-4 shrink-0" />
             <span>Absensi</span>
+            {isSecondaryProgram && (
+              <span className="text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-normal">
+                Khusus Program Utama
+              </span>
+            )}
           </TabsTrigger>
           <TabsTrigger
             value="rubric"
