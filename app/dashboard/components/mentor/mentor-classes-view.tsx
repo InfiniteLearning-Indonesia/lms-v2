@@ -311,7 +311,7 @@ export function MentorClassesView({
                       <div className="flex items-center gap-2">
                         <Sliders className="w-4 h-4 text-brand-purple" />
                         <h4 className="font-heading font-bold text-sm text-foreground">
-                          Distribusi Alokasi Murid (Round-Robin & Modulo)
+                          Distribusi Alokasi Murid (Setara & Merata)
                         </h4>
                       </div>
                       {!isReadOnly && (
@@ -331,9 +331,7 @@ export function MentorClassesView({
                       )}
                     </div>
                     <p className="text-2xs text-muted-foreground leading-relaxed">
-                      Sesuai Bab 5 & Bab 9 Source of Truth: Sistem akan membagi siswa secara
-                      merata ke Primary Mentor. Remainder modulo dialokasikan secara
-                      otomatis ke Secondary Mentor.
+                      Sistem akan membagi siswa secara setara dan merata ke seluruh mentor yang mengampu program ini sebagai program utama.
                     </p>
                     {distributeMessage && (
                       <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-medium flex items-center gap-2">
