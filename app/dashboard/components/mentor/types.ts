@@ -23,6 +23,7 @@ export interface MentorClass {
   batchId: string;
   programId: string;
   mentorId?: string | null;
+  isTranscriptReleased?: boolean;
   isCertificateReleased?: boolean;
   enrolledStudentsCount?: number;
   enrolledStudents?: any[];

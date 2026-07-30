@@ -1568,6 +1568,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             csvInputRef={csvInputRef}
             handleImportCSV={handleImportCSV}
             isImportingCSV={isImportingCSV}
+            isTranscriptReleased={selectedCls?.isTranscriptReleased}
             isCertificateReleased={selectedCls?.isCertificateReleased}
             attendanceScores={attendanceScores}
             competencyScores={competencyScores}
