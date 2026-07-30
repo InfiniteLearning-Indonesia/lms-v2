@@ -1319,8 +1319,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             value="assessment"
             className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
           >
-            <Pencil className="w-4 h-4 shrink-0" />
-            <span>Assessment</span>
+            <Award className="w-4 h-4 shrink-0" />
+            <span>Rekap Nilai</span>
           </TabsTrigger>
           {hasPastClasses && (
             <TabsTrigger

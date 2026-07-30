@@ -740,40 +740,53 @@ export function MentorAssessmentView({
                         <th className="px-4 py-3 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-r border-border text-center font-bold" title="Nilai Kehadiran Synchronous Mentee">
                           Kehadiran (Absensi)
                         </th>
+                        
+                        {/* Syllabus & Competency Columns */}
+                        {displayComps.map((comp) => (
+                          <th
+                            key={comp.id}
+                            className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
+                            onClick={() => setEditingWeightCompetency(comp)}
+                            title="Klik untuk mengatur bobot tugas di kompetensi/syllabus ini"
+                          >
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="text-[9px] text-brand-purple font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-brand-purple/10">
+                                {comp.category || "Syllabus"}
+                              </span>
+                              <span className="font-semibold flex items-center gap-1">
+                                {comp.name}
+                                <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
+                              </span>
+                            </div>
+                          </th>
+                        ))}
 
                         {/* Rubrik Assessment Columns */}
-                        {hasRAs ? (
-                          displayRAs.map((ra) => (
-                            <th
-                              key={ra.id}
-                              className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
-                              onClick={() => setEditingWeightRubrikAssessment && setEditingWeightRubrikAssessment(ra)}
-                              title="Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini"
-                            >
-                              {ra.name}
-                              <Pencil className="w-3 h-3 inline-block ml-1 opacity-50" />
-                            </th>
-                          ))
-                        ) : (
-                          displayComps.map((comp) => (
-                            <th
-                              key={comp.id}
-                              className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
-                              onClick={() => setEditingWeightCompetency(comp)}
-                              title="Klik untuk mengatur bobot tugas di kompetensi ini"
-                            >
-                              {comp.name}
-                              <Pencil className="w-3 h-3 inline-block ml-1 opacity-50" />
-                            </th>
-                          ))
-                        )}
+                        {displayRAs.map((ra) => (
+                          <th
+                            key={ra.id}
+                            className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border bg-brand-purple/5"
+                            onClick={() => setEditingWeightRubrikAssessment && setEditingWeightRubrikAssessment(ra)}
+                            title="Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini"
+                          >
+                            <div className="flex flex-col items-center gap-0.5">
+                              <span className="text-[9px] text-muted-foreground font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-secondary">
+                                Rubrik
+                              </span>
+                              <span className="font-semibold flex items-center gap-1 text-brand-purple">
+                                {ra.name}
+                                <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
+                              </span>
+                            </div>
+                          </th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                       {allStudents.length === 0 ? (
                         <tr>
                           <td
-                            colSpan={(hasRAs ? displayRAs.length : displayComps.length) + 2}
+                            colSpan={displayComps.length + displayRAs.length + 2}
                             className="px-4 py-8 text-center text-muted-foreground"
                           >
                             Belum ada mentee yang terdaftar.
@@ -781,22 +794,6 @@ export function MentorAssessmentView({
                         </tr>
                       ) : (
                         allStudents.map((student) => {
-                          // Calculate Total Micro average
-                          const microScores = microRAs.map((ra) => calculateRAScore(student.id, ra));
-                          const totalMicroAvg =
-                            microScores.length > 0
-                              ? microScores.reduce((a, b) => a + b, 0) / microScores.length
-                              : microComps.reduce((a, c) => a + calculateCompetencyScore(student.id, c.id), 0);
-
-                          // Calculate Total Massive average
-                          const massiveScores = massiveRAs.map((ra) => calculateRAScore(student.id, ra));
-                          const totalMassiveAvg =
-                            massiveScores.length > 0
-                              ? massiveScores.reduce((a, b) => a + b, 0) / massiveScores.length
-                              : massiveComps.reduce((a, c) => a + calculateCompetencyScore(student.id, c.id), 0);
-
-                          const summaryScore = phase === "Micro" ? totalMicroAvg : totalMassiveAvg;
-
                           return (
                             <tr key={student.id} className="hover:bg-muted/30 transition-colors">
                               <td className="px-4 py-3 sticky left-0 z-10 bg-card shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
@@ -824,41 +821,42 @@ export function MentorAssessmentView({
                                 );
                               })()}
 
-                              {/* RA Cells or Competency Cells */}
-                              {hasRAs
-                                ? displayRAs.map((ra) => {
-                                    const score = calculateRAScore(student.id, ra);
-                                    return (
-                                      <td
-                                        key={ra.id}
-                                        className="px-4 py-3 text-center border-l border-border text-xs font-medium"
-                                      >
-                                        {ensureMinScore(score).toFixed(1)}
-                                      </td>
-                                    );
-                                  })
-                                : displayComps.map((comp) => {
-                                    const directMatch = competencyScores.find(
-                                      (s: any) => s.studentId === student.id && s.competencyId === comp.id
-                                    );
-                                    const score = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
-                                    return (
-                                      <td
-                                        key={comp.id}
-                                        className="px-4 py-3 text-center border-l border-border text-xs font-medium cursor-pointer hover:bg-brand-purple/10 transition-colors"
-                                        onClick={() => {
-                                          const val = prompt(`Masukkan nilai direct untuk ${comp.name} (${student.name}):`, score.toString());
-                                          if (val !== null && !isNaN(parseFloat(val))) {
-                                            handleSaveDirectCompetencyScore?.(student.id, comp.id, parseFloat(val));
-                                          }
-                                        }}
-                                        title="Klik untuk menginput/mengubah nilai secara langsung"
-                                      >
-                                        {ensureMinScore(score).toFixed(1)}
-                                        <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />
-                                      </td>
-                                    );
-                                  })}
+                              {/* Syllabus / Competency Cells */}
+                              {displayComps.map((comp) => {
+                                const directMatch = competencyScores.find(
+                                  (s: any) => s.studentId === student.id && s.competencyId === comp.id
+                                );
+                                const score = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
+                                return (
+                                  <td
+                                    key={comp.id}
+                                    className="px-4 py-3 text-center border-l border-border text-xs font-medium cursor-pointer hover:bg-brand-purple/10 transition-colors"
+                                    onClick={() => {
+                                      const val = prompt(`Masukkan nilai direct untuk ${comp.name} (${student.name}):`, score.toString());
+                                      if (val !== null && !isNaN(parseFloat(val))) {
+                                        handleSaveDirectCompetencyScore?.(student.id, comp.id, parseFloat(val));
+                                      }
+                                    }}
+                                    title="Klik untuk menginput/mengubah nilai secara langsung"
+                                  >
+                                    {ensureMinScore(score).toFixed(1)}
+                                    <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />
+                                  </td>
+                                );
+                              })}
+
+                              {/* Rubrik Assessment Cells */}
+                              {displayRAs.map((ra) => {
+                                const score = calculateRAScore(student.id, ra);
+                                return (
+                                  <td
+                                    key={ra.id}
+                                    className="px-4 py-3 text-center border-l border-border text-xs font-medium bg-brand-purple/5"
+                                  >
+                                    {ensureMinScore(score).toFixed(1)}
+                                  </td>
+                                );
+                              })}
                             </tr>
                           );
                         })
