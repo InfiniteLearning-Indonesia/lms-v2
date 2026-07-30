@@ -3,7 +3,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import LinkExtension from "@tiptap/extension-link";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   Bold,
   Italic,
@@ -15,6 +15,15 @@ import {
   Link as LinkIcon,
   Unlink,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 interface RichTextEditorProps {
   content: string;
@@ -23,6 +32,9 @@ interface RichTextEditorProps {
 }
 
 export function RichTextEditor({ content, onChange, placeholder = "Tulis isi materi di sini..." }: RichTextEditorProps) {
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [linkInputUrl, setLinkInputUrl] = useState("");
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -54,15 +66,29 @@ export function RichTextEditor({ content, onChange, placeholder = "Tulis isi mat
 
   if (!editor) return null;
 
-  const addLink = () => {
-    const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("Masukkan URL Link:", previousUrl);
-    if (url === null) return;
-    if (url === "") {
+  const openLinkModal = () => {
+    const currentUrl = editor.getAttributes("link").href || "";
+    setLinkInputUrl(currentUrl);
+    setIsLinkModalOpen(true);
+  };
+
+  const handleSaveLink = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    let url = linkInputUrl.trim();
+    if (!url) {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
+    } else {
+      if (!/^https?:\/\//i.test(url) && !url.startsWith("mailto:") && !url.startsWith("tel:")) {
+        url = `https://${url}`;
+      }
+      editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
     }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+    setIsLinkModalOpen(false);
+  };
+
+  const handleRemoveLink = () => {
+    editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    setIsLinkModalOpen(false);
   };
 
   return (
@@ -140,18 +166,18 @@ export function RichTextEditor({ content, onChange, placeholder = "Tulis isi mat
 
         <button
           type="button"
-          onClick={addLink}
+          onClick={openLinkModal}
           className={`p-1.5 rounded hover:bg-muted transition-colors ${editor.isActive("link") ? "bg-brand-purple/20 text-brand-purple" : ""}`}
-          title="Insert Link"
+          title="Sisipkan / Edit Link"
         >
           <LinkIcon className="w-4 h-4" />
         </button>
         {editor.isActive("link") && (
           <button
             type="button"
-            onClick={() => editor.chain().focus().unsetLink().run()}
+            onClick={handleRemoveLink}
             className="p-1.5 rounded hover:bg-red-500/10 text-red-500 transition-colors"
-            title="Remove Link"
+            title="Hapus Link"
           >
             <Unlink className="w-4 h-4" />
           </button>
@@ -163,6 +189,69 @@ export function RichTextEditor({ content, onChange, placeholder = "Tulis isi mat
         editor={editor}
         className="bg-background text-foreground font-sans cursor-text"
       />
+
+      {/* Link Dialog Modal */}
+      <Dialog open={isLinkModalOpen} onOpenChange={setIsLinkModalOpen}>
+        <DialogContent className="sm:max-w-md z-[100]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-foreground font-heading">
+              <LinkIcon className="w-5 h-5 text-brand-purple" />
+              Sisipkan / Edit Tautan (Link)
+            </DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSaveLink} className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-muted-foreground">
+                Alamat Tautan (URL)
+              </label>
+              <div className="relative">
+                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="url"
+                  placeholder="https://contoh-link.com"
+                  value={linkInputUrl}
+                  onChange={(e) => setLinkInputUrl(e.target.value)}
+                  className="pl-9 h-10 bg-background text-sm"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <DialogFooter className="flex justify-between sm:justify-between items-center gap-2 pt-2">
+              {editor.isActive("link") ? (
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleRemoveLink}
+                  className="text-xs flex items-center gap-1.5"
+                >
+                  <Unlink className="w-3.5 h-3.5" />
+                  Hapus Tautan
+                </Button>
+              ) : (
+                <div />
+              )}
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsLinkModalOpen(false)}
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="submit"
+                  size="sm"
+                  className="bg-brand-purple hover:bg-brand-purple-hover text-white font-semibold"
+                >
+                  Simpan Tautan
+                </Button>
+              </div>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
