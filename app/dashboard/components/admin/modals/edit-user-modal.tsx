@@ -202,7 +202,7 @@ export function EditUserModal({
                   >
                     <option value="active">Active (Aktif)</option>
                     <option value="invited">Invited</option>
-                    <option value="graduated font-bold">Graduated (Lulus)</option>
+                    <option value="graduated">Graduated (Lulus)</option>
                     <option value="suspended">Suspended</option>
                   </select>
                 </div>

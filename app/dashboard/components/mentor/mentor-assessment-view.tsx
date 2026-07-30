@@ -3,8 +3,8 @@
 import { API_BASE_URL } from "@/lib/config";
 
 import Link from "next/link";
-import { useState } from "react";
-import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText } from "lucide-react";
+import { useState, useEffect } from "react";
+import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText, AlertTriangle, ShieldAlert, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +87,22 @@ export function MentorAssessmentView({
   const [internalActiveRubrikTab, setInternalActiveRubrikTab] = useState("kompetensi");
   const activeRubrikTab = externalActiveRubrikTab || internalActiveRubrikTab;
   const setActiveRubrikTab = externalSetActiveRubrikTab || setInternalActiveRubrikTab;
+
+  const [isReleaseModalOpen, setIsReleaseModalOpen] = useState(false);
+  const [releaseCountdown, setReleaseCountdown] = useState(5);
+  const [isSubmittingRelease, setIsSubmittingRelease] = useState(false);
+
+  useEffect(() => {
+    let timer: any;
+    if (isReleaseModalOpen && releaseCountdown > 0) {
+      timer = setInterval(() => {
+        setReleaseCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isReleaseModalOpen, releaseCountdown]);
 
   const ensureMinScore = (val: number) => {
     if (!val || isNaN(val) || val < 65) return 65;
@@ -523,7 +539,8 @@ export function MentorAssessmentView({
   const hasRAs = rubrikAssessments.length > 0;
 
   return (
-    <Card className="border-border shadow-xs bg-card overflow-hidden font-sans">
+    <>
+      <Card className="border-border shadow-xs bg-card overflow-hidden font-sans">
       <CardHeader className="border-b border-border bg-secondary/20 p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -587,26 +604,13 @@ export function MentorAssessmentView({
               <Button
                 variant="default"
                 size="sm"
-                onClick={async () => {
-                  if (!selectedProgramId) return;
-                  try {
-                    const res = await fetch(`${API_BASE_URL}/classes/programs/${selectedProgramId}/release-certificate`, {
-                      method: "POST",
-                      credentials: "include"
-                    });
-                    if (res.ok) {
-                      const d = await res.json();
-                      if (assessmentTab === "Micro") {
-                        toast.success(d.isCertificateReleased ? "Transkrip Nilai (Micro) berhasil dirilis untuk mentee!" : "Rilis Transkrip Nilai ditarik kembali.");
-                      } else {
-                        toast.success(d.isCertificateReleased ? "Sertifikat Kelulusan & Sertifikat Magang berhasil dirilis untuk mentee!" : "Rilis Sertifikat ditarik kembali.");
-                      }
-                    } else {
-                      toast.error("Gagal memperbarui status rilis.");
-                    }
-                  } catch (err) {
-                    toast.error("Terjadi kesalahan sistem.");
+                onClick={() => {
+                  if (!selectedProgramId) {
+                    toast.error("Silakan pilih program terlebih dahulu.");
+                    return;
                   }
+                  setReleaseCountdown(5);
+                  setIsReleaseModalOpen(true);
                 }}
                 className="h-8 text-xs flex items-center gap-1.5 bg-brand-purple hover:bg-brand-purple/90 text-white cursor-pointer shadow-xs font-semibold"
               >
@@ -826,5 +830,113 @@ export function MentorAssessmentView({
         </Tabs>
       </CardContent>
     </Card>
+
+      {/* ── WARNING MODAL: RILIS SERTIFIKAT & TRANSKRIP ── */}
+      {isReleaseModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between border-b border-border pb-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-amber-500/10 text-amber-600 rounded-xl border border-amber-500/20 shrink-0">
+                  <ShieldAlert className="w-6 h-6 text-amber-600 animate-pulse" />
+                </div>
+                <div>
+                  <h4 className="font-heading font-extrabold text-base text-foreground">
+                    Konfirmasi Penerbitan {assessmentTab === "Micro" ? "Transkrip Nilai" : "Sertifikat Kelulusan"}
+                  </h4>
+                  <p className="text-2xs text-muted-foreground mt-0.5 font-sans">
+                    Tindakan ini memiliki dampak penting terhadap status akademik mentee.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsReleaseModalOpen(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-foreground/90 font-sans">
+              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-700 dark:text-amber-300 space-y-2">
+                <div className="flex items-center gap-2 font-bold text-xs">
+                  <AlertTriangle className="w-4 h-4 shrink-0 text-amber-600" />
+                  PERINGATAN PENTING:
+                </div>
+                <p className="text-2xs leading-relaxed">
+                  Menerbitkan sertifikat akan mengubah status seluruh siswa yang terdaftar di program ini secara permanen menjadi <strong className="font-bold uppercase tracking-wider text-amber-700 dark:text-amber-200 font-mono">GRADUATED (Lulus)</strong> dan menandai periode pembelajaran angkatan ini telah selesai.
+                </p>
+              </div>
+
+              <ul className="list-disc pl-4 space-y-1 text-2xs text-muted-foreground">
+                <li>Pastikan seluruh rekap nilai absensi, tugas, dan rubrik penilaian sudah final.</li>
+                <li>Status akun seluruh mentee di program ini akan diperbarui menjadi <strong>Graduated</strong>.</li>
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isSubmittingRelease}
+                onClick={() => setIsReleaseModalOpen(false)}
+                className="text-xs cursor-pointer font-semibold"
+              >
+                Batal
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                disabled={releaseCountdown > 0 || isSubmittingRelease}
+                onClick={async () => {
+                  if (!selectedProgramId) return;
+                  setIsSubmittingRelease(true);
+                  try {
+                    const res = await fetch(`${API_BASE_URL}/classes/programs/${selectedProgramId}/release-certificate`, {
+                      method: "POST",
+                      credentials: "include"
+                    });
+                    if (res.ok) {
+                      const d = await res.json();
+                      setIsReleaseModalOpen(false);
+                      if (assessmentTab === "Micro") {
+                        toast.success(d.isCertificateReleased ? "Transkrip Nilai (Micro) berhasil dirilis untuk mentee!" : "Rilis Transkrip Nilai ditarik kembali.");
+                      } else {
+                        toast.success(d.isCertificateReleased ? "Sertifikat Kelulusan & Sertifikat Magang berhasil dirilis untuk mentee!" : "Rilis Sertifikat ditarik kembali.");
+                      }
+                    } else {
+                      toast.error("Gagal memperbarui status rilis.");
+                    }
+                  } catch (err) {
+                    toast.error("Terjadi kesalahan sistem.");
+                  } finally {
+                    setIsSubmittingRelease(false);
+                  }
+                }}
+                className="text-xs bg-amber-600 hover:bg-amber-700 text-white font-bold cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs flex items-center gap-1.5"
+              >
+                {isSubmittingRelease ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Memproses Rilis...
+                  </>
+                ) : releaseCountdown > 0 ? (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Tunggu ({releaseCountdown}s)...
+                  </>
+                ) : (
+                  <>
+                    <Award className="w-3.5 h-3.5" />
+                    Ya, Konfirmasi Rilis
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
