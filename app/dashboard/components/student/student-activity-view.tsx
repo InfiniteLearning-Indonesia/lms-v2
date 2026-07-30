@@ -171,15 +171,27 @@ export function StudentActivityView({
                     {(() => {
                       let progressPct = 0;
                       if (cls.batch?.startDate && cls.batch?.endDate) {
-                        const start = new Date(cls.batch.startDate).getTime();
-                        const end = new Date(cls.batch.endDate).getTime();
-                        const now = Date.now();
-                        if (now >= end) {
-                          progressPct = 100;
-                        } else if (now <= start) {
-                          progressPct = 0;
-                        } else {
-                          progressPct = Math.min(100, Math.max(0, Math.round(((now - start) / (end - start)) * 100)));
+                        const s = new Date(cls.batch.startDate);
+                        const e = new Date(cls.batch.endDate);
+                        const n = new Date();
+
+                        const startDate = new Date(s.getFullYear(), s.getMonth(), s.getDate(), 0, 0, 0, 0);
+                        const endDate = new Date(e.getFullYear(), e.getMonth(), e.getDate(), 23, 59, 59, 999);
+                        const today = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12, 0, 0, 0);
+
+                        const msPerDay = 1000 * 60 * 60 * 24;
+                        const totalDays = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / msPerDay));
+
+                        if (n.getTime() >= startDate.getTime()) {
+                          if (n.getTime() > endDate.getTime()) {
+                            progressPct = 100;
+                          } else {
+                            const elapsedDays = Math.min(
+                              totalDays,
+                              Math.max(1, Math.floor((today.getTime() - startDate.getTime()) / msPerDay) + 1)
+                            );
+                            progressPct = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+                          }
                         }
                       }
                       return (

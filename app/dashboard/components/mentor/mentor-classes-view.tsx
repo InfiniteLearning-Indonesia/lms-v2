@@ -266,21 +266,33 @@ export function MentorClassesView({
             <CardContent className="p-6 space-y-6">
               {/* Live Cohort Progress Bar */}
               {(() => {
-                const start = selectedCls.batch?.startDate ? new Date(selectedCls.batch.startDate).getTime() : 0;
-                const end = selectedCls.batch?.endDate ? new Date(selectedCls.batch.endDate).getTime() : 0;
-                const now = new Date().getTime();
                 let progress = 0;
                 let elapsedDays = 0;
                 let totalDays = 0;
 
-                if (start && end && end > start) {
-                  totalDays = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
-                  if (now >= end) {
-                    progress = 100;
-                    elapsedDays = totalDays;
-                  } else if (now > start) {
-                    elapsedDays = Math.ceil((now - start) / (1000 * 60 * 60 * 24));
-                    progress = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+                if (selectedCls.batch?.startDate && selectedCls.batch?.endDate) {
+                  const s = new Date(selectedCls.batch.startDate);
+                  const e = new Date(selectedCls.batch.endDate);
+                  const n = new Date();
+
+                  const startDate = new Date(s.getFullYear(), s.getMonth(), s.getDate(), 0, 0, 0, 0);
+                  const endDate = new Date(e.getFullYear(), e.getMonth(), e.getDate(), 23, 59, 59, 999);
+                  const today = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12, 0, 0, 0);
+
+                  const msPerDay = 1000 * 60 * 60 * 24;
+                  totalDays = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / msPerDay));
+
+                  if (n.getTime() >= startDate.getTime()) {
+                    if (n.getTime() > endDate.getTime()) {
+                      progress = 100;
+                      elapsedDays = totalDays;
+                    } else {
+                      elapsedDays = Math.min(
+                        totalDays,
+                        Math.max(1, Math.floor((today.getTime() - startDate.getTime()) / msPerDay) + 1)
+                      );
+                      progress = Math.min(100, Math.max(0, Math.round((elapsedDays / totalDays) * 100)));
+                    }
                   }
                 }
 
