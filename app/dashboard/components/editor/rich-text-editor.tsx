@@ -33,6 +33,12 @@ export function RichTextEditor({ content, onChange, placeholder = "Tulis isi mat
         },
       }),
     ],
+    editorProps: {
+      attributes: {
+        class:
+          "prose dark:prose-invert max-w-none focus:outline-none p-4 min-h-[220px] text-sm leading-relaxed text-foreground font-sans [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:font-heading [&_h1]:text-foreground [&_h1]:mt-3 [&_h1]:mb-2 [&_h2]:text-xl [&_h2]:font-bold [&_h2]:font-heading [&_h2]:text-foreground [&_h2]:mt-2.5 [&_h2]:mb-1.5 [&_p]:text-sm [&_p]:leading-relaxed [&_p]:mb-2 [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:mb-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_ol]:mb-2 [&_code]:font-mono [&_code]:bg-muted [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:rounded",
+      },
+    },
     content,
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
@@ -155,7 +161,7 @@ export function RichTextEditor({ content, onChange, placeholder = "Tulis isi mat
       {/* Editor Content Area */}
       <EditorContent
         editor={editor}
-        className="prose prose-sm dark:prose-invert max-w-none p-4 min-h-[160px] focus:outline-none text-foreground font-sans text-xs leading-relaxed"
+        className="bg-background text-foreground font-sans cursor-text"
       />
     </div>
   );

@@ -976,7 +976,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       if (resClasses.ok) {
         const dataClasses = await resClasses.json();
         setClasses(dataClasses);
-        const active = dataClasses.find((cls: any) => cls.batch?.status === "active");
+        const active = dataClasses.find((cls: any) => cls.batch?.status?.toLowerCase() === "active");
         if (active) {
           setSelectedClassId(active.id);
         } else if (dataClasses.length > 0) {
@@ -1022,12 +1022,12 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   // Find the most recent active batch
   const activeBatches = classes
     .map((c) => c.batch)
-    .filter((b) => b?.status === "active")
+    .filter((b) => b?.status?.toLowerCase() === "active")
     .sort((a, b) => new Date(b?.createdAt || 0).getTime() - new Date(a?.createdAt || 0).getTime());
 
   const currentBatch = activeBatches[0];
   const activeClasses = classes.filter(
-    (cls) => cls.batch?.status === "active" || (currentBatch && cls.batchId === currentBatch.id)
+    (cls) => cls.batch?.status?.toLowerCase() === "active" || (currentBatch && cls.batchId === currentBatch.id)
   );
   const pastClasses = classes.filter((cls) => !activeClasses.some((ac) => ac.id === cls.id));
   const hasPastClasses = pastClasses.length > 0;

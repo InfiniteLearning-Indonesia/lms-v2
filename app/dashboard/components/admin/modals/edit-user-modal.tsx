@@ -24,6 +24,8 @@ interface EditUserModalProps {
   setSelectedProgramValue: (v: string) => void;
   statusValue?: string;
   setStatusValue?: (v: string) => void;
+  specializationValue?: string;
+  setSpecializationValue?: (v: string) => void;
   userBatches: string[];
   setUserBatches: (v: string[]) => void;
   onSave: () => void;
@@ -49,6 +51,8 @@ export function EditUserModal({
   setSelectedProgramValue,
   statusValue,
   setStatusValue,
+  specializationValue,
+  setSpecializationValue,
   userBatches,
   setUserBatches,
   onSave,
@@ -157,16 +161,36 @@ export function EditUserModal({
                   onChange={(e) => setSelectedProgramValue(e.target.value)}
                   className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-brand-purple"
                 >
-                  {user?.specialization !== "Professional" && (
+                  {(specializationValue || '').toLowerCase() !== 'professional' && (
                     <option value="AI Development">AI Development</option>
                   )}
                   <option value="Web Development and UI/UX Design">Web Development and UI/UX Design</option>
                   <option value="Mobile Development and UI/UX Design">Mobile Development and UI/UX Design</option>
-                  {user?.specialization !== "Professional" && (
+                  {(specializationValue || '').toLowerCase() !== 'professional' && (
                     <option value="Game Development">Game Development</option>
                   )}
                 </select>
               </div>
+
+              {/* Mentor Specialization Dropdown */}
+              {(user?.role === "mentor" || user?.roles?.includes("mentor")) && specializationValue !== undefined && setSpecializationValue && (
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-muted-foreground">Spesialisasi Mentor</label>
+                  <select
+                    value={specializationValue}
+                    onChange={(e) => setSpecializationValue(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-border bg-background focus:outline-none focus:ring-1 focus:ring-brand-purple"
+                  >
+                    <option value="">-- Pilih Spesialisasi --</option>
+                    <option value="AI">AI</option>
+                    <option value="Web">Web</option>
+                    <option value="Mobile">Mobile</option>
+                    <option value="Game">Game</option>
+                    <option value="UI/UX">UI/UX</option>
+                    <option value="Professional">Professional</option>
+                  </select>
+                </div>
+              )}
 
               {statusValue !== undefined && setStatusValue && (
                 <div className="space-y-1.5">

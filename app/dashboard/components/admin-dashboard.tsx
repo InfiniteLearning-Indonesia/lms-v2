@@ -197,6 +197,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const [editingStudyProgramValue, setEditingStudyProgramValue] = useState("");
   const [editingSelectedProgramValue, setEditingSelectedProgramValue] = useState("");
   const [editingStatusValue, setEditingStatusValue] = useState("active");
+  const [editingSpecializationValue, setEditingSpecializationValue] = useState("");
   const [editingUserBatches, setEditingUserBatches] = useState<string[]>([]);
 
   // Confirm Modal States
@@ -350,6 +351,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setEditingStudyProgramValue(user.studyProgram || "");
     setEditingSelectedProgramValue(user.selectedProgram || "AI Development");
     setEditingStatusValue(user.status || "active");
+    setEditingSpecializationValue(user.specialization || "");
     setEditingUserBatches(user.batches?.map((b) => b.id) || []);
     setIsEditModalOpen(true);
   };
@@ -369,6 +371,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
           studyProgram: editingStudyProgramValue,
           selectedProgram: editingSelectedProgramValue,
           status: editingStatusValue,
+          specialization: editingSpecializationValue || undefined,
           batchIds: editingUserBatches,
         }),
       });
@@ -1129,6 +1132,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         setSelectedProgramValue={setEditingSelectedProgramValue}
         statusValue={editingStatusValue}
         setStatusValue={setEditingStatusValue}
+        specializationValue={editingSpecializationValue}
+        setSpecializationValue={setEditingSpecializationValue}
         userBatches={editingUserBatches}
         setUserBatches={setEditingUserBatches}
         onSave={handleSaveUser}
