@@ -379,26 +379,40 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                 <p className="font-heading font-bold text-base text-foreground">
                   "{activeGrade.program.name}" ({activeGrade.program.batchName})
                 </p>
-                <p className="text-muted-foreground">
-                  dengan akumulasi hasil penilaian Fase Massive dan akumulasi penilaian keseluruhan sebagai berikut:
-                </p>
+                {subTab === "internship_certificate" ? (
+                  <p className="text-muted-foreground">
+                    dan dinyatakan telah memenuhi kualifikasi serta standar kompetensi magang industri dengan predikat:
+                  </p>
+                ) : (
+                  <p className="text-muted-foreground">
+                    dengan akumulasi hasil penilaian Fase Massive dan akumulasi penilaian keseluruhan sebagai berikut:
+                  </p>
+                )}
               </div>
 
               {/* Grade Badges & Predicate */}
               <div className="flex flex-wrap justify-center items-center gap-6 py-4">
-                <div className="p-4 rounded-xl bg-card border border-border shadow-xs text-center min-w-[140px]">
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase">Total Massive Score</p>
-                  <p className="font-heading font-black text-2xl text-brand-purple">{activeGrade.totalMassiveScore.toFixed(1)}</p>
-                </div>
+                {subTab !== "internship_certificate" && (
+                  <>
+                    <div className="p-4 rounded-xl bg-card border border-border shadow-xs text-center min-w-[140px]">
+                      <p className="text-[10px] text-muted-foreground font-semibold uppercase">Total Massive Score</p>
+                      <p className="font-heading font-black text-2xl text-brand-purple">{activeGrade.totalMassiveScore.toFixed(1)}</p>
+                    </div>
 
-                <div className="p-4 rounded-xl bg-card border border-border shadow-xs text-center min-w-[140px]">
-                  <p className="text-[10px] text-muted-foreground font-semibold uppercase">Nilai Akumulasi Akhir</p>
-                  <p className="font-heading font-black text-2xl text-brand-purple">{activeGrade.finalScore.toFixed(1)}</p>
-                </div>
+                    <div className="p-4 rounded-xl bg-card border border-border shadow-xs text-center min-w-[140px]">
+                      <p className="text-[10px] text-muted-foreground font-semibold uppercase">Nilai Akumulasi Akhir</p>
+                      <p className="font-heading font-black text-2xl text-brand-purple">{activeGrade.finalScore.toFixed(1)}</p>
+                    </div>
+                  </>
+                )}
 
-                <div className="p-4 rounded-xl bg-brand-purple/10 border border-brand-purple/30 text-center min-w-[160px]">
-                  <p className="text-[10px] text-brand-purple font-semibold uppercase">Predikat Kelulusan</p>
-                  <p className="font-heading font-black text-lg text-brand-purple">{activeGrade.predicate}</p>
+                <div className="p-4 rounded-xl bg-brand-purple/10 border border-brand-purple/30 text-center min-w-[180px]">
+                  <p className="text-[10px] text-brand-purple font-semibold uppercase">
+                    {subTab === "internship_certificate" ? "Status Kelulusan Magang" : "Predikat Kelulusan"}
+                  </p>
+                  <p className="font-heading font-black text-lg text-brand-purple">
+                    {subTab === "internship_certificate" ? "Lulus Magang (Satisfactory)" : activeGrade.predicate}
+                  </p>
                 </div>
               </div>
 
