@@ -156,6 +156,7 @@ export function MentorModals({
   const [syllabusesList, setSyllabusesList] = useState<{ name: string }[]>([]);
   const [newSyllabusName, setNewSyllabusName] = useState("");
   const [materialRichContent, setMaterialRichContent] = useState("");
+  const [assignmentRichContent, setAssignmentRichContent] = useState("");
 
   const addSyllabus = () => {
     if (newSyllabusName.trim()) {
@@ -358,8 +359,8 @@ export function MentorModals({
 
       {/* Add Material Modal */}
       {isAddMaterialModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border shadow-2xl w-full max-w-3xl sm:max-w-4xl max-h-[90vh] overflow-y-auto">
             <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
               Tambah Materi Baru
             </h3>
@@ -483,8 +484,8 @@ export function MentorModals({
 
       {/* Add Assignment Modal */}
       {isAddAssignmentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
-          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[500px]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border shadow-2xl w-full max-w-3xl sm:max-w-4xl max-h-[90vh] overflow-y-auto">
             <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
               Tambah Tugas Baru
             </h3>
@@ -616,16 +617,14 @@ export function MentorModals({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1 text-foreground">
-                  Deskripsi & Instruksi
+                <label className="block text-sm font-medium mb-1 text-foreground font-semibold">
+                  Deskripsi & Instruksi Tugas (Rich Text Format)
                 </label>
-                <textarea
-                  name="description"
-                  required
-                  className="w-full p-3 rounded-md border border-input bg-background text-sm text-foreground"
-                  rows={4}
-                  placeholder="Jelaskan detail instruksi tugas..."
-                ></textarea>
+                <RichTextEditor
+                  content={assignmentRichContent}
+                  onChange={(html) => setAssignmentRichContent(html)}
+                />
+                <input type="hidden" name="description" value={assignmentRichContent} />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-foreground">

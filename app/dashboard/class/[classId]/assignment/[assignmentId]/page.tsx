@@ -241,9 +241,16 @@ export default function AssignmentDetailPage() {
               </div>
             </div>
 
-            <div className="font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line bg-card border border-border p-6 rounded-xl shadow-sm">
+            <div className="font-sans text-sm leading-relaxed text-foreground/90 bg-card border border-border p-6 rounded-xl shadow-sm">
               <h3 className="font-heading font-bold text-lg mb-4 text-foreground">Instruksi Tugas</h3>
-              {assignmentData.description || "Tidak ada deskripsi instruksi. Silakan tanyakan kepada mentor Anda."}
+              {assignmentData.description ? (
+                <div
+                  className="prose dark:prose-invert text-sm max-w-none"
+                  dangerouslySetInnerHTML={{ __html: assignmentData.description }}
+                />
+              ) : (
+                "Tidak ada deskripsi instruksi. Silakan tanyakan kepada mentor Anda."
+              )}
             </div>
           </div>
 
