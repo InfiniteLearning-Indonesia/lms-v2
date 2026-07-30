@@ -10,6 +10,7 @@ import {
   BookOpen,
   Calendar,
   CheckCircle2,
+  FileSpreadsheet,
   Settings,
   UserCheck,
   UserPlus,
@@ -25,6 +26,7 @@ import { AdminUserInvite } from "./admin/admin-user-invite";
 import { AdminProgramsList } from "./admin/admin-programs-list";
 import { AdminBatchesList } from "./admin/admin-batches-list";
 import { AdminProfileSettings } from "./admin/admin-profile-settings";
+import { AdminGradeRecapExport } from "./admin/admin-grade-recap-export";
 
 // Modal Dialogs
 import { ConfirmActionModal } from "./admin/modals/confirm-action-modal";
@@ -874,7 +876,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
       </AnimatePresence>
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full font-sans">
-        <TabsList className="grid w-full grid-cols-5 mb-8 min-h-14 p-1.5 bg-secondary border border-border rounded-lg">
+        <TabsList className="grid w-full grid-cols-6 mb-8 min-h-14 p-1.5 bg-secondary border border-border rounded-lg">
           <TabsTrigger
             value="users"
             className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md cursor-pointer"
@@ -902,6 +904,13 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
           >
             <Calendar className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Absensi</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="recap"
+            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md cursor-pointer"
+          >
+            <FileSpreadsheet className="w-5 h-5 text-brand-purple shrink-0" />
+            <span>Rekap Nilai</span>
           </TabsTrigger>
           <TabsTrigger
             value="settings"
@@ -1066,6 +1075,14 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         {/* ──────── TAB 4: ABSENSI AKADEMIK ──────── */}
         <TabsContent value="attendance" className="space-y-6 outline-hidden">
           <AdminAttendance batches={batchesList} />
+        </TabsContent>
+
+        {/* ──────── TAB 5: REKAP NILAI (EXPORT) ──────── */}
+        <TabsContent value="recap" className="space-y-6 outline-hidden">
+          <AdminGradeRecapExport
+            programs={programsData?.programs || []}
+            batches={batchesList}
+          />
         </TabsContent>
 
         {/* ──────── TAB 5: PENGATURAN PROFIL ADMIN ──────── */}

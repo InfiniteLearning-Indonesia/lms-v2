@@ -206,9 +206,11 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [programCompetencies, setProgramCompetencies] = useState<any[]>([]);
   const [rubrikAssessments, setRubrikAssessments] = useState<any[]>([]);
   const [externalScores, setExternalScores] = useState<any[]>([]);
+  const [competencyScores, setCompetencyScores] = useState<any[]>([]);
   const [attendanceScores, setAttendanceScores] = useState<Record<string, any>>({});
   const [phaseDates, setPhaseDates] = useState<any>(null);
   const [isPhaseDatesModalOpen, setIsPhaseDatesModalOpen] = useState(false);
+  const [smartImportData, setSmartImportData] = useState<any>(null);
   const [isImportingCSV, setIsImportingCSV] = useState(false);
   const csvInputRef = useRef<HTMLInputElement>(null);
   const [isAddCompetencyModalOpen, setIsAddCompetencyModalOpen] = useState(false);
@@ -395,6 +397,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       fetchProgramCompetencies(selectedProgramId || undefined);
       fetchRubrikAssessments(selectedProgramId);
       fetchExternalScores(selectedProgramId);
+      fetchCompetencyScores(selectedProgramId);
       const targetBatchId = classes.find((c) => c.programId === selectedProgramId)?.batchId || classes[0]?.batchId;
       if (targetBatchId) {
         fetchAttendanceScores(targetBatchId);
@@ -471,6 +474,24 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   };
 
+  const fetchCompetencyScores = async (programId?: string) => {
+    try {
+      const url = programId && programId !== 'all'
+        ? `${API_BASE_URL}/classes/programs/${programId}/competencies/scores`
+        : `${API_BASE_URL}/classes/competencies/scores`;
+      const res = await fetch(url, {
+        headers: { Accept: "application/json" },
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setCompetencyScores(data);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const fetchAttendanceScores = async (batchId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/attendance/scores?batchId=${batchId}`, {
@@ -518,6 +539,25 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   };
 
+  const handleSaveDirectCompetencyScore = async (studentId: string, competencyId: string, score: number) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/classes/competencies/scores`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentId, competencyId, score }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        toast.success("Nilai berhasil disimpan!");
+        const progId = selectedProgramId || classes[0]?.program?.id;
+        fetchCompetencyScores(progId);
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Gagal menyimpan nilai.");
+    }
+  };
+
   const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -529,69 +569,40 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       complete: async (results) => {
         try {
           const data = results.data as any[];
-          const scoresToImport: any[] = [];
+          const fields = results.meta.fields || [];
 
-          const headerToRaId: Record<string, string> = {};
-          if (results.meta.fields) {
-            for (const field of results.meta.fields) {
-              const ra = rubrikAssessments.find(r => r.name.toLowerCase() === field.toLowerCase());
-              if (ra) {
-                headerToRaId[field] = ra.id;
-              }
+          const matchedColumns: any[] = [];
+          const missingColumns: string[] = [];
+
+          for (const field of fields) {
+            const fieldLower = field.trim().toLowerCase();
+            if (["email", "nama", "name"].includes(fieldLower)) continue;
+
+            const ra = rubrikAssessments.find((r) => r.name.trim().toLowerCase() === fieldLower);
+            const comp = competencies.find((c) => c.name.trim().toLowerCase() === fieldLower);
+
+            if (ra) {
+              matchedColumns.push({ header: field, type: "rubrik", id: ra.id, name: ra.name });
+            } else if (comp) {
+              matchedColumns.push({ header: field, type: "competency", id: comp.id, name: comp.name });
+            } else {
+              missingColumns.push(field);
             }
           }
 
-          if (Object.keys(headerToRaId).length === 0) {
-            toast.error("Tidak ada nama kolom CSV yang cocok dengan Rubrik Assessment.");
+          if (missingColumns.length > 0) {
+            setSmartImportData({
+              isOpen: true,
+              data,
+              matchedColumns,
+              missingColumns: missingColumns.map((col) => ({ name: col, category: "Technical" })),
+            });
             setIsImportingCSV(false);
-            if (csvInputRef.current) csvInputRef.current.value = "";
             return;
           }
 
-          for (const row of data) {
-            const email = row["Email"] || row["email"] || "";
-            const name = row["Name"] || row["name"] || row["Nama"] || row["nama"] || "";
-            if (!email && !name) continue;
-
-            for (const field of Object.keys(row)) {
-              if (headerToRaId[field]) {
-                const score = parseFloat(row[field]);
-                if (!isNaN(score)) {
-                  scoresToImport.push({
-                    email,
-                    name,
-                    rubrikAssessmentId: headerToRaId[field],
-                    score
-                  });
-                }
-              }
-            }
-          }
-
-          if (scoresToImport.length === 0) {
-            toast.warning("Tidak ada nilai yang valid untuk di-import.");
-            setIsImportingCSV(false);
-            if (csvInputRef.current) csvInputRef.current.value = "";
-            return;
-          }
-
-          const progId = selectedProgramId || classes[0]?.program?.id;
-          if (!progId) return;
-
-          const res = await fetch(`${API_BASE_URL}/classes/programs/${progId}/rubrik-assessments/import-scores`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ scores: scoresToImport }),
-            credentials: "include"
-          });
-
-          if (res.ok) {
-            const resData = await res.json();
-            toast.success(`Berhasil import ${resData.importedCount} nilai.`);
-            fetchExternalScores(progId);
-          } else {
-            toast.error("Gagal melakukan import data.");
-          }
+          // Direct import if all columns match
+          await executeSmartImport(data, matchedColumns, []);
         } catch (err) {
           console.error(err);
           toast.error("Terjadi kesalahan saat memproses CSV.");
@@ -607,6 +618,63 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         if (csvInputRef.current) csvInputRef.current.value = "";
       }
     });
+  };
+
+  const executeSmartImport = async (data: any[], matchedColumns: any[], newColumns: any[]) => {
+    try {
+      const scoresToImport: any[] = [];
+      for (const row of data) {
+        const email = row["Email"] || row["email"] || "";
+        const name = row["Name"] || row["name"] || row["Nama"] || row["nama"] || "";
+        if (!email && !name) continue;
+
+        for (const field of Object.keys(row)) {
+          const score = parseFloat(row[field]);
+          if (!isNaN(score)) {
+            const matched = matchedColumns.find((m: any) => m.header === field);
+            if (matched) {
+              scoresToImport.push({
+                email,
+                name,
+                targetType: matched.type,
+                targetId: matched.id,
+                score,
+              });
+            } else {
+              scoresToImport.push({
+                email,
+                name,
+                columnName: field,
+                score,
+              });
+            }
+          }
+        }
+      }
+
+      const progId = selectedProgramId || classes[0]?.program?.id || "all";
+      const res = await fetch(`${API_BASE_URL}/classes/programs/${progId}/smart-import-scores`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ newColumns, scores: scoresToImport }),
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const resData = await res.json();
+        toast.success(`Berhasil mengimpor ${resData.importedCount} nilai.`);
+        fetchCompetencies(progId);
+        fetchRubrikAssessments(progId);
+        fetchExternalScores(progId);
+        fetchCompetencyScores(progId);
+        setSmartImportData(null);
+      } else {
+        toast.error("Gagal mengimpor nilai dari CSV.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan sistem saat mengimpor.");
+    }
   };
 
   const handleCreateCompetency = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -1209,6 +1277,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             onOpenAddMaterial={() => setIsAddMaterialModalOpen(true)}
             onOpenAddAssignment={() => setIsAddAssignmentModalOpen(true)}
             onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
+            onOpenAddProgramCompetency={() => setIsAddProgramCompetencyModalOpen(true)}
             onEditCompetency={(comp) => setEditingCompetency(comp)}
             competencies={competencies}
             onDeleteMaterial={handleDeleteMaterial}
@@ -1421,6 +1490,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             handleImportCSV={handleImportCSV}
             isImportingCSV={isImportingCSV}
             attendanceScores={attendanceScores}
+            competencyScores={competencyScores}
+            handleSaveDirectCompetencyScore={handleSaveDirectCompetencyScore}
             phaseDates={phaseDates}
             setIsPhaseDatesModalOpen={setIsPhaseDatesModalOpen}
           />
@@ -1514,6 +1585,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         setIsPhaseDatesModalOpen={setIsPhaseDatesModalOpen}
         handleUpdateBatchPhaseDates={handleUpdateBatchPhaseDates}
         phaseDates={phaseDates}
+        smartImportData={smartImportData}
+        setSmartImportData={setSmartImportData}
+        executeSmartImport={executeSmartImport}
       />
     </div>
   );

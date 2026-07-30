@@ -34,6 +34,8 @@ export interface Program {
   id: string;
   name: string;
   description: string;
+  batchId?: string;
+  batchName?: string;
   batchesCount?: number;
   mentorsCount?: number;
   studentsCount?: number;

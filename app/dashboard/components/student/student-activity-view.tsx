@@ -168,15 +168,35 @@ export function StudentActivityView({
                     )}
                   </div>
                   <CardContent className="py-5 space-y-5">
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs font-semibold">
-                        <span>Penyelesaian Modul Keseluruhan</span>
-                        <span className="text-brand-purple">0%</span>
-                      </div>
-                      <div className="w-full bg-secondary h-2 rounded-full overflow-hidden border border-border/50">
-                        <div className="bg-brand-purple h-full w-[0%] rounded-full transition-all duration-500" />
-                      </div>
-                    </div>
+                    {(() => {
+                      let progressPct = 0;
+                      if (cls.batch?.startDate && cls.batch?.endDate) {
+                        const start = new Date(cls.batch.startDate).getTime();
+                        const end = new Date(cls.batch.endDate).getTime();
+                        const now = Date.now();
+                        if (now >= end) {
+                          progressPct = 100;
+                        } else if (now <= start) {
+                          progressPct = 0;
+                        } else {
+                          progressPct = Math.min(100, Math.max(0, Math.round(((now - start) / (end - start)) * 100)));
+                        }
+                      }
+                      return (
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs font-semibold">
+                            <span>Penyelesaian Modul Keseluruhan</span>
+                            <span className="text-brand-purple">{progressPct}%</span>
+                          </div>
+                          <div className="w-full bg-secondary h-2 rounded-full overflow-hidden border border-border/50">
+                            <div
+                              className="bg-brand-purple h-full rounded-full transition-all duration-500"
+                              style={{ width: `${progressPct}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
                     <div className="flex items-center justify-between bg-secondary/30 p-3 rounded-lg border border-border/40">
                       <div className="text-xs text-muted-foreground flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-brand-yellow shrink-0 shadow-[0_0_8px_rgba(255,205,41,0.6)]" />

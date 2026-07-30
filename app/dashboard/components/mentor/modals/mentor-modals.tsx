@@ -87,6 +87,11 @@ interface MentorModalsProps {
   setIsPhaseDatesModalOpen?: (v: boolean) => void;
   handleUpdateBatchPhaseDates?: (e: React.FormEvent<HTMLFormElement>) => void;
   phaseDates?: any;
+
+  // Smart Import Modal
+  smartImportData?: any;
+  setSmartImportData?: (v: any) => void;
+  executeSmartImport?: (data: any[], matchedColumns: any[], newColumns: any[]) => Promise<void>;
 }
 
 export function MentorModals({
@@ -141,6 +146,9 @@ export function MentorModals({
   setIsPhaseDatesModalOpen,
   handleUpdateBatchPhaseDates,
   phaseDates,
+  smartImportData,
+  setSmartImportData,
+  executeSmartImport,
 }: MentorModalsProps) {
   const [selectedCompetencyName, setSelectedCompetencyName] = useState("");
   const [selectedRubricIds, setSelectedRubricIds] = useState<string[]>([]);
@@ -191,6 +199,7 @@ export function MentorModals({
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
                 >
                   <option value="Technical Skill">Technical Skill</option>
+                  <option value="Design">Design</option>
                   <option value="Soft Skills (CCA)">Soft Skills (CCA)</option>
                   <option value="Capstone Project">Capstone Project</option>
                 </select>
@@ -258,6 +267,7 @@ export function MentorModals({
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
                 >
                   <option value="Technical Skill">Technical Skill</option>
+                  <option value="Design">Design</option>
                   <option value="Soft Skills (CCA)">Soft Skills (CCA)</option>
                   <option value="Capstone Project">Capstone Project</option>
                 </select>
@@ -304,6 +314,7 @@ export function MentorModals({
                   className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
                 >
                   <option value="Technical Skill">Technical Skill</option>
+                  <option value="Design">Design</option>
                   <option value="Soft Skills (CCA)">Soft Skills (CCA)</option>
                   <option value="Capstone Project">Capstone Project</option>
                 </select>
@@ -1013,6 +1024,91 @@ export function MentorModals({
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Smart Import Preview Modal */}
+      {smartImportData?.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-card p-6 rounded-xl border border-border shadow-xl w-[560px] max-w-[95vw] max-h-[90vh] flex flex-col">
+            <div className="flex justify-between items-center pb-3 border-b border-border">
+              <div>
+                <h3 className="font-heading font-bold text-lg text-foreground">
+                  Preview Smart Import CSV
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Sistem mendeteksi kolom pada file CSV. Kolom baru yang belum ada akan otomatis dibuatkan sebagai **Syllabus / Kompetensi Baru**.
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 rounded-full cursor-pointer"
+                onClick={() => setSmartImportData?.(null)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1 text-xs">
+              {/* Matched Columns */}
+              {smartImportData.matchedColumns?.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-bold text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    ✓ Kolom Terhubung dengan Database ({smartImportData.matchedColumns.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {smartImportData.matchedColumns.map((m: any, idx: number) => (
+                      <span key={idx} className="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold border border-emerald-500/20">
+                        {m.header} ({m.type === "rubrik" ? "Rubrik" : "Syllabus"})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Missing / New Columns */}
+              {smartImportData.missingColumns?.length > 0 && (
+                <div className="space-y-2 pt-2 border-t border-border">
+                  <h4 className="font-bold text-xs text-brand-purple flex items-center gap-1.5">
+                    + Kolom Baru Akan Dibuat Otomatis ({smartImportData.missingColumns.length})
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground">
+                    Kolom di bawah ini belum ada di database. Sistem akan membuatkan Syllabus / Kompetensi baru dan mengisikan nilainya secara otomatis.
+                  </p>
+                  <div className="space-y-2">
+                    {smartImportData.missingColumns.map((col: any, idx: number) => (
+                      <div key={idx} className="flex items-center justify-between p-2.5 rounded-lg border border-brand-purple/20 bg-brand-purple/5">
+                        <span className="font-bold text-foreground text-xs">{col.name}</span>
+                        <span className="text-[10px] text-brand-purple font-semibold bg-brand-purple/10 px-2 py-0.5 rounded">
+                          Syllabus / Kompetensi Baru
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-border">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setSmartImportData?.(null)}
+              >
+                Batal
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => executeSmartImport?.(smartImportData.data, smartImportData.matchedColumns, smartImportData.missingColumns)}
+                className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold cursor-pointer"
+              >
+                Buat Kolom & Import Nilai
+              </Button>
+            </div>
           </div>
         </div>
       )}

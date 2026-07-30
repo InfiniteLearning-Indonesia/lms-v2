@@ -50,7 +50,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
   const [gradesData, setGradesData] = useState<GradeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedProgramIndex, setSelectedProgramIndex] = useState(0);
-  const [subTab, setSubTab] = useState<"transcript" | "certificate">("transcript");
+  const [subTab, setSubTab] = useState<"transcript" | "certificate" | "internship_certificate">("transcript");
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/classes/my-grades`, {
@@ -164,7 +164,19 @@ export function StudentCertificateView({ profile }: { profile: any }) {
               }`}
             >
               <Award className="w-4 h-4" />
-              Sertifikat Kelulusan (Massive)
+              Sertifikat Studi Independen
+            </button>
+
+            <button
+              onClick={() => setSubTab("internship_certificate")}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                subTab === "internship_certificate"
+                  ? "bg-card text-brand-purple shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Building2 className="w-4 h-4" />
+              Sertifikat Magang (Internship)
             </button>
           </div>
         </div>
@@ -336,13 +348,13 @@ export function StudentCertificateView({ profile }: { profile: any }) {
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-purple/10 text-brand-purple font-bold text-xs">
                   <Sparkles className="w-4 h-4" />
-                  CERTIFICATE OF COMPLETION
+                  {subTab === "internship_certificate" ? "CERTIFICATE OF INTERNSHIP COMPLETION" : "CERTIFICATE OF STUPEN COMPLETION"}
                 </div>
                 <h1 className="font-heading font-black text-3xl md:text-4xl text-foreground tracking-tight uppercase">
-                  SERTIFIKAT KELULUSAN
+                  {subTab === "internship_certificate" ? "SERTIFIKAT MAGANG (INTERNSHIP)" : "SERTIFIKAT KELULUSAN STUDI INDEPENDEN"}
                 </h1>
                 <p className="text-xs text-muted-foreground tracking-widest uppercase">
-                  No. Sertifikat: IL/CERT/{new Date().getFullYear()}/{activeGrade.student.id.slice(0, 6).toUpperCase()}
+                  No. Sertifikat: IL/{subTab === "internship_certificate" ? "INTERN" : "STUPEN"}/{new Date().getFullYear()}/{activeGrade.student.id.slice(0, 6).toUpperCase()}
                 </p>
               </div>
 
@@ -360,7 +372,9 @@ export function StudentCertificateView({ profile }: { profile: any }) {
               {/* Statement Section */}
               <div className="max-w-2xl mx-auto space-y-2 text-xs leading-relaxed text-foreground">
                 <p>
-                  Telah secara sukses menyelesaikan seluruh rangkaian program kompetensi pembelajaran mandiri & proyek akhir pada:
+                  {subTab === "internship_certificate"
+                    ? "Telah secara sukses menyelesaikan seluruh rangkaian Program Magang Industri (Internship) & Implementasi Proyek pada:"
+                    : "Telah secara sukses menyelesaikan seluruh rangkaian Program Studi Independen (Stupen) & Proyek Akhir pada:"}
                 </p>
                 <p className="font-heading font-bold text-base text-foreground">
                   "{activeGrade.program.name}" ({activeGrade.program.batchName})

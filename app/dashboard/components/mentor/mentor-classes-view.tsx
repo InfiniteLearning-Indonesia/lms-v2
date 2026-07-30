@@ -43,6 +43,7 @@ interface MentorClassesViewProps {
   onOpenAddMaterial: () => void;
   onOpenAddAssignment: () => void;
   onOpenAddCompetency?: () => void;
+  onOpenAddProgramCompetency?: () => void;
   onEditCompetency?: (comp: any) => void;
   competencies?: any[];
   onDeleteMaterial?: (id: string) => void;
@@ -64,6 +65,7 @@ export function MentorClassesView({
   onOpenAddMaterial,
   onOpenAddAssignment,
   onOpenAddCompetency,
+  onOpenAddProgramCompetency,
   onEditCompetency,
   competencies = [],
   onDeleteMaterial,
@@ -350,9 +352,9 @@ export function MentorClassesView({
                     <Layers className="w-4 h-4 text-brand-purple" />
                     Kompetensi Pembelajaran ({competencies?.length || 0})
                   </span>
-                  {!isReadOnly && onOpenAddCompetency && (
+                  {!isReadOnly && (onOpenAddProgramCompetency || onOpenAddCompetency) && (
                     <Button
-                      onClick={onOpenAddCompetency}
+                      onClick={onOpenAddProgramCompetency || onOpenAddCompetency}
                       size="sm"
                       variant="outline"
                       className="h-8 text-xs flex items-center gap-1.5 cursor-pointer border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10"

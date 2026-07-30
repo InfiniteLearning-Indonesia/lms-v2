@@ -40,6 +40,8 @@ interface MentorAssessmentViewProps {
   handleImportCSV?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isImportingCSV?: boolean;
   attendanceScores?: Record<string, any>;
+  competencyScores?: any[];
+  handleSaveDirectCompetencyScore?: (studentId: string, competencyId: string, score: number) => void;
   phaseDates?: any;
   setIsPhaseDatesModalOpen?: (v: boolean) => void;
 }
@@ -73,6 +75,8 @@ export function MentorAssessmentView({
   handleImportCSV,
   isImportingCSV = false,
   attendanceScores = {},
+  competencyScores = [],
+  handleSaveDirectCompetencyScore,
   phaseDates,
   setIsPhaseDatesModalOpen,
 }: MentorAssessmentViewProps) {
@@ -764,13 +768,24 @@ export function MentorAssessmentView({
                                     );
                                   })
                                 : displayComps.map((comp) => {
-                                    const score = calculateCompetencyScore(student.id, comp.id);
+                                    const directMatch = competencyScores.find(
+                                      (s: any) => s.studentId === student.id && s.competencyId === comp.id
+                                    );
+                                    const score = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
                                     return (
                                       <td
                                         key={comp.id}
-                                        className="px-4 py-3 text-center border-l border-border text-xs font-medium"
+                                        className="px-4 py-3 text-center border-l border-border text-xs font-medium cursor-pointer hover:bg-brand-purple/10 transition-colors"
+                                        onClick={() => {
+                                          const val = prompt(`Masukkan nilai direct untuk ${comp.name} (${student.name}):`, score.toString());
+                                          if (val !== null && !isNaN(parseFloat(val))) {
+                                            handleSaveDirectCompetencyScore?.(student.id, comp.id, parseFloat(val));
+                                          }
+                                        }}
+                                        title="Klik untuk menginput/mengubah nilai secara langsung"
                                       >
                                         {ensureMinScore(score).toFixed(1)}
+                                        <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />
                                       </td>
                                     );
                                   })}
