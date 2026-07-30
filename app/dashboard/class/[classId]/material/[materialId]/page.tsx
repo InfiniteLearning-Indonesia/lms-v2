@@ -139,16 +139,18 @@ export default function MaterialDetailPage() {
             </div>
           )}
 
-          <div className="p-6 md:p-8 space-y-4">
-            <h3 className="font-heading font-bold text-lg border-b border-border pb-2">
-              Deskripsi Materi
-            </h3>
-            <div className="font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line">
-              {isCustom
-                ? materialData.url || "Tidak ada keterangan."
-                : materialData.content || materialData.url || "Tidak ada deskripsi tambahan untuk materi ini."}
+          {!isText && (
+            <div className="p-6 md:p-8 space-y-4">
+              <h3 className="font-heading font-bold text-lg border-b border-border pb-2">
+                Deskripsi Materi
+              </h3>
+              <div className="font-sans text-sm leading-relaxed text-foreground/90 whitespace-pre-line">
+                {isCustom
+                  ? materialData.url || "Tidak ada keterangan."
+                  : materialData.url || "Tidak ada deskripsi tambahan untuk materi ini."}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </main>
     </div>

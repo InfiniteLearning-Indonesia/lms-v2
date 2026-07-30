@@ -4,9 +4,10 @@ import { API_BASE_URL } from "@/lib/config";
 
 import Link from "next/link";
 import { useState } from "react";
-import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar } from "lucide-react";
+import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompetencyItem } from "./types";
@@ -39,6 +40,7 @@ interface MentorAssessmentViewProps {
   csvInputRef?: React.RefObject<HTMLInputElement | null>;
   handleImportCSV?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isImportingCSV?: boolean;
+  isReadOnly?: boolean;
   attendanceScores?: Record<string, any>;
   competencyScores?: any[];
   handleSaveDirectCompetencyScore?: (studentId: string, competencyId: string, score: number) => void;
@@ -74,12 +76,14 @@ export function MentorAssessmentView({
   csvInputRef,
   handleImportCSV,
   isImportingCSV = false,
+  isReadOnly = false,
   attendanceScores = {},
   competencyScores = [],
   handleSaveDirectCompetencyScore,
   phaseDates,
   setIsPhaseDatesModalOpen,
 }: MentorAssessmentViewProps) {
+  const [assessmentTab, setAssessmentTab] = useState<"Micro" | "Massive">("Micro");
   const [internalActiveRubrikTab, setInternalActiveRubrikTab] = useState("kompetensi");
   const activeRubrikTab = externalActiveRubrikTab || internalActiveRubrikTab;
   const setActiveRubrikTab = externalSetActiveRubrikTab || setInternalActiveRubrikTab;
@@ -519,44 +523,51 @@ export function MentorAssessmentView({
   const hasRAs = rubrikAssessments.length > 0;
 
   return (
-    <Card className="border-border bg-card shadow-sm font-sans">
-      <CardHeader className="border-b border-border pb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <CardTitle className="text-lg font-heading font-bold text-foreground">
-            Assessment (Gradebook)
-          </CardTitle>
-          <CardDescription className="text-xs text-muted-foreground mt-1">
-            Pantau nilai akhir mentee berdasarkan pencapaian kompetensi dan penilaian rubrik.
-          </CardDescription>
-        </div>
-
-        <div className="flex items-center gap-3 self-end sm:self-center">
-          {uniquePrograms.length > 1 && setSelectedProgramId && (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground font-medium text-xs">Program:</span>
-              <select
-                value={selectedProgramId || ""}
-                onChange={(e) => setSelectedProgramId(e.target.value)}
-                className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[180px] truncate"
-              >
-                <option value="all">Semua Program (Global)</option>
-                {uniquePrograms.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+    <Card className="border-border shadow-xs bg-card overflow-hidden font-sans">
+      <CardHeader className="border-b border-border bg-secondary/20 p-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Badge variant="outline" className="bg-brand-purple/10 text-brand-purple border-brand-purple/30 text-[11px] font-bold">
+                Transkrip & Penilaian Mentee
+              </Badge>
             </div>
-          )}
+            <CardTitle className="font-heading font-extrabold text-xl text-foreground">
+              Tabel Gradebook Akademik
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground mt-0.5">
+              Kelola hasil penilaian seluruh mentee per fase pembelajaran dan rilis dokumen resmi akademik.
+            </CardDescription>
+          </div>
 
-          {csvInputRef && handleImportCSV && (
+          <div className="flex flex-wrap items-center gap-3">
+            {uniquePrograms.length > 1 && setSelectedProgramId && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground font-medium text-xs">Program:</span>
+                <select
+                  value={selectedProgramId || ""}
+                  onChange={(e) => setSelectedProgramId(e.target.value)}
+                  className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[180px] truncate cursor-pointer"
+                >
+                  <option value="all">Semua Program (Global)</option>
+                  {uniquePrograms.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          {!isReadOnly && (
             <div className="flex items-center gap-2">
               <input
                 type="file"
                 ref={csvInputRef}
+                onChange={handleImportCSV}
                 accept=".csv"
                 className="hidden"
-                onChange={handleImportCSV}
               />
               <Button
                 variant="outline"
@@ -585,9 +596,13 @@ export function MentorAssessmentView({
                     });
                     if (res.ok) {
                       const d = await res.json();
-                      toast.success(d.isCertificateReleased ? "Sertifikat Kelulusan berhasil dirilis untuk mentee!" : "Rilis Sertifikat ditarik kembali.");
+                      if (assessmentTab === "Micro") {
+                        toast.success(d.isCertificateReleased ? "Transkrip Nilai (Micro) berhasil dirilis untuk mentee!" : "Rilis Transkrip Nilai ditarik kembali.");
+                      } else {
+                        toast.success(d.isCertificateReleased ? "Sertifikat Kelulusan & Sertifikat Magang berhasil dirilis untuk mentee!" : "Rilis Sertifikat ditarik kembali.");
+                      }
                     } else {
-                      toast.error("Gagal memperbarui rilis sertifikat.");
+                      toast.error("Gagal memperbarui status rilis.");
                     }
                   } catch (err) {
                     toast.error("Terjadi kesalahan sistem.");
@@ -595,8 +610,17 @@ export function MentorAssessmentView({
                 }}
                 className="h-8 text-xs flex items-center gap-1.5 bg-brand-purple hover:bg-brand-purple/90 text-white cursor-pointer shadow-xs font-semibold"
               >
-                <Award className="w-3.5 h-3.5" />
-                Rilis Sertifikat Mentee
+                {assessmentTab === "Micro" ? (
+                  <>
+                    <FileText className="w-3.5 h-3.5" />
+                    Rilis Transkrip Nilai (Micro)
+                  </>
+                ) : (
+                  <>
+                    <Award className="w-3.5 h-3.5" />
+                    Rilis Sertifikat (Kelulusan & Magang)
+                  </>
+                )}
               </Button>
             </div>
           )}
@@ -634,7 +658,7 @@ export function MentorAssessmentView({
           )}
         </div>
 
-        <Tabs defaultValue="Micro" className="w-full">
+        <Tabs value={assessmentTab} onValueChange={(v) => setAssessmentTab(v as "Micro" | "Massive")} className="w-full">
           <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex max-w-xs min-h-12 gap-1.5 mb-6">
             <TabsTrigger
               value="Micro"
