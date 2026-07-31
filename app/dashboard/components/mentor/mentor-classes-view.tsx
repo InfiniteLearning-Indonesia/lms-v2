@@ -18,9 +18,17 @@ import {
   Pencil,
   Plus,
   RefreshCw,
+  Search,
+  Sparkles,
+  User,
+  Users,
+  Video,
+  MapPin,
+  FolderGit2,
+  Headphones,
+  Link2,
   Sliders,
   Trash2,
-  Users,
 } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -306,6 +314,55 @@ export function MentorClassesView({
                       <span className="text-brand-purple font-bold">{progress}%</span>
                     </div>
                     <Progress value={progress} className="h-2 bg-secondary" />
+                  </div>
+                );
+              })()}
+
+              {/* 🔗 Class Important Links Banner Widget */}
+              {(() => {
+                const links = (selectedCls as any).importantLinks || (selectedCls as any).program?.importantLinks || [];
+                const activeLinks = links.filter((l: any) => l.url && l.url.trim() !== "");
+                if (activeLinks.length === 0) return null;
+
+                return (
+                  <div className="pt-2 border-t border-border/60 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-foreground flex items-center gap-1.5 font-heading">
+                        <Link2 className="w-4 h-4 text-brand-purple" />
+                        Akses Cepat & Link Penting Kelas
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-medium">
+                        {activeLinks.length} Link Tersedia
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                      {activeLinks.map((item: any) => (
+                        <a
+                          key={item.id || item.title}
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-3 rounded-xl border border-border bg-secondary/20 hover:bg-brand-purple/5 hover:border-brand-purple/40 transition-all flex items-start gap-2.5 group cursor-pointer shadow-2xs"
+                        >
+                          <div className="p-2 rounded-lg bg-card border border-border group-hover:border-brand-purple/30 group-hover:text-brand-purple transition-all shrink-0">
+                            {item.iconType === "video" && <Video className="w-4 h-4 text-indigo-500" />}
+                            {item.iconType === "roadmap" && <MapPin className="w-4 h-4 text-emerald-500" />}
+                            {item.iconType === "drive" && <FolderGit2 className="w-4 h-4 text-blue-500" />}
+                            {item.iconType === "support" && <Headphones className="w-4 h-4 text-amber-500" />}
+                            {(!item.iconType || item.iconType === "link") && <Link2 className="w-4 h-4 text-brand-purple" />}
+                          </div>
+                          <div className="space-y-0.5 min-w-0 flex-1">
+                            <span className="text-xs font-bold text-foreground group-hover:text-brand-purple transition-colors truncate block">
+                              {item.title}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              Buka link <ExternalLink className="w-2.5 h-2.5 opacity-70 group-hover:translate-x-0.5 transition-transform" />
+                            </span>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 );
               })()}

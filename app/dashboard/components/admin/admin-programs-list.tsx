@@ -8,6 +8,7 @@ import {
   ChevronRight,
   GraduationCap,
   Layers,
+  Link2,
   Loader2,
 } from "lucide-react";
 import { Batch, Program } from "./types";
@@ -21,6 +22,7 @@ interface AdminProgramsListProps {
   selectedOldBatchId: string;
   setSelectedOldBatchId: (id: string) => void;
   onOpenProgramDetail: (prog: any) => void;
+  onOpenManageLinks?: (prog: any) => void;
 }
 
 export function AdminProgramsList({
@@ -30,6 +32,7 @@ export function AdminProgramsList({
   selectedOldBatchId,
   setSelectedOldBatchId,
   onOpenProgramDetail,
+  onOpenManageLinks,
 }: AdminProgramsListProps) {
   const activeBatch = batchesList.find((b) => b.status === "active");
   const allPrograms = programsData?.programs || [];
@@ -128,21 +131,32 @@ export function AdminProgramsList({
                     </p>
                   </div>
 
-                  <div className="border-t border-border/60 pt-4 flex items-center justify-between text-xs text-muted-foreground">
-                    <div className="flex items-center gap-4">
-                      <span className="flex items-center gap-1.5 font-medium text-foreground">
-                        <GraduationCap className="w-4 h-4 text-brand-purple" />
-                        {prog.mentorsCount || 0} Mentor Assigned
-                      </span>
+                    <div className="border-t border-border/60 pt-4 flex items-center justify-between text-xs text-muted-foreground flex-wrap gap-2">
+                      <div className="flex items-center gap-4">
+                        <span className="flex items-center gap-1.5 font-medium text-foreground">
+                          <GraduationCap className="w-4 h-4 text-brand-purple" />
+                          {prog.mentorsCount || 0} Mentor Assigned
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {onOpenManageLinks && (
+                          <button
+                            onClick={() => onOpenManageLinks(prog)}
+                            className="px-3 py-1.5 rounded-lg border border-brand-purple/30 bg-brand-purple/5 hover:bg-brand-purple/10 text-brand-purple font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Link2 className="w-3.5 h-3.5" />
+                            Link Penting
+                          </button>
+                        )}
+                        <button
+                          onClick={() => onOpenProgramDetail(prog)}
+                          className="px-3.5 py-1.5 rounded-lg bg-brand-purple hover:bg-brand-purple-hover text-white font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
+                        >
+                          Kelola & Enrollment
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => onOpenProgramDetail(prog)}
-                      className="px-3.5 py-1.5 rounded-lg bg-brand-purple/10 hover:bg-brand-purple text-brand-purple hover:text-white font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                      Kelola & Enrollment
-                      <ChevronRight className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
                 </div>
               ))}
             </div>

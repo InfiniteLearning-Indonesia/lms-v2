@@ -33,6 +33,7 @@ import { ConfirmActionModal } from "./admin/modals/confirm-action-modal";
 import { EditUserModal } from "./admin/modals/edit-user-modal";
 import { ReviewCsvModal, ParsedCsvStudent } from "./admin/modals/review-csv-modal";
 import { ProgramModal } from "./admin/modals/program-modal";
+import { ManageClassLinksModal } from "./admin/modals/manage-class-links-modal";
 import { AssignMentorModal } from "./admin/modals/assign-mentor-modal";
 import { AddStudentModal } from "./admin/modals/add-student-modal";
 import { CreateBatchModal } from "./admin/modals/batch-modal";
@@ -212,6 +213,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   // Program Detail & Enrollment Modal
   const [isProgramModalOpen, setIsProgramModalOpen] = useState(false);
   const [selectedProgramDetail, setSelectedProgramDetail] = useState<any>(null);
+  const [isManageLinksModalOpen, setIsManageLinksModalOpen] = useState(false);
+  const [selectedProgramForLinks, setSelectedProgramForLinks] = useState<any>(null);
   const [isAddMentorModalOpen, setIsAddMentorModalOpen] = useState(false);
   const [selectedMentorToAssign, setSelectedMentorToAssign] = useState("");
   const [isSubmittingAssignMentor, setIsSubmittingAssignMentor] = useState(false);
@@ -1027,6 +1030,10 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
               setSelectedProgramDetail(prog);
               setIsProgramModalOpen(true);
             }}
+            onOpenManageLinks={(prog) => {
+              setSelectedProgramForLinks(prog);
+              setIsManageLinksModalOpen(true);
+            }}
           />
         </TabsContent>
 
@@ -1188,6 +1195,15 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         setSelectedMentorId={setSelectedMentorForEnroll}
         isSubmitting={isSubmittingEnroll}
         onSubmit={handleEnrollSubmit}
+      />
+
+      <ManageClassLinksModal
+        isOpen={isManageLinksModalOpen}
+        onClose={() => setIsManageLinksModalOpen(false)}
+        programId={selectedProgramForLinks?.id || ""}
+        programName={selectedProgramForLinks?.name || ""}
+        initialLinks={selectedProgramForLinks?.importantLinks || []}
+        onSuccess={() => fetchProgramsList()}
       />
 
       <CreateBatchModal
