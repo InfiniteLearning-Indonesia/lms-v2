@@ -635,15 +635,27 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          batchId: selectedBatchForImport,
-          students: parsedStudents,
+          users: parsedStudents.map((s) => ({
+            name: s.name,
+            email: s.email,
+            role: "student",
+            whatsapp: s.whatsapp || undefined,
+            institution: s.institution || undefined,
+            studyProgram: s.studyProgram || undefined,
+            selectedProgram: s.selectedProgram || undefined,
+          })),
         }),
       });
 
       if (res.ok) {
         const data = await res.json();
         setImportResult(data);
-        setSuccessMsg(`Pendaftaran massal berhasil! ${data.successCount} murid telah diimpor.`);
+        const successCount = data.invited?.length ?? 0;
+        const failCount = data.failed?.length ?? 0;
+        setSuccessMsg(
+          `Pendaftaran massal berhasil! ${successCount} murid telah diimpor.` +
+          (failCount > 0 ? ` (${failCount} gagal)` : "")
+        );
         setCsvText("");
         fetchUsersList();
       } else {
