@@ -183,11 +183,10 @@ export function MentorClassesView({
               <div
                 key={cls.id}
                 onClick={() => setSelectedClassId(cls.id)}
-                className={`cursor-pointer rounded-xl border p-4 transition-all ${
-                  isSelected
+                className={`cursor-pointer rounded-xl border p-4 transition-all ${isSelected
                     ? "bg-brand-purple/10 border-brand-purple shadow-sm"
                     : "bg-card border-border hover:border-border/80 hover:bg-secondary/30"
-                }`}
+                  }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-secondary text-muted-foreground">
@@ -320,7 +319,7 @@ export function MentorClassesView({
                     className="bg-brand-purple hover:bg-brand-purple-hover text-white cursor-pointer shadow-sm shadow-brand-purple/20 transition-all hover:scale-105"
                   >
                     <Sparkles className="w-4 h-4 mr-2 text-amber-400" />
-                    Tarik Materi AI
+                    Tarik Materi
                   </Button>
                 </div>
               ) : null}
@@ -729,11 +728,10 @@ export function MentorClassesView({
                 size="sm"
                 disabled={deleteCountdown > 0}
                 onClick={handleExecuteDelete}
-                className={`text-xs font-semibold text-white cursor-pointer flex items-center gap-1.5 ${
-                  deleteCountdown > 0
+                className={`text-xs font-semibold text-white cursor-pointer flex items-center gap-1.5 ${deleteCountdown > 0
                     ? "bg-red-500/50 cursor-not-allowed opacity-70"
                     : "bg-red-600 hover:bg-red-700 shadow-sm"
-                }`}
+                  }`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 {deleteCountdown > 0

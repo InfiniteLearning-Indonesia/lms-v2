@@ -52,7 +52,7 @@ export function CloneClassModal({
               <div>
                 <h3 className="font-heading font-bold text-lg text-foreground flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-amber-500" />
-                  Duplikat Materi AI
+                  Clone Materi
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Tarik riwayat materi dan tugas dari angkatan sebelumnya.
