@@ -44,6 +44,8 @@ import { MentorAssessmentView } from "./mentor/mentor-assessment-view";
 import { MentorProfileSettings } from "./mentor/mentor-profile-settings";
 import { MentorPastBatches } from "./mentor/mentor-past-batches";
 import { MentorModals } from "./mentor/modals/mentor-modals";
+import { CloneClassModal } from "./mentor/modals/clone-class-modal";
+import { RemapCompetencyModal, MismatchedItem } from "./mentor/modals/remap-competency-modal";
 
 export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardProps) {
   const [classes, setClasses] = useState<MentorClass[]>([]);
@@ -138,6 +140,94 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       setMyAvatarUrl(profile.avatarUrl || "");
     }
   }, [profile]);
+
+  // Clone Class States
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+  const [isCloningClass, setIsCloningClass] = useState(false);
+  const [isRemapModalOpen, setIsRemapModalOpen] = useState(false);
+  const [mismatchedItems, setMismatchedItems] = useState<MismatchedItem[]>([]);
+  const [isRemapping, setIsRemapping] = useState(false);
+
+  const handleCloneClass = async (sourceClassId: string) => {
+    if (!selectedClassId) return;
+    setIsCloningClass(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/classes/${selectedClassId}/clone`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sourceClassId }),
+      });
+      if (res.ok) {
+        toast.success("Berhasil! Semua materi dan tugas telah di-copy ke kelas ini.");
+        setIsCloneModalOpen(false);
+        
+        // Cek ketidaksesuaian kompetensi (mismatch)
+        const updatedClassesRes = await fetch(`${API_BASE_URL}/classes/my-classes`, { credentials: "include" });
+        if (updatedClassesRes.ok) {
+          const updatedClassesData = await updatedClassesRes.json();
+          const targetClass = updatedClassesData.find((c: any) => c.id === selectedClassId);
+          if (targetClass) {
+            const validCompNames = new Set(competencies.map(c => c.name));
+            validCompNames.add("Kompetensi Umum");
+            validCompNames.add(null);
+            
+            const mismatches: MismatchedItem[] = [];
+            
+            targetClass.materials?.forEach((mat: any) => {
+              if (mat.competency && !validCompNames.has(mat.competency)) {
+                mismatches.push({ type: "material", id: mat.id, title: mat.title, oldCompetencyName: mat.competency });
+              }
+            });
+            
+            targetClass.assignments?.forEach((ass: any) => {
+              if (ass.competency && !validCompNames.has(ass.competency)) {
+                mismatches.push({ type: "assignment", id: ass.id, title: ass.title, oldCompetencyName: ass.competency });
+              }
+            });
+            
+            if (mismatches.length > 0) {
+              setMismatchedItems(mismatches);
+              setIsRemapModalOpen(true);
+            }
+          }
+        }
+        fetchMentorData(); // Refresh data utama
+      } else {
+        const err = await res.json();
+        toast.error(err.message || "Gagal melakukan duplikasi materi.");
+      }
+    } catch (err) {
+      toast.error("Terjadi kesalahan sistem saat mencoba clone kelas.");
+    } finally {
+      setIsCloningClass(false);
+    }
+  };
+
+  const handleRemapCompetencies = async (remappingData: { type: "material" | "assignment"; id: string; newCompetencyName: string }[]) => {
+    if (!selectedClassId) return;
+    setIsRemapping(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/classes/${selectedClassId}/remap-competencies`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ remappingData }),
+      });
+      if (res.ok) {
+        toast.success("Penyesuaian kompetensi berhasil disimpan.");
+        setIsRemapModalOpen(false);
+        fetchMentorData();
+      } else {
+        const err = await res.json();
+        toast.error(err.message || "Gagal menyesuaikan kompetensi.");
+      }
+    } catch (err) {
+      toast.error("Terjadi kesalahan sistem.");
+    } finally {
+      setIsRemapping(false);
+    }
+  };
 
   const handleProfileFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1362,6 +1452,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             onDeleteMaterial={handleDeleteMaterial}
             onDeleteAssignment={handleDeleteAssignment}
             onDeleteCompetency={handleDeleteCompetency}
+            onOpenCloneModal={() => setIsCloneModalOpen(true)}
           />
         </TabsContent>
 
@@ -1669,6 +1760,22 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         smartImportData={smartImportData}
         setSmartImportData={setSmartImportData}
         executeSmartImport={executeSmartImport}
+      />
+      <CloneClassModal
+        isOpen={isCloneModalOpen}
+        onClose={() => setIsCloneModalOpen(false)}
+        classes={classes}
+        currentClass={selectedCls}
+        onClone={handleCloneClass}
+        isSubmitting={isCloningClass}
+      />
+      <RemapCompetencyModal
+        isOpen={isRemapModalOpen}
+        onClose={() => setIsRemapModalOpen(false)}
+        mismatchedItems={mismatchedItems}
+        availableCompetencies={competencies}
+        onSaveMapping={handleRemapCompetencies}
+        isSubmitting={isRemapping}
       />
     </div>
   );

@@ -57,6 +57,7 @@ interface MentorClassesViewProps {
   onDeleteMaterial?: (id: string) => void;
   onDeleteAssignment?: (id: string) => void;
   onDeleteCompetency?: (id: string) => void;
+  onOpenCloneModal?: () => void;
 }
 
 export function MentorClassesView({
@@ -79,6 +80,7 @@ export function MentorClassesView({
   onDeleteMaterial,
   onDeleteAssignment,
   onDeleteCompetency,
+  onOpenCloneModal,
 }: MentorClassesViewProps) {
   const [deleteConfirmTarget, setDeleteConfirmTarget] = useState<{
     type: "competency" | "material" | "assignment";
@@ -86,6 +88,24 @@ export function MentorClassesView({
     title: string;
   } | null>(null);
   const [deleteCountdown, setDeleteCountdown] = useState(5);
+
+  const [isEasterEggLoading, setIsEasterEggLoading] = useState(false);
+  const [showCloneButton, setShowCloneButton] = useState(false);
+
+  useEffect(() => {
+    if (selectedCls && selectedCls.materials?.length === 0 && selectedCls.assignments?.length === 0) {
+      setIsEasterEggLoading(true);
+      setShowCloneButton(false);
+      const timer = setTimeout(() => {
+        setIsEasterEggLoading(false);
+        setShowCloneButton(true);
+      }, 2000);
+      return () => clearTimeout(timer);
+    } else {
+      setIsEasterEggLoading(false);
+      setShowCloneButton(false);
+    }
+  }, [selectedCls?.id, selectedCls?.materials?.length, selectedCls?.assignments?.length]);
 
   useEffect(() => {
     if (!deleteConfirmTarget) {
@@ -272,6 +292,39 @@ export function MentorClassesView({
               </div>
             </CardHeader>
             <CardContent className="p-6 space-y-6">
+              {/* Clone AI UI / Easter Egg */}
+              {isEasterEggLoading ? (
+                <div className="flex flex-col items-center justify-center py-6 px-4 border border-brand-purple/20 bg-brand-purple/5 rounded-xl border-dashed">
+                  <Sparkles className="w-8 h-8 text-amber-500 animate-pulse mb-3" />
+                  <p className="text-sm font-semibold text-brand-purple animate-pulse">
+                    ✨ Sedang Cek Data Lama..
+                  </p>
+                </div>
+              ) : showCloneButton && !isReadOnly ? (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4 px-5 border border-brand-purple/30 bg-brand-purple/10 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-amber-500/20 rounded-lg">
+                      <Sparkles className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <div>
+                      <h4 className="font-heading font-bold text-sm text-brand-purple">
+                        Kelas masih kosong?
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        Tarik materi dan tugas dari angkatan sebelumnya secara otomatis.
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    onClick={onOpenCloneModal}
+                    className="bg-brand-purple hover:bg-brand-purple-hover text-white cursor-pointer shadow-sm shadow-brand-purple/20 transition-all hover:scale-105"
+                  >
+                    <Sparkles className="w-4 h-4 mr-2 text-amber-400" />
+                    Tarik Materi AI
+                  </Button>
+                </div>
+              ) : null}
+
               {/* Live Cohort Progress Bar */}
               {(() => {
                 let progress = 0;
