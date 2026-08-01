@@ -3,7 +3,7 @@
 import { API_BASE_URL } from "@/lib/config";
 
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Papa from "papaparse";
@@ -168,7 +168,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           const updatedClassesData = await updatedClassesRes.json();
           const targetClass = updatedClassesData.find((c: any) => c.id === selectedClassId);
           if (targetClass) {
-            const validCompNames = new Set(competencies.map(c => c.name));
+            const activeCompetencies = competencies.filter(c => c.isGlobal || c.programCompetency);
+            const validCompNames = new Set(activeCompetencies.map(c => c.name));
             validCompNames.add("Kompetensi Umum");
             validCompNames.add(null);
             
@@ -1126,6 +1127,11 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const currentFacilitators = selectedCls?.facilitators || (classes && classes[0]?.facilitators) || [];
   const isReadOnly = selectedCls?.batch?.status === "completed";
 
+  // Filter orphaned competencies (where programCompetency is deleted/null)
+  const activeCompetencies = useMemo(() => {
+    return competencies.filter((c) => c.isGlobal || c.programCompetency);
+  }, [competencies]);
+
   // Calculate stats
   const totalClasses = activeClasses.length;
   const totalStudents = selectedCls?.enrolledStudentsCount ?? selectedCls?.enrolledStudents?.length ?? 0;
@@ -1448,7 +1454,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
             onOpenAddProgramCompetency={() => setIsAddProgramCompetencyModalOpen(true)}
             onEditCompetency={(comp) => setEditingCompetency(comp)}
-            competencies={competencies}
+            competencies={activeCompetencies}
             onDeleteMaterial={handleDeleteMaterial}
             onDeleteAssignment={handleDeleteAssignment}
             onDeleteCompetency={handleDeleteCompetency}
@@ -1724,7 +1730,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         setMaterialType={setMaterialType}
         handleCreateMaterial={handleCreateMaterial}
         programCompetencies={programCompetencies}
-        competencies={competencies}
+        competencies={activeCompetencies}
         isAddAssignmentModalOpen={isAddAssignmentModalOpen}
         setIsAddAssignmentModalOpen={setIsAddAssignmentModalOpen}
         handleCreateAssignment={handleCreateAssignment}
@@ -1773,7 +1779,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         isOpen={isRemapModalOpen}
         onClose={() => setIsRemapModalOpen(false)}
         mismatchedItems={mismatchedItems}
-        availableCompetencies={competencies}
+        availableCompetencies={activeCompetencies}
         onSaveMapping={handleRemapCompetencies}
         isSubmitting={isRemapping}
       />
