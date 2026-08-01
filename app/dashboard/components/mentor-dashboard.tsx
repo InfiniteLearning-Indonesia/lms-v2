@@ -890,6 +890,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       if (res.ok) {
         toast.success("Kompetensi (Sertifikat) berhasil dihapus!");
         fetchProgramCompetencies(selectedProgramId || undefined);
+        if (selectedProgramId) fetchCompetencies(selectedProgramId);
       } else {
         const error = await res.json();
         toast.error(error.message || "Gagal menghapus kompetensi (sertifikat).");
