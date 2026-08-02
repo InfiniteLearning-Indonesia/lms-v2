@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -91,6 +91,17 @@ export function MentorClassesView({
     title: string;
   } | null>(null);
   const [isCompetencyExpanded, setIsCompetencyExpanded] = useState(false);
+
+  const groupedCompetencies = useMemo(() => {
+    return (competencies || []).reduce((acc: any, comp: any) => {
+      const groupName = comp.programCompetency?.name || (comp.isGlobal ? "Kompetensi Umum" : "Lainnya");
+      if (!acc[groupName]) {
+        acc[groupName] = [];
+      }
+      acc[groupName].push(comp);
+      return acc;
+    }, {} as Record<string, any[]>);
+  }, [competencies]);
   const [deleteCountdown, setDeleteCountdown] = useState(5);
 
   const [isEasterEggLoading, setIsEasterEggLoading] = useState(false);
@@ -188,8 +199,8 @@ export function MentorClassesView({
                 key={cls.id}
                 onClick={() => setSelectedClassId(cls.id)}
                 className={`cursor-pointer rounded-xl border p-4 transition-all ${isSelected
-                    ? "bg-brand-purple/10 border-brand-purple shadow-sm"
-                    : "bg-card border-border hover:border-border/80 hover:bg-secondary/30"
+                  ? "bg-brand-purple/10 border-brand-purple shadow-sm"
+                  : "bg-card border-border hover:border-border/80 hover:bg-secondary/30"
                   }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -422,12 +433,12 @@ export function MentorClassesView({
               {/* 1. Kompetensi Section */}
               <div className="space-y-3 pt-6 border-t border-border">
                 <div className="flex items-center justify-between">
-                  <h4 
+                  <h4
                     className="font-heading font-bold text-sm text-foreground flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => setIsCompetencyExpanded(!isCompetencyExpanded)}
                   >
                     <Layers className="w-4 h-4 text-brand-purple" />
-                    Kompetensi Pembelajaran ({competencies?.length || 0})
+                    Daftar Syllabus Pembelajaran ({competencies?.length || 0})
                     {isCompetencyExpanded ? (
                       <ChevronUp className="w-4 h-4 text-muted-foreground ml-2" />
                     ) : (
@@ -442,82 +453,91 @@ export function MentorClassesView({
                       className="h-8 text-xs flex items-center gap-1.5 cursor-pointer border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10"
                     >
                       <Plus className="w-3.5 h-3.5" />
-                      Tambah Kompetensi
+                      Tambah Syllabus
                     </Button>
                   )}
                 </div>
 
                 <AnimatePresence>
                   {isCompetencyExpanded && (
-                    <motion.div 
+                    <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: "auto", opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
                       className="space-y-3 overflow-hidden"
                     >
-                      <div className="grid gap-2">
-                        {competencies && competencies.length > 0 ? (
-                          competencies.map((comp: any, idx: number) => (
-                            <div
-                              key={comp.id || idx}
-                              className="flex items-center justify-between p-3 rounded-lg border border-border bg-brand-purple/5 hover:bg-brand-purple/10 transition-colors h-14"
-                            >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-xs shrink-0">
-                            K{idx + 1}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="text-xs font-semibold text-foreground truncate max-w-[180px] sm:max-w-[260px] md:max-w-[320px]" title={comp.name}>
-                              {comp.name}
-                            </p>
-                            <p className="text-[11px] text-muted-foreground truncate max-w-[180px] sm:max-w-[260px] md:max-w-[320px]">
-                              Kategori: {comp.category || "General"} • Phase: {comp.phase || "Micro"} • Bobot: {comp.weight || 0}%
-                            </p>
-                          </div>
-                        </div>
+                      <div className="flex flex-col gap-4">
+                        {Object.keys(groupedCompetencies).length > 0 ? (
+                          Object.entries(groupedCompetencies).map(([groupName, groupComps], groupIdx) => (
+                            <div key={groupName} className="space-y-2">
+                              <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1 pb-1">
+                                {groupName}
+                              </h5>
+                              <div className="grid gap-2">
+                                {((groupComps as any[]) || []).map((comp: any, idx: number) => (
+                                  <div
+                                    key={comp.id || idx}
+                                    className="flex items-center justify-between p-3 rounded-lg border border-border bg-brand-purple/5 hover:bg-brand-purple/10 transition-colors h-14"
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-xs shrink-0">
+                                        K{idx + 1}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-xs font-semibold text-foreground truncate max-w-[180px] sm:max-w-[260px] md:max-w-[320px]" title={comp.name}>
+                                          {comp.name}
+                                        </p>
+                                        <p className="text-[11px] text-muted-foreground truncate max-w-[180px] sm:max-w-[260px] md:max-w-[320px]">
+                                          Kategori: {comp.category || "General"} • Phase: {comp.phase || "Micro"} • Bobot: {comp.weight || 0}%
+                                        </p>
+                                      </div>
+                                    </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Link
-                            href={`/dashboard/competency/${comp.id}/rubric`}
-                            className="text-[11px] font-medium text-brand-purple bg-card hover:bg-brand-purple/10 px-2.5 py-1 rounded-md border border-border shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
-                            title="Klik untuk mengedit Rubrik Kriteria"
-                          >
-                            <span>{comp.rubric?.criteria?.length || 0} Rubrik Kriteria</span>
-                            <ChevronRight className="w-3.5 h-3.5" />
-                          </Link>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                      <Link
+                                        href={`/dashboard/competency/${comp.id}/rubric`}
+                                        className="text-[11px] font-medium text-brand-purple bg-card hover:bg-brand-purple/10 px-2.5 py-1 rounded-md border border-border shadow-2xs transition-colors flex items-center gap-1 cursor-pointer"
+                                        title="Klik untuk mengedit Rubrik Kriteria"
+                                      >
+                                        <span>{comp.rubric?.criteria?.length || 0} Rubrik Kriteria</span>
+                                        <ChevronRight className="w-3.5 h-3.5" />
+                                      </Link>
 
-                          {!isReadOnly && onEditCompetency && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 w-7 p-0 border-brand-purple/30 hover:bg-brand-purple/10 cursor-pointer"
-                              onClick={() => onEditCompetency(comp)}
-                              title="Edit Kompetensi (Nama, Kategori, Phase)"
-                            >
-                              <Pencil className="w-3.5 h-3.5 text-brand-purple" />
-                            </Button>
-                          )}
+                                      {!isReadOnly && onEditCompetency && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 w-7 p-0 border-brand-purple/30 hover:bg-brand-purple/10 cursor-pointer"
+                                          onClick={() => onEditCompetency(comp)}
+                                          title="Edit Kompetensi (Nama, Kategori, Phase)"
+                                        >
+                                          <Pencil className="w-3.5 h-3.5 text-brand-purple" />
+                                        </Button>
+                                      )}
 
-                          {!isReadOnly && onDeleteCompetency && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
-                              onClick={() => setDeleteConfirmTarget({ type: "competency", id: comp.id, title: comp.name })}
-                              title="Hapus Kompetensi"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                            </Button>
-                          )}
-                        </div>
+                                      {!isReadOnly && onDeleteCompetency && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
+                                          onClick={() => setDeleteConfirmTarget({ type: "competency", id: comp.id, title: comp.name })}
+                                          title="Hapus Kompetensi"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-xs text-muted-foreground py-3 text-center border border-dashed rounded-lg">
+                            Belum ada kompetensi terdaftar. Klik "+ Tambah Syllabus" untuk membuat baru.
+                          </p>
+                        )}
                       </div>
-                    ))
-                  ) : (
-                    <p className="text-xs text-muted-foreground py-3 text-center border border-dashed rounded-lg">
-                      Belum ada kompetensi terdaftar. Klik "+ Tambah Kompetensi" untuk membuat baru.
-                    </p>
-                  )}
-                </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -704,8 +724,8 @@ export function MentorClassesView({
                 disabled={deleteCountdown > 0}
                 onClick={handleExecuteDelete}
                 className={`text-xs font-semibold text-white cursor-pointer flex items-center gap-1.5 ${deleteCountdown > 0
-                    ? "bg-red-500/50 cursor-not-allowed opacity-70"
-                    : "bg-red-600 hover:bg-red-700 shadow-sm"
+                  ? "bg-red-500/50 cursor-not-allowed opacity-70"
+                  : "bg-red-600 hover:bg-red-700 shadow-sm"
                   }`}
               >
                 <Trash2 className="w-3.5 h-3.5" />
