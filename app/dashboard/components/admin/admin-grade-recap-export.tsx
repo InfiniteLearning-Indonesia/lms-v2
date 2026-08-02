@@ -328,7 +328,7 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
                     filteredStudents.map((s, idx) => {
                       const att = attendanceScores[s.id];
                       const details = activePhase === "micro" ? att?.microDetails : att?.massiveDetails;
-                      
+
                       const attScoreVal = activePhase === "micro" ? att?.microScore ?? 65.0 : att?.massiveScore ?? 65.0;
                       const oncamScoreVal = details?.oncamScore ?? 65.0;
 

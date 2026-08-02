@@ -3,7 +3,7 @@
 import { API_BASE_URL } from "@/lib/config";
 
 import Link from "next/link";
-import { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText, AlertTriangle, ShieldAlert, X, CheckCircle2, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -308,56 +308,78 @@ export function MentorAssessmentView({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60 text-xs">
-                    {programCompetencies?.filter((c: any) =>
-                      activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
-                    ).length === 0 ? (
-                      <tr>
-                        <td colSpan={3} className="py-8 text-center text-muted-foreground">
-                          Belum ada kompetensi induk.
-                        </td>
-                      </tr>
-                    ) : (
-                      programCompetencies
-                        ?.filter((c: any) =>
-                          activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
-                        )
-                        .map((comp: any) => (
-                          <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
-                            <td className="py-3.5 px-4 font-semibold text-foreground">
-                              {comp.name}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                {comp.category}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {setEditingProgramCompetency && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 cursor-pointer"
-                                    onClick={() => setEditingProgramCompetency(comp)}
-                                  >
-                                    <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                                  </Button>
-                                )}
-                                {handleDeleteProgramCompetency && (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
-                                    onClick={() => handleDeleteProgramCompetency(comp.id)}
-                                  >
-                                    <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                                  </Button>
-                                )}
-                              </div>
+                    {(() => {
+                      const filteredProgramComps = programCompetencies?.filter((c: any) =>
+                        activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
+                      ) || [];
+
+                      if (filteredProgramComps.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={3} className="py-8 text-center text-muted-foreground">
+                              Belum ada kompetensi induk.
                             </td>
                           </tr>
-                        ))
-                    )}
+                        );
+                      }
+
+                      const programCompsByCategory = filteredProgramComps.reduce((acc, comp) => {
+                        const cat = comp.category || "Tanpa Kategori";
+                        if (!acc[cat]) acc[cat] = [];
+                        acc[cat].push(comp);
+                        return acc;
+                      }, {} as Record<string, any[]>);
+
+                      return (
+                        <>
+                          {(Object.entries(programCompsByCategory) as [string, any[]][]).map(([category, comps]) => (
+                            <React.Fragment key={category}>
+                              <tr className="bg-muted/30 border-y border-border">
+                                <td colSpan={3} className="px-4 py-2 text-[11px] font-extrabold text-foreground uppercase tracking-wider bg-brand-purple/5 border-l-2 border-brand-purple">
+                                  Kategori: {category}
+                                </td>
+                              </tr>
+                              {comps.map((comp: any) => (
+                                <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
+                                  <td className="py-3.5 px-4 font-semibold text-foreground">
+                                    {comp.name}
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
+                                      {comp.category}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 px-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                      {setEditingProgramCompetency && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 w-7 p-0 cursor-pointer"
+                                          onClick={() => setEditingProgramCompetency(comp)}
+                                        >
+                                          <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                                        </Button>
+                                      )}
+                                      {handleDeleteProgramCompetency && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
+                                          onClick={() => handleDeleteProgramCompetency(comp.id)}
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </>
+                      );
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -401,62 +423,84 @@ export function MentorAssessmentView({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/60 text-xs">
-                    {competencies.filter((c: any) =>
-                      activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
-                    ).length === 0 ? (
-                      <tr>
-                        <td colSpan={4} className="py-8 text-center text-muted-foreground">
-                          Belum ada syllabus {activeRubrikTab === "professional" ? "professional" : ""}.
-                        </td>
-                      </tr>
-                    ) : (
-                      competencies
-                        .filter((c: any) =>
-                          activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
-                        )
-                        .map((comp: any) => (
-                          <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
-                            <td className="py-3.5 px-4 font-semibold text-foreground">
-                              {comp.name}
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="text-muted-foreground text-[11px]">
-                                {comp.programCompetency?.name || "-"}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
-                                {comp.category}
-                              </span>
-                            </td>
-                            <td className="py-3.5 px-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                <Link href={`/dashboard/competency/${comp.id}/rubric`}>
-                                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer">
-                                    <FileSpreadsheet className="w-3.5 h-3.5" /> Atur Rubrik
-                                  </span>
-                                </Link>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 w-7 p-0 cursor-pointer"
-                                  onClick={() => setEditingCompetency(comp)}
-                                >
-                                  <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
-                                  onClick={() => handleDeleteCompetency(comp.id)}
-                                >
-                                  <Trash2 className="w-3.5 h-3.5 text-red-500" />
-                                </Button>
-                              </div>
+                    {(() => {
+                      const filteredSyllabus = competencies.filter((c: any) =>
+                        activeRubrikTab === "professional" ? (c.isGlobal || !c.programId) : (!c.isGlobal && !!c.programId)
+                      ) || [];
+
+                      if (filteredSyllabus.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan={4} className="py-8 text-center text-muted-foreground">
+                              Belum ada syllabus {activeRubrikTab === "professional" ? "professional" : ""}.
                             </td>
                           </tr>
-                        ))
-                    )}
+                        );
+                      }
+
+                      const syllabusByParent = filteredSyllabus.reduce((acc, comp) => {
+                        const parentName = comp.programCompetency?.name || "Tanpa Kompetensi Induk";
+                        if (!acc[parentName]) acc[parentName] = [];
+                        acc[parentName].push(comp);
+                        return acc;
+                      }, {} as Record<string, any[]>);
+
+                      return (
+                        <>
+                          {(Object.entries(syllabusByParent) as [string, any[]][]).map(([parentName, comps]) => (
+                            <React.Fragment key={parentName}>
+                              <tr className="bg-muted/30 border-y border-border">
+                                <td colSpan={4} className="px-4 py-2 text-[11px] font-extrabold text-foreground tracking-wider bg-brand-purple/5 border-l-2 border-brand-purple">
+                                  Kompetensi Induk: <span className="text-brand-purple ml-1 uppercase">{parentName}</span>
+                                </td>
+                              </tr>
+                              {comps.map((comp: any) => (
+                                <tr key={comp.id} className="hover:bg-secondary/20 transition-colors">
+                                  <td className="py-3.5 px-4 font-semibold text-foreground pl-6">
+                                    {comp.name}
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <span className="text-muted-foreground text-[11px]">
+                                      {comp.programCompetency?.name || "-"}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 px-4">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-brand-purple/10 text-brand-purple border border-brand-purple/20">
+                                      {comp.category}
+                                    </span>
+                                  </td>
+                                  <td className="py-3.5 px-4 text-right">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <Link href={`/dashboard/competency/${comp.id}/rubric`}>
+                                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-brand-purple hover:bg-brand-purple/90 text-white font-medium text-[11px] transition-colors shadow-sm cursor-pointer">
+                                          <FileSpreadsheet className="w-3.5 h-3.5" /> Atur Rubrik
+                                        </span>
+                                      </Link>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-7 w-7 p-0 cursor-pointer"
+                                        onClick={() => setEditingCompetency(comp)}
+                                      >
+                                        <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                                      </Button>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-7 w-7 p-0 border-red-500/20 hover:bg-red-50 cursor-pointer"
+                                        onClick={() => handleDeleteCompetency(comp.id)}
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </>
+                      );
+                    })()}
                   </tbody>
                 </table>
               </div>
