@@ -140,34 +140,51 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
   const handleExportCSV = () => {
     if (filteredStudents.length === 0) return;
 
+    const attComp = displayComps.find((c) => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
+    const oncamComp = displayComps.find((c) => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
+    
+    const regularComps = displayComps.filter(c => !c.name?.toLowerCase().includes("attendance"));
+
     const headers = [
       "No",
       "Nama Mentee",
       "Email",
       "Institusi",
-      "Nilai Absensi",
-      ...(hasRAs ? displayRAs.map((r) => `${r.name} (Rubrik)`) : displayComps.map((c) => `${c.name} (Syllabus)`)),
+      ...(attComp ? [`${attComp.name} (Syllabus)`] : []),
+      ...(oncamComp ? [`${oncamComp.name} (Syllabus)`] : []),
+      ...displayRAs.map((r) => `${r.name} (Rubrik)`),
+      ...regularComps.map((c) => `${c.name} (Syllabus)`),
       "Rata-Rata Phase",
     ];
 
     const rows = filteredStudents.map((s, idx) => {
       const att = attendanceScores[s.id];
-      const attScore = activePhase === "micro" ? att?.microScore ?? 65.0 : att?.massiveScore ?? 65.0;
+      const details = activePhase === "micro" ? att?.microDetails : att?.massiveDetails;
+      
+      const attScoreVal = activePhase === "micro" ? att?.microScore ?? 65.0 : att?.massiveScore ?? 65.0;
+      const oncamScoreVal = details?.oncamScore ?? 65.0;
 
-      const itemScores = hasRAs
-        ? displayRAs.map((r) => getStudentRAScore(s.id, r.id))
-        : displayComps.map((c) => getStudentCompScore(s.id, c.id));
+      const raScores = displayRAs.map((r) => getStudentRAScore(s.id, r.id));
+      const compScores = regularComps.map((c) => getStudentCompScore(s.id, c.id));
 
-      const avgScore =
-        itemScores.length > 0 ? itemScores.reduce((a, b) => a + b, 0) / itemScores.length : attScore;
+      const allScores = [
+        ...(attComp ? [attScoreVal] : []),
+        ...(oncamComp ? [oncamScoreVal] : []),
+        ...raScores,
+        ...compScores,
+      ];
+
+      const avgScore = allScores.length > 0 ? allScores.reduce((a, b) => a + b, 0) / allScores.length : 65.0;
 
       return [
         idx + 1,
         `"${s.name || ""}"`,
         `"${s.email || ""}"`,
         `"${s.institution || "-"}"`,
-        attScore.toFixed(1),
-        ...itemScores.map((sc) => sc.toFixed(1)),
+        ...(attComp ? [attScoreVal.toFixed(1)] : []),
+        ...(oncamComp ? [oncamScoreVal.toFixed(1)] : []),
+        ...raScores.map((sc) => sc.toFixed(1)),
+        ...compScores.map((sc) => sc.toFixed(1)),
         avgScore.toFixed(1),
       ];
     });

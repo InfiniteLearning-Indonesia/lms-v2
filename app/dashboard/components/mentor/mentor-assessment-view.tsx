@@ -1044,7 +1044,7 @@ export function MentorAssessmentView({
                   {filteredAndSortedStudents.length > ITEMS_PER_PAGE && (
                     <div className="flex items-center justify-between px-4 py-3 mt-4 border border-border rounded-xl bg-muted/20">
                       <span className="text-xs text-muted-foreground font-medium">
-                        Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedStudents.length)} dari {filteredAndSortedStudents.length} mentee
+                        Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedStudents.length)} dari {filteredAndSortedStudents.length} mentee (Halaman {currentPage} dari {Math.ceil(filteredAndSortedStudents.length / ITEMS_PER_PAGE)})
                       </span>
                       <div className="flex items-center gap-2">
                         <Button
