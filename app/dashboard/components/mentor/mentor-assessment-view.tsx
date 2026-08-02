@@ -816,10 +816,7 @@ export function MentorAssessmentView({
                             Mentee
                           </th>
 
-                          {/* Attendance Score Column */}
-                          <th className="px-4 py-3 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-r border-border text-center font-bold" title="Nilai Kehadiran Synchronous Mentee">
-                            Kehadiran (Absensi)
-                          </th>
+
 
                           {/* Oncam Score Column */}
                           <th className="px-4 py-3 bg-blue-500/10 text-blue-700 dark:text-blue-300 border-r border-border text-center font-bold" title="Nilai Kehadiran On-Cam Mentee">
@@ -890,21 +887,7 @@ export function MentorAssessmentView({
                                   </div>
                                 </td>
 
-                                {/* Attendance Cell */}
-                                {(() => {
-                                  const att = attendanceScores?.[student.id];
-                                  const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
-                                  const scoreVal = phaseScore !== undefined ? phaseScore : 65.0;
-                                  const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
-                                  return (
-                                    <td
-                                      className="px-4 py-3 text-center border-r border-border text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 cursor-help"
-                                      title={details && details.totalSyncDays > 0 ? `Kehadiran Synchronous: ${details.cleanAttendance}/${details.totalSyncDays} Hari (Alpha: ${details.alphaDays})` : "Nilai Absensi Minimal: 65.0"}
-                                    >
-                                      {scoreVal.toFixed(1)}
-                                    </td>
-                                  );
-                                })()}
+
 
                                 {/* Oncam Cell */}
                                 {(() => {
@@ -936,28 +919,52 @@ export function MentorAssessmentView({
 
                                 {/* Syllabus / Competency Cells */}
                                 {showSyllabusColumns && displayComps.map((comp) => {
-                                  const directMatch = competencyScores.find(
-                                    (s: any) => s.studentId === student.id && s.competencyId === comp.id
-                                  );
-                                  const score = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
+                                  const isAttendanceComp = comp.name?.toLowerCase().includes("attendance");
+                                  let finalScore: number;
+                                  let isAutoFilled = false;
+                                  let tooltipTitle = "Klik untuk menginput/mengubah nilai secara langsung";
+
+                                  if (isAttendanceComp) {
+                                    const att = attendanceScores?.[student.id];
+                                    const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
+                                    finalScore = phaseScore !== undefined ? phaseScore : 65.0;
+                                    isAutoFilled = true;
+                                    
+                                    const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
+                                    if (details && details.totalSyncDays > 0) {
+                                      tooltipTitle = `Nilai otomatis. Kehadiran: ${details.cleanAttendance}/${details.totalSyncDays} Hari (Alpha: ${details.alphaDays})`;
+                                    } else {
+                                      tooltipTitle = "Nilai otomatis (Default: 65.0)";
+                                    }
+                                  } else {
+                                    const directMatch = competencyScores.find(
+                                      (s: any) => s.studentId === student.id && s.competencyId === comp.id
+                                    );
+                                    finalScore = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
+                                  }
+
                                   return (
                                     <td
                                       key={comp.id}
-                                      className="px-4 py-3 text-center border-l border-border text-xs font-medium cursor-pointer hover:bg-brand-purple/10 transition-colors"
+                                      className={`px-4 py-3 text-center border-l border-border text-xs font-medium ${isAutoFilled ? 'bg-emerald-500/5 text-emerald-700 cursor-help' : 'cursor-pointer hover:bg-brand-purple/10 transition-colors'}`}
                                       onClick={() => {
+                                        if (isAutoFilled) {
+                                          toast.info("Nilai kehadiran terisi otomatis dari rekap absensi.");
+                                          return;
+                                        }
                                         setDirectScoreModal({
                                           isOpen: true,
                                           studentId: student.id,
                                           studentName: student.name || "",
                                           compId: comp.id,
                                           compName: comp.name || "",
-                                          scoreInput: score.toString()
+                                          scoreInput: finalScore.toString()
                                         });
                                       }}
-                                      title="Klik untuk menginput/mengubah nilai secara langsung"
+                                      title={tooltipTitle}
                                     >
-                                      {ensureMinScore(score).toFixed(1)}
-                                      <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />
+                                      {ensureMinScore(finalScore).toFixed(1)}
+                                      {!isAutoFilled && <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />}
                                     </td>
                                   );
                                 })}
