@@ -178,7 +178,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         setIsCloneModalOpen(false);
         
         // Cek ketidaksesuaian kompetensi (mismatch)
-        const updatedClassesRes = await fetch(`${API_BASE_URL}/classes/my-classes`, { credentials: "include" });
+        const updatedClassesRes = await fetch(`${API_BASE_URL}/classes/mentor-classes`, {
+          headers: { Accept: "application/json" },
+          credentials: "include"
+        });
         if (updatedClassesRes.ok) {
           const updatedClassesData = await updatedClassesRes.json();
           const targetClass = updatedClassesData.find((c: any) => c.id === selectedClassId);
