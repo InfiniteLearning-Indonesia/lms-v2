@@ -254,10 +254,13 @@ function LoginContent() {
           <span>Masuk dengan Google</span>
         </motion.a>
 
-        <div className="mt-6 pt-4 border-t border-border text-center">
+        <div className="mt-6 pt-4 border-t border-border text-center flex flex-col items-center gap-2">
           <p className="text-[11px] text-muted-foreground leading-relaxed">
             Pastikan email Anda sudah terdaftar di sistem Infinite Learning.
           </p>
+          <Link href="/status" className="underline inline-flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-brand-purple transition-colors">
+            <span>Cek Status Layanan LMS</span>
+          </Link>
         </div>
       </div>
 
@@ -352,26 +355,46 @@ function LoginContent() {
 
 export default function StudentLoginPage() {
   return (
-    <div className="min-h-screen grid lg:grid-cols-2 font-sans">
+    <div className="min-h-screen grid lg:grid-cols-2 font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
       {/* ── Left: Branding panel ── */}
-      <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-brand-purple to-brand-gradient-end text-white p-12">
-        <Link href="/" className="flex items-center">
-          <img src="/logo-white.png" alt="Infinite Learning Logo" className="h-7 w-auto" />
-        </Link>
+      <div className="hidden lg:flex flex-col justify-between bg-gradient-to-br from-[#12082b] via-brand-purple to-[#381a7d] text-white p-12 relative overflow-hidden">
+        {/* Ambient Glows */}
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-80 h-80 bg-brand-yellow/15 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -mb-12 -ml-12 w-80 h-80 bg-brand-purple/40 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-sm">
-          <h2 className="font-heading font-bold text-3xl leading-snug tracking-tight text-balance">
-            Kelola kelas, kerjakan tugas, dan pantau progresmu di satu tempat.
-          </h2>
-          <p className="mt-4 text-white/60 text-sm leading-relaxed">
-            Platform Learning Management System resmi Infinite Learning.
-            Masuk menggunakan Email & Password atau akun Google yang telah terdaftar.
-          </p>
+        <div className="relative z-10">
+          <Link href="/" className="inline-block transition-transform hover:scale-105">
+            <img src="/logo-white.png" alt="Infinite Learning Logo" className="h-7 w-auto" />
+          </Link>
         </div>
 
-        <p className="text-xs text-white/40">
-          &copy; {new Date().getFullYear()} Infinite Learning
-        </p>
+        <div className="max-w-md relative z-10 space-y-6">
+
+          <h2 className="font-heading font-extrabold text-3xl md:text-4xl leading-tight tracking-tight text-white">
+            Kelola kelas, kerjakan tugas, dan pantau progresmu di satu tempat.
+          </h2>
+
+          <p className="text-white/80 text-xs md:text-sm leading-relaxed font-sans">
+            Platform Learning Management System untuk mendukung pengalaman belajar yang terstruktur, terukur, dan menyenangkan.
+          </p>
+
+          <div className="pt-4 border-t border-white/15 space-y-2.5 text-xs font-medium text-white/90">
+            <div className="flex items-center gap-2.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-yellow" />
+              <span>Akses langsung ke seluruh materi modul & tugas kelas</span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-yellow" />
+              <span>Sistem penilaian transparan & transkrip kompetensi</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 pt-6">
+          <p className="text-xs text-white/50">
+            &copy; {new Date().getFullYear()} Infinite Learning Indonesia. Hak Cipta Dilindungi.
+          </p>
+        </div>
       </div>
 
       {/* ── Right: Form panel ── */}
@@ -379,7 +402,7 @@ export default function StudentLoginPage() {
         <div className="absolute top-6 right-6">
           <ThemeToggle />
         </div>
-        <Suspense fallback={<div className="text-sm text-muted-foreground animate-pulse">Memuat...</div>}>
+        <Suspense fallback={<div className="text-xs text-muted-foreground animate-pulse font-heading">Memuat portal login...</div>}>
           <LoginContent />
         </Suspense>
       </div>

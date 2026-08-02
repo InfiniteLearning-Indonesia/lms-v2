@@ -1,23 +1,23 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
-
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Notebook, Calendar, Loader2, AlertCircle, CheckCircle2, User, Search, FileEdit, MessageSquare } from "lucide-react";
+import { Notebook, AlertCircle, CheckCircle2, Loader2, Search, FileEdit, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 
 export function MentorLogbook({ batchId }: { batchId: string }) {
-  const [data, setData] = useState<{ totalMonths: number, students: any[] } | null>(null);
+  const [data, setData] = useState<{ totalMonths: number; students: any[] } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [submissionFilter, setSubmissionFilter] = useState<string>("all");
 
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(1);
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState("");
 
@@ -50,7 +50,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
       toast.warning("Harap isi feedback/catatan jika meminta revisi.");
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const res = await fetch(`${API_BASE_URL}/classes/batches/logbooks/${logbookId}/review`, {
@@ -63,7 +63,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
       if (res.ok) {
         toast.success(status === "accepted" ? "Logbook berhasil disetujui!" : "Permintaan revisi dikirim.");
         setFeedback("");
-        await fetchLogbooks(); // Refresh data
+        await fetchLogbooks();
       } else {
         const err = await res.json();
         toast.error(err.message || "Gagal memperbarui status logbook.");
@@ -93,43 +93,87 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
     );
   }
 
-  const studentsList = data?.students || [];
-  const filteredStudents = studentsList.filter(s => 
-    (s?.student?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (s?.student?.email || "").toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const rawStudentsList = data?.students || [];
+  const studentsList = rawStudentsList.filter((s: any) => {
+    const st = s?.student;
+    if (!st) return false;
+    const roles = (st.roles || []).map((r: any) => String(r).toLowerCase());
+    const roleStr = String(st.role || "").toLowerCase();
+    const isMentor = roles.includes("mentor") || roleStr === "mentor";
+    const isFacilitator = roles.includes("facilitator") || roleStr === "facilitator";
+    return !isMentor && !isFacilitator;
+  });
+  const filteredStudents = studentsList.filter((s) => {
+    const matchesSearch =
+      (s?.student?.name || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (s?.student?.email || "").toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
 
-  const selectedStudentObj = studentsList.find(s => s?.student?.id === selectedStudentId);
+    const logbooks = s?.logbooks || [];
+    if (submissionFilter === "pending_review") {
+      return logbooks.some((l: any) => l.status === "pending");
+    }
+    if (submissionFilter === "submitted") {
+      return logbooks.some((l: any) => l.status === "accepted" || l.status === "pending");
+    }
+    if (submissionFilter === "not_submitted") {
+      return logbooks.length === 0;
+    }
+
+    return true;
+  });
+
+  const selectedStudentObj = studentsList.find((s) => s?.student?.id === selectedStudentId);
   const months = Array.from({ length: data?.totalMonths || 0 }, (_, i) => i + 1);
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row gap-6">
-        
         {/* LIST STUDENT (Sidebar) */}
         <div className="w-full lg:w-1/3 shrink-0 space-y-4">
-          <div className="flex items-center gap-2 mb-2">
-            <UsersIcon className="w-5 h-5 text-brand-purple" />
-            <h3 className="font-heading font-bold text-base">Student Binaan</h3>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="flex items-center gap-2">
+              <UsersIcon className="w-5 h-5 text-brand-purple" />
+              <h3 className="font-heading font-bold text-base">Student Binaan</h3>
+            </div>
+            <span className="text-xs text-muted-foreground font-medium">
+              {filteredStudents.length} Student
+            </span>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Cari nama student..."
-              className="pl-9 h-9 text-xs"
-            />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Cari nama..."
+                className="pl-9 h-9 text-xs"
+              />
+            </div>
+            <select
+              value={submissionFilter}
+              onChange={(e) => setSubmissionFilter(e.target.value)}
+              className="h-9 px-2 text-xs bg-background border border-border rounded-lg text-foreground font-medium focus:outline-hidden"
+            >
+              <option value="all">Semua Status</option>
+              <option value="pending_review">Perlu Review</option>
+              <option value="submitted">Sudah Mengisi</option>
+              <option value="not_submitted">Belum Mengisi</option>
+            </select>
           </div>
 
           <div className="flex flex-col gap-2 max-h-[600px] overflow-y-auto pr-1">
             {filteredStudents.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic text-center py-4">Tidak ada student ditemukan.</p>
+              <p className="text-xs text-muted-foreground italic text-center py-4">
+                Tidak ada student ditemukan.
+              </p>
             ) : (
-              filteredStudents.map(obj => {
+              filteredStudents.map((obj) => {
                 const isSelected = selectedStudentId === obj.student.id;
-                // Count pending logbooks
-                const pendingCount = (obj.logbooks || []).filter((l: any) => l.status === "pending").length;
+                const pendingCount = (obj.logbooks || []).filter(
+                  (l: any) => l.status === "pending"
+                ).length;
 
                 return (
                   <button
@@ -142,16 +186,22 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
                       }
                     }}
                     className={`flex items-start justify-between p-3 rounded-lg text-left transition-all border ${
-                      isSelected 
-                        ? "bg-brand-purple/10 border-brand-purple shadow-sm" 
+                      isSelected
+                        ? "bg-brand-purple/10 border-brand-purple shadow-sm"
                         : "bg-card border-border hover:bg-secondary/60"
                     }`}
                   >
                     <div>
-                      <p className={`text-sm font-bold ${isSelected ? 'text-brand-purple' : 'text-foreground'}`}>
+                      <p
+                        className={`text-sm font-bold ${
+                          isSelected ? "text-brand-purple" : "text-foreground"
+                        }`}
+                      >
                         {obj.student?.name || "Student"}
                       </p>
-                      <p className="text-[10px] text-muted-foreground line-clamp-1">{obj.class?.program?.name}</p>
+                      <p className="text-[10px] text-muted-foreground line-clamp-1">
+                        {obj.class?.program?.name}
+                      </p>
                     </div>
                     {pendingCount > 0 && (
                       <span className="bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
@@ -170,7 +220,9 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
           {!selectedStudentObj ? (
             <div className="h-full min-h-[300px] border border-dashed border-border rounded-xl bg-secondary/20 flex flex-col items-center justify-center text-center p-6">
               <Notebook className="w-10 h-10 text-muted-foreground/30 mb-3" />
-              <p className="text-sm font-semibold text-muted-foreground">Pilih student untuk melihat Logbook.</p>
+              <p className="text-sm font-semibold text-muted-foreground">
+                Pilih student untuk melihat Logbook.
+              </p>
             </div>
           ) : (
             <Card className="border-border bg-card shadow-sm h-full">
@@ -186,22 +238,33 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <div className="flex border-b border-border bg-background overflow-x-auto">
-                {months.map(m => {
+                {months.map((m) => {
                   const isSelected = selectedMonth === m;
-                  const log = (selectedStudentObj.logbooks || []).find((l: any) => l.monthIndex === m);
+                  const log = (selectedStudentObj.logbooks || []).find(
+                    (l: any) => l.monthIndex === m
+                  );
                   let dotColor = "bg-muted-foreground/30";
-                  if (log?.status === 'accepted') dotColor = "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
-                  if (log?.status === 'revision') dotColor = "bg-amber-500";
-                  if (log?.status === 'pending') dotColor = "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]";
+                  if (log?.status === "accepted")
+                    dotColor =
+                      "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]";
+                  if (log?.status === "revision") dotColor = "bg-amber-500";
+                  if (log?.status === "pending")
+                    dotColor =
+                      "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]";
 
                   return (
                     <button
                       key={m}
-                      onClick={() => { setSelectedMonth(m); setFeedback(""); }}
+                      onClick={() => {
+                        setSelectedMonth(m);
+                        setFeedback("");
+                      }}
                       className={`px-4 py-3 text-xs font-bold whitespace-nowrap border-b-2 flex items-center gap-2 transition-all ${
-                        isSelected ? "border-brand-purple text-brand-purple bg-brand-purple/5" : "border-transparent text-muted-foreground hover:bg-secondary/50"
+                        isSelected
+                          ? "border-brand-purple text-brand-purple bg-brand-purple/5"
+                          : "border-transparent text-muted-foreground hover:bg-secondary/50"
                       }`}
                     >
                       <span className={`w-2 h-2 rounded-full ${dotColor}`} />
@@ -213,12 +276,16 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
 
               <CardContent className="p-6">
                 {(() => {
-                  const currentLog = (selectedStudentObj.logbooks || []).find((l: any) => l.monthIndex === selectedMonth);
-                  
+                  const currentLog = (selectedStudentObj.logbooks || []).find(
+                    (l: any) => l.monthIndex === selectedMonth
+                  );
+
                   if (!currentLog) {
                     return (
                       <div className="text-center py-10">
-                        <p className="text-sm text-muted-foreground italic">Student belum mengisi logbook bulan ini.</p>
+                        <p className="text-sm text-muted-foreground italic">
+                          Student belum mengisi logbook bulan ini.
+                        </p>
                       </div>
                     );
                   }
@@ -231,15 +298,22 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
                     <div className="space-y-6">
                       <div className="flex items-center justify-between bg-secondary/40 p-3 rounded-lg border border-border">
                         <div className="text-xs font-semibold text-foreground">
-                          Status: {" "}
-                          <span className={`uppercase tracking-wider ${
-                            isAccepted ? "text-emerald-500" : isRevision ? "text-amber-500" : "text-blue-500"
-                          }`}>
+                          Status:{" "}
+                          <span
+                            className={`uppercase tracking-wider ${
+                              isAccepted
+                                ? "text-emerald-500"
+                                : isRevision
+                                ? "text-amber-500"
+                                : "text-blue-500"
+                            }`}
+                          >
                             {currentLog.status}
                           </span>
                         </div>
                         <div className="text-[10px] text-muted-foreground">
-                          Disubmit pada: {new Date(currentLog.updatedAt).toLocaleString("id-ID")}
+                          Disubmit pada:{" "}
+                          {new Date(currentLog.updatedAt).toLocaleString("id-ID")}
                         </div>
                       </div>
 
@@ -248,28 +322,36 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
                           <label className="text-xs font-bold text-brand-purple">
                             1. How has your mentoring experience with your mentor been this past month?
                           </label>
-                          <p className="text-xs text-foreground whitespace-pre-wrap">{currentLog.q1_experience}</p>
+                          <p className="text-xs text-foreground whitespace-pre-wrap">
+                            {currentLog.q1_experience}
+                          </p>
                         </div>
-                        
+
                         <div className="space-y-2 bg-background p-4 rounded-lg border border-border">
                           <label className="text-xs font-bold text-brand-purple">
                             2. What have you worked on and what is the progress?
                           </label>
-                          <p className="text-xs text-foreground whitespace-pre-wrap">{currentLog.q2_progress}</p>
+                          <p className="text-xs text-foreground whitespace-pre-wrap">
+                            {currentLog.q2_progress}
+                          </p>
                         </div>
 
                         <div className="space-y-2 bg-background p-4 rounded-lg border border-border">
                           <label className="text-xs font-bold text-brand-purple">
                             3. What challenges have you faced and what alternative solutions can you suggest to overcome them?
                           </label>
-                          <p className="text-xs text-foreground whitespace-pre-wrap">{currentLog.q3_challenges}</p>
+                          <p className="text-xs text-foreground whitespace-pre-wrap">
+                            {currentLog.q3_challenges}
+                          </p>
                         </div>
 
                         <div className="space-y-2 bg-background p-4 rounded-lg border border-border">
                           <label className="text-xs font-bold text-brand-purple">
                             4. What competencies have you developed and what you want to grow next month?
                           </label>
-                          <p className="text-xs text-foreground whitespace-pre-wrap">{currentLog.q4_competencies}</p>
+                          <p className="text-xs text-foreground whitespace-pre-wrap">
+                            {currentLog.q4_competencies}
+                          </p>
                         </div>
                       </div>
 
@@ -277,9 +359,13 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
                         <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
                             <MessageSquare className="w-4 h-4 text-amber-600" />
-                            <h4 className="text-xs font-bold text-amber-600">Catatan/Feedback Terakhir Anda</h4>
+                            <h4 className="text-xs font-bold text-amber-600">
+                              Catatan/Feedback Terakhir Anda
+                            </h4>
                           </div>
-                          <p className="text-xs text-amber-700/80">{currentLog.mentorFeedback}</p>
+                          <p className="text-xs text-amber-700/80">
+                            {currentLog.mentorFeedback}
+                          </p>
                         </div>
                       )}
 
@@ -299,17 +385,25 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
                             <button
                               onClick={() => handleReview(currentLog.id, "accepted")}
                               disabled={isSubmitting}
-                              className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-emerald-700 disabled:opacity-50 transition-all"
+                              className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-emerald-700 disabled:opacity-50 transition-all cursor-pointer"
                             >
-                              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                              {isSubmitting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="w-4 h-4" />
+                              )}
                               Accept Logbook
                             </button>
                             <button
                               onClick={() => handleReview(currentLog.id, "revision")}
                               disabled={isSubmitting || !feedback.trim()}
-                              className="px-4 py-2 bg-amber-500 text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-amber-600 disabled:opacity-50 transition-all"
+                              className="px-4 py-2 bg-amber-500 text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-amber-600 disabled:opacity-50 transition-all cursor-pointer"
                             >
-                              {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <AlertCircle className="w-4 h-4" />}
+                              {isSubmitting ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <AlertCircle className="w-4 h-4" />
+                              )}
                               Minta Revisi
                             </button>
                           </div>
@@ -322,7 +416,6 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
             </Card>
           )}
         </div>
-
       </div>
     </div>
   );

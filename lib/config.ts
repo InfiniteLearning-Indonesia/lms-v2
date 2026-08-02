@@ -31,10 +31,6 @@ if (typeof window !== 'undefined') {
       if (!headers.has('Authorization')) {
         headers.set('Authorization', `Bearer ${token}`);
       }
-      if (!urlStr.includes('token=')) {
-        const separator = urlStr.includes('?') ? '&' : '?';
-        urlStr += `${separator}token=${encodeURIComponent(token)}`;
-      }
       return originalFetch(urlStr, {
         ...init,
         headers,

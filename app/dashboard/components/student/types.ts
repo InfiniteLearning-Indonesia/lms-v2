@@ -31,10 +31,12 @@ export interface StudentClass {
     endDate?: string;
     createdAt?: string;
   };
+  importantLinks?: any[];
   program?: {
     id: string;
     name: string;
     description?: string;
+    importantLinks?: any[];
   };
   mentor?: {
     id: string;

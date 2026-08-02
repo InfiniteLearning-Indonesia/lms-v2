@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   FileSpreadsheet,
   Settings,
+  ShieldCheck,
+  Sparkles,
   UserCheck,
   UserPlus,
   Users,
@@ -19,6 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AdminAttendance } from "./admin-attendance";
 import { UserListItem, AdminDashboardProps, Program, Batch } from "./admin/types";
+import { AdminAuditLog } from "./admin-audit-log";
 
 // Domain Sub-components
 import { AdminUsersList } from "./admin/admin-users-list";
@@ -142,6 +145,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
       setActiveTab("batches");
     } else if (tab === "users") {
       setActiveTab("users");
+    } else if (tab === "audit") {
+      setActiveTab("audit");
     }
   }, [searchParams]);
 
@@ -893,46 +898,87 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         )}
       </AnimatePresence>
 
+      {/* Banner / Welcome Admin */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#1a103c] via-[#2d1b69] to-[#1e144a] p-6 md:p-8 text-white shadow-lg border border-white/10 mb-6"
+      >
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-brand-purple/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-brand-yellow/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-3xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-brand-yellow">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Control Panel Administrator</span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-white">
+                {(() => {
+                  const hour = new Date().getHours();
+                  let greeting = "Selamat Pagi";
+                  if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
+                  else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
+                  else if (hour >= 18 || hour < 4) greeting = "Selamat Malam";
+                  return `${greeting}, ${profile?.name || "Admin"}`;
+                })()}
+              </h1>
+              <p className="text-sm text-white/80 leading-relaxed font-sans">
+                Selamat datang di pusat kendali LMS. Kelola pendaftaran pengguna, atur kurikulum & program akademik, alokasikan angkatan (batch), serta pantau rekapitulasi nilai dan absensi secara terpusat.
+              </p>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full font-sans">
-        <TabsList className="grid w-full grid-cols-6 mb-8 min-h-14 p-1.5 bg-secondary border border-border rounded-lg">
+        <TabsList className="w-full flex overflow-x-auto whitespace-nowrap md:grid md:grid-cols-7 mb-8 min-h-14 p-1.5 bg-secondary/80 border border-border rounded-2xl gap-1.5 scrollbar-none shadow-xs">
           <TabsTrigger
             value="users"
-            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md cursor-pointer"
+            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-md shrink-0 cursor-pointer"
           >
             <Users className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Pengguna</span>
           </TabsTrigger>
           <TabsTrigger
             value="programs"
-            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md cursor-pointer"
+            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-md shrink-0 cursor-pointer"
           >
             <BookOpen className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Program</span>
           </TabsTrigger>
           <TabsTrigger
             value="batches"
-            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md cursor-pointer"
+            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-md shrink-0 cursor-pointer"
           >
             <Calendar className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Angkatan / Batch</span>
           </TabsTrigger>
           <TabsTrigger
             value="attendance"
-            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md cursor-pointer"
+            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-md shrink-0 cursor-pointer"
           >
             <Calendar className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Absensi</span>
           </TabsTrigger>
           <TabsTrigger
             value="recap"
-            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md cursor-pointer"
+            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-md shrink-0 cursor-pointer"
           >
             <FileSpreadsheet className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Rekap Nilai</span>
           </TabsTrigger>
           <TabsTrigger
+            value="audit"
+            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-md shrink-0 cursor-pointer"
+          >
+            <ShieldCheck className="w-5 h-5 text-brand-purple shrink-0" />
+            <span>Audit Log</span>
+          </TabsTrigger>
+          <TabsTrigger
             value="settings"
-            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 rounded-md cursor-pointer"
+            className="text-sm font-semibold font-heading flex items-center justify-center gap-2.5 py-2.5 px-3 rounded-md shrink-0 cursor-pointer"
           >
             <Settings className="w-5 h-5 text-brand-purple shrink-0" />
             <span>Pengaturan</span>
@@ -1107,7 +1153,12 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
           />
         </TabsContent>
 
-        {/* ──────── TAB 5: PENGATURAN PROFIL ADMIN ──────── */}
+        {/* ──────── TAB 6: AUDIT LOG ──────── */}
+        <TabsContent value="audit" className="space-y-6 outline-hidden">
+          <AdminAuditLog />
+        </TabsContent>
+
+        {/* ──────── TAB 7: PENGATURAN PROFIL ADMIN ──────── */}
         <TabsContent value="settings" className="space-y-6 outline-hidden">
           <AdminProfileSettings
             profile={profile}

@@ -1,10 +1,25 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { BookOpen, Calendar, FileText, GraduationCap, Loader2, Settings, User, Award } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  BookOpen,
+  Calendar,
+  FileText,
+  GraduationCap,
+  Loader2,
+  User,
+  Award,
+  Info,
+  AlertTriangle,
+  Lock,
+  KeyRound,
+  Sparkles,
+  Link2,
+  ExternalLink,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StudentLogbook } from "./student-logbook";
 import { StudentAttendance } from "./student-attendance";
@@ -17,7 +32,6 @@ import { StudentPastBatches } from "./student/student-past-batches";
 import { StudentPermissionView } from "./student/student-permission-view";
 import { StudentCertificateView } from "./student/student-certificate-view";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info, AlertTriangle, Lock, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
@@ -26,7 +40,19 @@ import {
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 
+const STUDENT_QUOTES = [
+  "Setiap langkah kecil yang Anda ambil hari ini mendekatkan Anda pada impian menjadi ahli teknologi.",
+  "Konsistensi dalam belajar dan menyelesaikan tugas adalah kunci kesuksesan di dunia profesional.",
+  "Jangan takut menghadapi kendala coding atau materi sulit, itulah tempat terbaik untuk berkembang.",
+  "Manfaatkan setiap modul dan bimbingan mentor untuk mengasah keterampilan terbaik Anda.",
+  "Perjalanan ratusan kode dimulai dari satu baris pertama. Tetap semangat belajar hari ini.",
+  "Keberhasilan tidak datang dari kebetulan, melainkan dari kerja keras dan ketekunan harian.",
+  "Asah kemampuan teknis dan logika Anda, masa depan industri digital ada di tangan Anda.",
+  "Tetap fokus, selesaikan logbook tepat waktu, dan capai potensi maksimal dalam batch ini.",
+];
+
 export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardProps) {
+  const [randomQuote] = useState(() => STUDENT_QUOTES[Math.floor(Math.random() * STUDENT_QUOTES.length)]);
   const [classes, setClasses] = useState<StudentClass[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("activity");
@@ -275,7 +301,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
   const spContent = globalSpLevel > 0 ? getSPContent(globalSpLevel) : null;
 
   return (
-    <>
+    <div className="space-y-6 font-sans">
       {/* ⚠️ Global SP Warning Modal on Login */}
       {spContent && (
         <AlertDialog open={globalSpPopupOpen}>
@@ -322,7 +348,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
       )}
 
       {profile?.isPasswordChanged === false && (
-        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-700 dark:text-amber-300 font-sans shadow-sm mb-6">
+        <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-amber-700 dark:text-amber-300 font-sans shadow-xs mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
               <KeyRound className="w-5 h-5" />
@@ -344,164 +370,239 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
         </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6 w-full font-sans">
-      <TabsList
-        className={`bg-secondary/60 p-1.5 rounded-xl border border-border/60 grid w-full min-h-14 ${tabCols}`}
+      {/* Banner / Welcome Student (Identical to Mentor Banner Design) */}
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#1a103c] via-[#2d1b69] to-[#1e144a] p-6 md:p-8 text-white shadow-lg border border-white/10"
       >
-        <TabsTrigger
-          value="activity"
-          className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2 cursor-pointer"
-        >
-          <BookOpen className="w-5 h-5 shrink-0" />
-          <span>Kelas & Aktivitas</span>
-        </TabsTrigger>
-        {hasPastClasses && (
+        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-brand-purple/30 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-brand-yellow/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-brand-yellow">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Student View</span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-white">
+                {(() => {
+                  const hour = new Date().getHours();
+                  let greeting = "Selamat Pagi";
+                  if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
+                  else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
+                  else if (hour >= 18 || hour < 4) greeting = "Selamat Malam";
+                  return `${greeting}, ${profile?.name || "Student"}`;
+                })()}
+              </h1>
+              <p className="text-sm text-white/80 leading-relaxed font-sans">
+                {randomQuote}
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Links Widget inside Banner */}
+          {(() => {
+            const firstCls = (activeClasses[0] || classes[0]) as any;
+            const classLinks = firstCls?.importantLinks || firstCls?.program?.importantLinks || [];
+            const activeLinks = (classLinks || []).filter((l: any) => l.url && l.url.trim() !== "");
+            if (activeLinks.length === 0) return null;
+
+            return (
+              <div className="pt-4 border-t border-white/10 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5 font-heading">
+                    <Link2 className="w-3.5 h-3.5 text-brand-yellow" />
+                    Tautan Cepat & Link Penting Kelas
+                  </span>
+                  <span className="text-[10px] text-white/60 font-medium">
+                    {activeLinks.length} Tautan Tersedia
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                  {activeLinks.map((item: any) => (
+                    <a
+                      key={item.id || item.title}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-between p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="p-1.5 rounded-lg bg-brand-yellow/20 text-brand-yellow group-hover:scale-105 transition-transform shrink-0">
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-medium text-white truncate group-hover:text-brand-yellow transition-colors">
+                          {item.title}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      </motion.div>
+
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6 w-full font-sans">
+        <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex overflow-x-auto whitespace-nowrap min-h-14 w-full gap-1.5 justify-start md:justify-center scrollbar-none">
           <TabsTrigger
-            value="past-batches"
-            className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2 cursor-pointer"
+            value="activity"
+            className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2.5 py-2 px-3 shrink-0 cursor-pointer"
           >
-            <GraduationCap className="w-5 h-5 shrink-0" />
-            <span>Batch Lama</span>
+            <BookOpen className="w-5 h-5 shrink-0" />
+            <span>Kelas & Aktivitas</span>
           </TabsTrigger>
-        )}
-        <TabsTrigger
-          value="permission"
-          className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2 cursor-pointer"
-        >
-          <FileText className="w-5 h-5 shrink-0" />
-          <span>Form Izin</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="logbook"
-          className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2 cursor-pointer"
-        >
-          <BookOpen className="w-5 h-5 shrink-0" />
-          <span>Logbook</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="attendance"
-          className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2 cursor-pointer"
-        >
-          <Calendar className="w-5 h-5 shrink-0" />
-          <span>Absensi</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="certificate"
-          className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2 cursor-pointer"
-        >
-          <Award className="w-5 h-5 shrink-0" />
-          <span>Transkrip & Sertifikat</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="settings"
-          className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-3 py-2 cursor-pointer"
-        >
-          <User className="w-5 h-5 shrink-0" />
-          <span>Profil</span>
-        </TabsTrigger>
-      </TabsList>
+          {hasPastClasses && (
+            <TabsTrigger
+              value="past-batches"
+              className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2.5 py-2 px-3 shrink-0 cursor-pointer"
+            >
+              <GraduationCap className="w-5 h-5 shrink-0" />
+              <span>Batch Lama</span>
+            </TabsTrigger>
+          )}
+          <TabsTrigger
+            value="permission"
+            className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2.5 py-2 px-3 shrink-0 cursor-pointer"
+          >
+            <FileText className="w-5 h-5 shrink-0" />
+            <span>Form Izin</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="logbook"
+            className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2.5 py-2 px-3 shrink-0 cursor-pointer"
+          >
+            <BookOpen className="w-5 h-5 shrink-0" />
+            <span>Logbook</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="attendance"
+            className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2.5 py-2 px-3 shrink-0 cursor-pointer"
+          >
+            <Calendar className="w-5 h-5 shrink-0" />
+            <span>Absensi</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="certificate"
+            className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2.5 py-2 px-3 shrink-0 cursor-pointer"
+          >
+            <Award className="w-5 h-5 shrink-0" />
+            <span>Transkrip & Sertifikat</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="settings"
+            className="rounded-lg text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2.5 py-2 px-3 shrink-0 cursor-pointer"
+          >
+            <User className="w-5 h-5 shrink-0" />
+            <span>Profil</span>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* ── TAB 1: KELAS & AKTIVITAS ── */}
-      <TabsContent value="activity" className="space-y-6 outline-hidden">
-        <StudentActivityView
-          profile={profile}
-          activeClasses={activeClasses}
-          classes={classes}
-          onNavigateTab={handleTabChange}
-        />
-      </TabsContent>
-
-      {/* ── TAB FORM IZIN ── */}
-      <TabsContent value="permission" className="space-y-6 outline-hidden">
-        <StudentPermissionView profile={profile} activeClasses={activeClasses} />
-      </TabsContent>
-
-      {/* ── TAB TRANSKRIP & SERTIFIKAT ── */}
-      <TabsContent value="certificate" className="space-y-6 outline-hidden">
-        <StudentCertificateView profile={profile} />
-      </TabsContent>
-
-      {/* ── TAB 2: PENGATURAN AKUN ── */}
-      <TabsContent value="settings" className="space-y-6 outline-hidden">
-        <StudentProfileSettings
-          profile={profile}
-          name={name}
-          setName={setName}
-          whatsapp={whatsapp}
-          setWhatsapp={setWhatsapp}
-          institution={institution}
-          setInstitution={setInstitution}
-          studyProgram={studyProgram}
-          setStudyProgram={setStudyProgram}
-          avatarUrl={avatarUrl}
-          setAvatarUrl={setAvatarUrl}
-          isSaving={isSaving}
-          saveError={saveError}
-          saveSuccess={saveSuccess}
-          handleFileChange={handleFileChange}
-          handleSaveProfile={handleSaveProfile}
-        />
-      </TabsContent>
-
-      {/* ── TAB LOGBOOK ── */}
-      <TabsContent value="logbook" className="space-y-6 outline-hidden">
-        {activeClasses.length > 0 ? (
-          <StudentLogbook batchId={activeClasses[0].batchId} />
-        ) : isGraduated ? (
-          <Alert className="border-brand-purple/30 bg-brand-purple/5 text-foreground p-5 font-sans">
-            <Award className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <AlertTitle className="font-heading font-bold text-base">Kegiatan Logbook Selesai</AlertTitle>
-              <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
-                Seluruh kegiatan logbook harian telah selesai untuk batch ini. Anda dapat melihat rekapan penilaian dan transkrip nilai pada tab <strong>Transkrip & Sertifikat</strong> atau meninjau modul lama di tab <strong>Batch Lama</strong>.
-              </AlertDescription>
-            </div>
-          </Alert>
-        ) : (
-          <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600 font-sans">
-            <Info className="w-5 h-5" />
-            <AlertTitle>Tidak dapat mengakses logbook</AlertTitle>
-            <AlertDescription>
-              Anda belum terdaftar di kelas aktif mana pun pada batch saat ini.
-            </AlertDescription>
-          </Alert>
-        )}
-      </TabsContent>
-
-      {/* ── TAB ABSENSI ── */}
-      <TabsContent value="attendance" className="space-y-6 outline-hidden">
-        {activeClasses.length > 0 ? (
-          <StudentAttendance
-            batchId={activeClasses[0].batchId}
-            studentId={profile.id}
+        {/* ── TAB 1: KELAS & AKTIVITAS ── */}
+        <TabsContent value="activity" className="space-y-6 outline-hidden">
+          <StudentActivityView
+            profile={profile}
+            activeClasses={activeClasses}
+            classes={classes}
+            onNavigateTab={handleTabChange}
           />
-        ) : isGraduated ? (
-          <Alert className="border-brand-purple/30 bg-brand-purple/5 text-foreground p-5 font-sans">
-            <Award className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <AlertTitle className="font-heading font-bold text-base">Kegiatan Absensi Selesai</AlertTitle>
-              <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
-                Kegiatan perkuliahan dan absensi harian telah berakhir untuk batch ini. Rekapan nilai kehadiran Anda dapat dilihat di tab <strong>Transkrip & Sertifikat</strong>.
-              </AlertDescription>
-            </div>
-          </Alert>
-        ) : (
-          <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600 font-sans">
-            <Info className="w-5 h-5" />
-            <AlertTitle>Tidak dapat mengakses absensi</AlertTitle>
-            <AlertDescription>
-              Anda belum terdaftar di kelas aktif mana pun pada batch saat ini.
-            </AlertDescription>
-          </Alert>
-        )}
-      </TabsContent>
-
-      {hasPastClasses && (
-        <TabsContent value="past-batches" className="space-y-6 outline-hidden">
-          <StudentPastBatches pastClasses={pastClasses} studentId={profile.id} />
         </TabsContent>
-      )}
-    </Tabs>
-    </>
+
+        {/* ── TAB FORM IZIN ── */}
+        <TabsContent value="permission" className="space-y-6 outline-hidden">
+          <StudentPermissionView profile={profile} activeClasses={activeClasses} />
+        </TabsContent>
+
+        {/* ── TAB TRANSKRIP & SERTIFIKAT ── */}
+        <TabsContent value="certificate" className="space-y-6 outline-hidden">
+          <StudentCertificateView profile={profile} />
+        </TabsContent>
+
+        {/* ── TAB 2: PENGATURAN AKUN ── */}
+        <TabsContent value="settings" className="space-y-6 outline-hidden">
+          <StudentProfileSettings
+            profile={profile}
+            name={name}
+            setName={setName}
+            whatsapp={whatsapp}
+            setWhatsapp={setWhatsapp}
+            institution={institution}
+            setInstitution={setInstitution}
+            studyProgram={studyProgram}
+            setStudyProgram={setStudyProgram}
+            avatarUrl={avatarUrl}
+            setAvatarUrl={setAvatarUrl}
+            isSaving={isSaving}
+            saveError={saveError}
+            saveSuccess={saveSuccess}
+            handleFileChange={handleFileChange}
+            handleSaveProfile={handleSaveProfile}
+          />
+        </TabsContent>
+
+        {/* ── TAB LOGBOOK ── */}
+        <TabsContent value="logbook" className="space-y-6 outline-hidden">
+          {activeClasses.length > 0 ? (
+            <StudentLogbook batchId={activeClasses[0].batchId} />
+          ) : isGraduated ? (
+            <Alert className="border-brand-purple/30 bg-brand-purple/5 text-foreground p-5 font-sans">
+              <Award className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <AlertTitle className="font-heading font-bold text-base">Kegiatan Logbook Selesai</AlertTitle>
+                <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+                  Seluruh kegiatan logbook harian telah selesai untuk batch ini. Anda dapat melihat rekapan penilaian dan transkrip nilai pada tab <strong>Transkrip & Sertifikat</strong> atau meninjau modul lama di tab <strong>Batch Lama</strong>.
+                </AlertDescription>
+              </div>
+            </Alert>
+          ) : (
+            <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600 font-sans">
+              <Info className="w-5 h-5" />
+              <AlertTitle>Tidak dapat mengakses logbook</AlertTitle>
+              <AlertDescription>
+                Anda belum terdaftar di kelas aktif mana pun pada batch saat ini.
+              </AlertDescription>
+            </Alert>
+          )}
+        </TabsContent>
+
+        {/* ── TAB ABSENSI ── */}
+        <TabsContent value="attendance" className="space-y-6 outline-hidden">
+          {activeClasses.length > 0 ? (
+            <StudentAttendance
+              batchId={activeClasses[0].batchId}
+              studentId={profile.id}
+            />
+          ) : isGraduated ? (
+            <Alert className="border-brand-purple/30 bg-brand-purple/5 text-foreground p-5 font-sans">
+              <Award className="w-6 h-6 text-brand-purple shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <AlertTitle className="font-heading font-bold text-base">Kegiatan Absensi Selesai</AlertTitle>
+                <AlertDescription className="text-xs text-muted-foreground leading-relaxed">
+                  Kegiatan perkuliahan dan absensi harian telah berakhir untuk batch ini. Rekapan nilai kehadiran Anda dapat dilihat di tab <strong>Transkrip & Sertifikat</strong>.
+                </AlertDescription>
+              </div>
+            </Alert>
+          ) : (
+            <Alert className="border-amber-500/50 bg-amber-500/10 text-amber-600 font-sans">
+              <Info className="w-5 h-5" />
+              <AlertTitle>Tidak dapat mengakses absensi</AlertTitle>
+              <AlertDescription>
+                Anda belum terdaftar di kelas aktif mana pun pada batch saat ini.
+              </AlertDescription>
+            </Alert>
+          )}
+        </TabsContent>
+
+        {hasPastClasses && (
+          <TabsContent value="past-batches" className="space-y-6 outline-hidden">
+            <StudentPastBatches pastClasses={pastClasses} studentId={profile.id} />
+          </TabsContent>
+        )}
+      </Tabs>
+    </div>
   );
 }

@@ -13,9 +13,11 @@ import {
   BookOpen,
   Building2,
   CalendarDays,
+  ExternalLink,
   FileSpreadsheet,
   GraduationCap,
   Layers,
+  Link2,
   Loader2,
   Lock,
   KeyRound,
@@ -47,7 +49,19 @@ import { MentorModals } from "./mentor/modals/mentor-modals";
 import { CloneClassModal } from "./mentor/modals/clone-class-modal";
 import { RemapCompetencyModal, MismatchedItem } from "./mentor/modals/remap-competency-modal";
 
+const MENTOR_QUOTES = [
+  "Bimbingan dan dedikasi Anda adalah kunci utama keberhasilan studi siswa hari ini.",
+  "Setiap umpan balik berkualitas yang Anda berikan membangun fondasi karir masa depan siswa.",
+  "Mendampingi siswa dalam memecahkan masalah adalah bentuk kepemimpinan terbaik.",
+  "Terus beri semangat dan arahkan siswa untuk mencapai potensi terbaik mereka.",
+  "Keberhasilan siswa adalah refleksi dari komitmen dan ketelitian pendampingan Anda.",
+  "Inovasi dan bimbingan konsisten Anda menginspirasi lahirnya talenta digital berbakat.",
+  "Fokus pada perkembangan siswa dan pastikan setiap tantangan menjadi pembelajaran berharga.",
+  "Pengajaran yang hebat tidak hanya menyampaikan materi, tetapi juga menumbuhkan rasa percaya diri.",
+];
+
 export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardProps) {
+  const [randomQuote] = useState(() => MENTOR_QUOTES[Math.floor(Math.random() * MENTOR_QUOTES.length)]);
   const [classes, setClasses] = useState<MentorClass[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -1138,9 +1152,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const totalStudents = selectedCls?.enrolledStudentsCount ?? selectedCls?.enrolledStudents?.length ?? 0;
 
   // Personal Student Filtering:
-  // Prioritize students enrolled in selectedCls, deduplicated by student ID
-  const rawStudentList = (selectedCls?.enrolledStudents && selectedCls.enrolledStudents.length > 0)
-    ? selectedCls.enrolledStudents
+  // Show students enrolled in currently selectedCls (or fallback to active classes if selectedCls is null)
+  const rawStudentList = selectedCls
+    ? (selectedCls.enrolledStudents || [])
     : activeClasses
         .filter((cls) => !selectedProgramId || cls.program?.id === selectedProgramId)
         .flatMap((cls) => cls.enrolledStudents || []);
@@ -1189,6 +1203,45 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   }, [isSecondaryProgram, activeTab]);
 
+  // 🚫 Check if mentor account is Suspended
+  if (profile?.status === "suspended") {
+    return (
+      <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center font-sans">
+        <div className="max-w-lg w-full bg-card border border-red-500/30 rounded-3xl p-8 shadow-2xl space-y-6 relative overflow-hidden">
+          <div className="absolute top-0 left-0 right-0 h-3 bg-gradient-to-r from-red-600 via-orange-500 to-red-600" />
+          <div className="mx-auto w-20 h-20 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-600">
+            <Lock className="w-10 h-10" />
+          </div>
+          <div className="space-y-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 text-red-600 font-bold text-xs uppercase tracking-wider border border-red-500/20">
+              <Lock className="w-4 h-4" /> Akun Ter-Suspend
+            </span>
+            <h2 className="text-2xl font-heading font-extrabold text-foreground tracking-tight">
+              Akses Dasbor Mentor Dibatasi
+            </h2>
+            <p className="text-sm text-muted-foreground leading-relaxed pt-2">
+              Akun Mentor Anda saat ini dalam status <strong>suspended</strong> oleh Administrator. Seluruh akses pengajaran, kelas, dan data siswa dinonaktifkan sementara.
+            </p>
+          </div>
+          <div className="bg-secondary/40 p-4 rounded-xl text-left border border-border text-xs text-muted-foreground space-y-1">
+            <p className="font-semibold text-foreground">Informasi Bantuan:</p>
+            <p>Silakan hubungi Super Administrator atau Tim Operasional LMS untuk klarifikasi dan pemulihan status akun Anda.</p>
+          </div>
+          <button
+            onClick={() => {
+              fetch(`${API_BASE_URL}/auth/logout`, { method: "POST", credentials: "include" })
+                .then(() => (window.location.href = "/login"))
+                .catch(() => (window.location.href = "/login"));
+            }}
+            className="w-full h-11 border border-red-500/30 text-red-600 hover:bg-red-500/10 text-sm font-semibold rounded-xl transition-all cursor-pointer"
+          >
+            Keluar Akun
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center p-16 bg-card border border-border rounded-xl shadow-sm">
@@ -1234,35 +1287,83 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         <div className="absolute top-0 right-0 -mt-8 -mr-8 w-64 h-64 bg-brand-purple/30 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-1/4 w-48 h-48 bg-brand-yellow/10 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-brand-yellow">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Portal Akademik Mentor LMS v2</span>
+        <div className="relative z-10 flex flex-col space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="space-y-2 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-medium text-brand-yellow">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Mentor View • {selectedClassProgram || profile?.selectedProgram || "Akademik"}</span>
+              </div>
+              <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-white">
+                {(() => {
+                  const hour = new Date().getHours();
+                  let greeting = "Selamat Pagi";
+                  if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
+                  else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
+                  else if (hour >= 18 || hour < 4) greeting = "Selamat Malam";
+                  return `${greeting}, ${profile?.name || "Mentor"}`;
+                })()}
+              </h1>
+              <p className="text-sm text-white/80 leading-relaxed font-sans">
+                {randomQuote}
+              </p>
             </div>
-            <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-white">
-              Manajemen Pembelajaran & Siswa Binaan
-            </h1>
-            <p className="text-sm text-white/80 leading-relaxed">
-              Pantau progres kelas, kelola materi kompetensi, serta bimbing siswa sesuai
-              dengan filosofi dan aturan kepemilikan program (
-              <strong className="text-white">Source of Truth v2.0</strong>).
-            </p>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+              <Button
+                onClick={fetchMentorData}
+                variant="outline"
+                className="bg-white/10 hover:bg-white/20 text-white border-white/20 hover:text-white transition-all text-xs shadow-sm cursor-pointer"
+              >
+                <Loader2 className={`w-3.5 h-3.5 mr-2 ${isLoading ? "animate-spin" : "hidden"}`} />
+                Segarkan Data
+              </Button>
+            </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
-            <Button
-              onClick={fetchMentorData}
-              variant="outline"
-              className="bg-white/10 hover:bg-white/20 text-white border-white/20 hover:text-white transition-all text-xs shadow-sm cursor-pointer"
-            >
-              <Loader2 className={`w-3.5 h-3.5 mr-2 ${isLoading ? "animate-spin" : "hidden"}`} />
-              Segarkan Data
-            </Button>
-          </div>
+          {/* Quick Links Widget inside Banner */}
+          {(() => {
+            const classLinks = (selectedCls as any)?.importantLinks || (selectedCls as any)?.program?.importantLinks || [];
+            const activeLinks = (classLinks || []).filter((l: any) => l.url && l.url.trim() !== "");
+            if (activeLinks.length === 0) return null;
+
+            return (
+              <div className="pt-4 border-t border-white/10 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5 font-heading">
+                    <Link2 className="w-3.5 h-3.5 text-brand-yellow" />
+                    Tautan Cepat & Link Penting Kelas
+                  </span>
+                  <span className="text-[10px] text-white/60 font-medium">
+                    {activeLinks.length} Tautan Tersedia
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                  {activeLinks.map((item: any) => (
+                    <a
+                      key={item.id || item.title}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="group flex items-center justify-between p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md transition-all duration-200"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="p-1.5 rounded-lg bg-brand-yellow/20 text-brand-yellow group-hover:scale-105 transition-transform shrink-0">
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-medium text-white truncate group-hover:text-brand-yellow transition-colors">
+                          {item.title}
+                        </span>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </motion.div>
-
       {/* Ringkasan Statistik */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         <Card className="border-border bg-card shadow-sm hover:shadow-md transition-all">
@@ -1350,10 +1451,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
       {/* Main Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-        <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex flex-wrap min-h-14 w-full gap-1.5 justify-start md:justify-center">
+        <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex overflow-x-auto whitespace-nowrap min-h-14 w-full gap-1.5 justify-start md:justify-center scrollbar-none">
           <TabsTrigger
             value="classes"
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 px-3 shrink-0 cursor-pointer"
           >
             <BookOpen className="w-4 h-4 shrink-0" />
             <span>Kelas & Silabus</span>
@@ -1361,79 +1462,83 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
           <TabsTrigger
             value="students"
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 px-3 shrink-0 cursor-pointer"
           >
             <Users className="w-4 h-4 shrink-0" />
             <span>Siswa ({allStudents.length})</span>
           </TabsTrigger>
+
           <TabsTrigger
             value="facilitator"
             disabled={isSecondaryProgram}
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-1.5 py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            title={isSecondaryProgram ? "Hanya tersedia untuk Program Utama" : undefined}
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-1.5 py-2 px-3 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <UserCheck className="w-4 h-4 shrink-0" />
             <span>Facilitator ({currentFacilitators.length})</span>
             {isSecondaryProgram && (
-              <span className="text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-normal">
-                Khusus Program Utama
-              </span>
+              <Lock className="w-3 h-3 text-amber-500 shrink-0 ml-0.5" />
             )}
           </TabsTrigger>
+
           <TabsTrigger
             value="logbook"
             disabled={isSecondaryProgram}
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-1.5 py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            title={isSecondaryProgram ? "Hanya tersedia untuk Program Utama" : undefined}
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-1.5 py-2 px-3 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Notebook className="w-4 h-4 shrink-0" />
             <span>Logbook Student</span>
             {isSecondaryProgram && (
-              <span className="text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-normal">
-                Khusus Program Utama
-              </span>
+              <Lock className="w-3 h-3 text-amber-500 shrink-0 ml-0.5" />
             )}
           </TabsTrigger>
+
           <TabsTrigger
             value="attendance"
             disabled={isSecondaryProgram}
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-1.5 py-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            title={isSecondaryProgram ? "Hanya tersedia untuk Program Utama" : undefined}
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-1.5 py-2 px-3 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <CalendarDays className="w-4 h-4 shrink-0" />
             <span>Absensi</span>
             {isSecondaryProgram && (
-              <span className="text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded font-normal">
-                Khusus Program Utama
-              </span>
+              <Lock className="w-3 h-3 text-amber-500 shrink-0 ml-0.5" />
             )}
           </TabsTrigger>
+
           <TabsTrigger
             value="rubric"
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 px-3 shrink-0 cursor-pointer"
           >
             <FileSpreadsheet className="w-4 h-4 shrink-0" />
             <span>Rubrik Penilaian</span>
           </TabsTrigger>
+
           <TabsTrigger
             value="assessment"
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 px-3 shrink-0 cursor-pointer"
           >
             <Award className="w-4 h-4 shrink-0" />
             <span>Rekap Nilai</span>
           </TabsTrigger>
+
           {hasPastClasses && (
             <TabsTrigger
               value="past-batches"
-              className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+              className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 px-3 shrink-0 cursor-pointer"
             >
               <GraduationCap className="w-4 h-4 shrink-0" />
               <span>Batch Lama</span>
             </TabsTrigger>
           )}
+
           <TabsTrigger
             value="settings"
-            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 cursor-pointer"
+            className="rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-brand-purple data-[state=active]:shadow-sm transition-all flex items-center justify-center gap-2 py-2 px-3 shrink-0 cursor-pointer"
           >
             <Settings className="w-4 h-4 shrink-0" />
-            <span>Pengaturan Akun</span>
+            <span>Pengaturan</span>
           </TabsTrigger>
         </TabsList>
 

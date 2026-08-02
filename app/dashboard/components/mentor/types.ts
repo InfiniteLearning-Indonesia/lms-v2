@@ -4,6 +4,7 @@ export interface MentorProfile {
   email: string;
   role: string;
   roles?: string[];
+  status?: string | null;
   whatsapp?: string | null;
   institution?: string | null;
   studyProgram?: string | null;
@@ -35,10 +36,12 @@ export interface MentorClass {
     endDate?: string;
     createdAt?: string;
   };
+  importantLinks?: any[];
   program?: {
     id: string;
     name: string;
     description?: string;
+    importantLinks?: any[];
   };
   materials?: {
     id: string;

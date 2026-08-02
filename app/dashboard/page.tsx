@@ -41,43 +41,63 @@ export default function DashboardPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
-  const fetchProfile = () => {
-    let token = new URLSearchParams(window.location.search).get("token");
-    if (token) {
-      localStorage.setItem("auth_token", token);
-      const url = new URL(window.location.href);
-      url.searchParams.delete("token");
-      window.history.replaceState({}, "", url.toString());
-    } else {
-      token = localStorage.getItem("auth_token");
-    }
-
-    const headers: Record<string, string> = { Accept: "application/json" };
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    const url = `${API_BASE_URL}/auth/me${token ? `?token=${token}` : ""}`;
-
-    fetch(url, {
-      headers,
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error("Sesi login berakhir atau belum terautentikasi.");
+  const fetchProfile = async () => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      const code = searchParams.get("code");
+      
+      if (code) {
+        // Exchange code for token
+        const exchangeRes = await fetch(`${API_BASE_URL}/auth/exchange-code`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({ code }),
+          credentials: "include",
+        });
+        
+        if (!exchangeRes.ok) {
+          throw new Error("Gagal memverifikasi login.");
         }
-        return res.json();
-      })
-      .then((data) => {
-        setProfile(data);
-        setIsLoadingProfile(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        localStorage.removeItem("auth_token");
-        router.push("/login?error=" + encodeURIComponent(err.message));
+        
+        const data = await exchangeRes.json();
+        localStorage.setItem("auth_token", data.token);
+        
+        // Remove code from URL
+        const url = new URL(window.location.href);
+        url.searchParams.delete("code");
+        window.history.replaceState({}, "", url.toString());
+      }
+      
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        throw new Error("Sesi login tidak ditemukan.");
+      }
+      
+      const headers: Record<string, string> = { 
+        Accept: "application/json",
+        Authorization: `Bearer ${token}` 
+      };
+
+      const res = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers,
+        credentials: "include",
       });
+
+      if (!res.ok) {
+        throw new Error("Sesi login berakhir atau belum terautentikasi.");
+      }
+      
+      const profileData = await res.json();
+      setProfile(profileData);
+      setIsLoadingProfile(false);
+    } catch (err: any) {
+      console.error(err);
+      localStorage.removeItem("auth_token");
+      router.push("/login?error=" + encodeURIComponent(err.message));
+    }
   };
 
   useEffect(() => {

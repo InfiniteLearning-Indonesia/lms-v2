@@ -101,7 +101,16 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
         }
       }
 
-      setStudents(batchStudents);
+      const validStudentsOnly = batchStudents.filter((st: any) => {
+        if (!st) return false;
+        const roles = (st.roles || []).map((r: any) => String(r).toLowerCase());
+        const roleStr = String(st.role || "").toLowerCase();
+        const isMentor = roles.includes("mentor") || roleStr === "mentor";
+        const isFacilitator = roles.includes("facilitator") || roleStr === "facilitator";
+        return !isMentor && !isFacilitator;
+      });
+
+      setStudents(validStudentsOnly);
 
       // Fetch attendances for this batch filtered by mentorId
       let attUrl = `${API_BASE_URL}/attendance?batchId=${batchId}`;
