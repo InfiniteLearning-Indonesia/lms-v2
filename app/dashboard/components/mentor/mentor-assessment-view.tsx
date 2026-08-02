@@ -818,10 +818,57 @@ export function MentorAssessmentView({
 
 
 
-                          {/* Oncam Score Column */}
-                          <th className="px-4 py-3 bg-blue-500/10 text-blue-700 dark:text-blue-300 border-r border-border text-center font-bold" title="Nilai Kehadiran On-Cam Mentee">
-                            Kehadiran (On-Cam)
-                          </th>
+                          {/* Syllabus Attendance Column (Extracted) */}
+                          {(() => {
+                            const attComp = displayComps.find(c => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
+                            if (attComp) {
+                              return (
+                                <th
+                                  key={attComp.id}
+                                  className="px-4 py-3 cursor-pointer hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors text-center border-r border-border bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                                  onClick={() => setEditingWeightCompetency(attComp)}
+                                  title="Klik untuk mengatur bobot tugas di kompetensi/syllabus ini"
+                                >
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className="text-[9px] text-emerald-700/80 dark:text-emerald-300/80 font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-500/20">
+                                      {attComp.category || "Syllabus"}
+                                    </span>
+                                    <span className="font-semibold flex items-center gap-1">
+                                      {attComp.name}
+                                      <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
+                                    </span>
+                                  </div>
+                                </th>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          {/* Syllabus Attendance On-Cam Column (Extracted) */}
+                          {(() => {
+                            const oncamComp = displayComps.find(c => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
+                            if (oncamComp) {
+                              return (
+                                <th
+                                  key={oncamComp.id}
+                                  className="px-4 py-3 cursor-pointer hover:text-blue-800 dark:hover:text-blue-200 transition-colors text-center border-r border-border bg-blue-500/10 text-blue-700 dark:text-blue-300"
+                                  onClick={() => setEditingWeightCompetency(oncamComp)}
+                                  title="Klik untuk mengatur bobot tugas di kompetensi/syllabus ini"
+                                >
+                                  <div className="flex flex-col items-center gap-0.5">
+                                    <span className="text-[9px] text-blue-700/80 dark:text-blue-300/80 font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/20">
+                                      {oncamComp.category || "Syllabus"}
+                                    </span>
+                                    <span className="font-semibold flex items-center gap-1">
+                                      {oncamComp.name}
+                                      <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
+                                    </span>
+                                  </div>
+                                </th>
+                              );
+                            }
+                            return null;
+                          })()}
 
                           {/* Rubrik Assessment Columns */}
                           {displayRAs.map((ra) => (
@@ -844,7 +891,7 @@ export function MentorAssessmentView({
                           ))}
 
                           {/* Syllabus & Competency Columns */}
-                          {showSyllabusColumns && displayComps.map((comp) => (
+                          {showSyllabusColumns && displayComps.filter(c => !c.name?.toLowerCase().includes("attendance")).map((comp) => (
                             <th
                               key={comp.id}
                               className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
@@ -889,19 +936,59 @@ export function MentorAssessmentView({
 
 
 
-                                {/* Oncam Cell */}
+                                {/* Extracted Syllabus Attendance Cell */}
                                 {(() => {
-                                  const att = attendanceScores?.[student.id];
-                                  const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
-                                  const oncamScoreVal = details?.oncamScore !== undefined ? details.oncamScore : 65.0;
-                                  return (
-                                    <td
-                                      className="px-4 py-3 text-center border-r border-border text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-500/5 cursor-help"
-                                      title={details && details.totalSyncDays > 0 ? `Kehadiran On-Cam: ${details.oncamDays}/${details.totalSyncDays} Hari` : "Nilai On-Cam Minimal: 65.0"}
-                                    >
-                                      {oncamScoreVal.toFixed(1)}
-                                    </td>
-                                  );
+                                  const attComp = displayComps.find(c => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
+                                  if (attComp) {
+                                    const att = attendanceScores?.[student.id];
+                                    const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
+                                    const finalScore = phaseScore !== undefined ? phaseScore : 65.0;
+                                    
+                                    const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
+                                    let tooltipTitle = "Nilai otomatis (Default: 65.0)";
+                                    if (details && details.totalSyncDays > 0) {
+                                      tooltipTitle = `Nilai otomatis. Kehadiran: ${details.cleanAttendance}/${details.totalSyncDays} Hari (Alpha: ${details.alphaDays})`;
+                                    }
+                                    
+                                    return (
+                                      <td
+                                        key={attComp.id}
+                                        className="px-4 py-3 text-center border-r border-border text-xs font-bold bg-emerald-500/5 text-emerald-700 dark:text-emerald-400 cursor-help"
+                                        onClick={() => toast.info("Nilai kehadiran terisi otomatis dari rekap absensi.")}
+                                        title={tooltipTitle}
+                                      >
+                                        {ensureMinScore(finalScore).toFixed(1)}
+                                      </td>
+                                    );
+                                  }
+                                  return null;
+                                })()}
+
+                                {/* Extracted Syllabus Oncam Cell */}
+                                {(() => {
+                                  const oncamComp = displayComps.find(c => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
+                                  if (oncamComp) {
+                                    const att = attendanceScores?.[student.id];
+                                    const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
+                                    const oncamScoreVal = details?.oncamScore !== undefined ? details.oncamScore : 65.0;
+                                    
+                                    let tooltipTitle = "Nilai otomatis (Default: 65.0)";
+                                    if (details && details.totalSyncDays > 0) {
+                                      tooltipTitle = `Nilai otomatis. Kehadiran On-Cam: ${details.oncamDays}/${details.totalSyncDays} Hari`;
+                                    }
+                                    
+                                    return (
+                                      <td
+                                        key={oncamComp.id}
+                                        className="px-4 py-3 text-center border-r border-border text-xs font-bold bg-blue-500/5 text-blue-700 dark:text-blue-400 cursor-help"
+                                        onClick={() => toast.info("Nilai kehadiran terisi otomatis dari rekap absensi.")}
+                                        title={tooltipTitle}
+                                      >
+                                        {ensureMinScore(oncamScoreVal).toFixed(1)}
+                                      </td>
+                                    );
+                                  }
+                                  return null;
                                 })()}
 
                                 {/* Rubrik Assessment Cells */}
@@ -918,40 +1005,17 @@ export function MentorAssessmentView({
                                 })}
 
                                 {/* Syllabus / Competency Cells */}
-                                {showSyllabusColumns && displayComps.map((comp) => {
-                                  const isAttendanceComp = comp.name?.toLowerCase().includes("attendance");
-                                  let finalScore: number;
-                                  let isAutoFilled = false;
-                                  let tooltipTitle = "Klik untuk menginput/mengubah nilai secara langsung";
-
-                                  if (isAttendanceComp) {
-                                    const att = attendanceScores?.[student.id];
-                                    const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
-                                    finalScore = phaseScore !== undefined ? phaseScore : 65.0;
-                                    isAutoFilled = true;
-                                    
-                                    const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
-                                    if (details && details.totalSyncDays > 0) {
-                                      tooltipTitle = `Nilai otomatis. Kehadiran: ${details.cleanAttendance}/${details.totalSyncDays} Hari (Alpha: ${details.alphaDays})`;
-                                    } else {
-                                      tooltipTitle = "Nilai otomatis (Default: 65.0)";
-                                    }
-                                  } else {
-                                    const directMatch = competencyScores.find(
-                                      (s: any) => s.studentId === student.id && s.competencyId === comp.id
-                                    );
-                                    finalScore = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
-                                  }
+                                {showSyllabusColumns && displayComps.filter(c => !c.name?.toLowerCase().includes("attendance")).map((comp) => {
+                                  const directMatch = competencyScores.find(
+                                    (s: any) => s.studentId === student.id && s.competencyId === comp.id
+                                  );
+                                  const finalScore = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
 
                                   return (
                                     <td
                                       key={comp.id}
-                                      className={`px-4 py-3 text-center border-l border-border text-xs font-medium ${isAutoFilled ? 'bg-emerald-500/5 text-emerald-700 cursor-help' : 'cursor-pointer hover:bg-brand-purple/10 transition-colors'}`}
+                                      className="px-4 py-3 text-center border-l border-border text-xs font-medium cursor-pointer hover:bg-brand-purple/10 transition-colors"
                                       onClick={() => {
-                                        if (isAutoFilled) {
-                                          toast.info("Nilai kehadiran terisi otomatis dari rekap absensi.");
-                                          return;
-                                        }
                                         setDirectScoreModal({
                                           isOpen: true,
                                           studentId: student.id,
@@ -961,10 +1025,10 @@ export function MentorAssessmentView({
                                           scoreInput: finalScore.toString()
                                         });
                                       }}
-                                      title={tooltipTitle}
+                                      title="Klik untuk menginput/mengubah nilai secara langsung"
                                     >
                                       {ensureMinScore(finalScore).toFixed(1)}
-                                      {!isAutoFilled && <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />}
+                                      <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />
                                     </td>
                                   );
                                 })}
