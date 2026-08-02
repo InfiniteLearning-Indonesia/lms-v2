@@ -106,6 +106,7 @@ export function MentorAssessmentView({
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [showSyllabusColumns, setShowSyllabusColumns] = useState(true);
 
   const filteredAndSortedStudents = useMemo(() => {
     let result = [...allStudents];
@@ -119,6 +120,18 @@ export function MentorAssessmentView({
     });
     return result;
   }, [allStudents, searchQuery, sortOrder]);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, sortOrder, selectedProgramId, assessmentTab]);
+
+  const paginatedStudents = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredAndSortedStudents.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredAndSortedStudents, currentPage]);
 
   const [isReleaseModalOpen, setIsReleaseModalOpen] = useState(false);
   const [releaseCountdown, setReleaseCountdown] = useState(5);
@@ -748,20 +761,35 @@ export function MentorAssessmentView({
           </div>
 
           <Tabs value={assessmentTab} onValueChange={(v) => setAssessmentTab(v as "Micro" | "Massive")} className="w-full">
-            <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex max-w-xs min-h-12 gap-1.5 mb-6">
-              <TabsTrigger
-                value="Micro"
-                className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex max-w-xs min-h-12 gap-1.5">
+                <TabsTrigger
+                  value="Micro"
+                  className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+                >
+                  Initial Assessment
+                </TabsTrigger>
+                <TabsTrigger
+                  value="Massive"
+                  className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+                >
+                  Final Assessment
+                </TabsTrigger>
+              </TabsList>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowSyllabusColumns(!showSyllabusColumns)}
+                className="h-10 px-4 text-xs flex items-center gap-2 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10 cursor-pointer font-semibold rounded-xl bg-card transition-all"
               >
-                Initial Assessment
-              </TabsTrigger>
-              <TabsTrigger
-                value="Massive"
-                className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
-              >
-                Final Assessment
-              </TabsTrigger>
-            </TabsList>
+                {showSyllabusColumns ? (
+                  <>Sembunyikan Kolom Syllabus</>
+                ) : (
+                  <>Tampilkan Kolom Syllabus</>
+                )}
+              </Button>
+            </div>
 
             {["Micro", "Massive"].map((phase) => {
               const displayRAs = phase === "Micro" ? microRAs : massiveRAs;
@@ -784,8 +812,28 @@ export function MentorAssessmentView({
                             Kehadiran (Absensi)
                           </th>
 
+                          {/* Rubrik Assessment Columns */}
+                          {displayRAs.map((ra) => (
+                            <th
+                              key={ra.id}
+                              className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border bg-brand-purple/5"
+                              onClick={() => setEditingWeightRubrikAssessment && setEditingWeightRubrikAssessment(ra)}
+                              title="Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini"
+                            >
+                              <div className="flex flex-col items-center gap-0.5">
+                                <span className="text-[9px] text-muted-foreground font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-secondary">
+                                  Rubrik {phase === "Micro" ? "Initial" : "Final"}
+                                </span>
+                                <span className="font-semibold flex items-center gap-1 text-brand-purple">
+                                  {ra.name}
+                                  <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
+                                </span>
+                              </div>
+                            </th>
+                          ))}
+
                           {/* Syllabus & Competency Columns */}
-                          {displayComps.map((comp) => (
+                          {showSyllabusColumns && displayComps.map((comp) => (
                             <th
                               key={comp.id}
                               className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
@@ -803,40 +851,20 @@ export function MentorAssessmentView({
                               </div>
                             </th>
                           ))}
-
-                          {/* Rubrik Assessment Columns */}
-                          {displayRAs.map((ra) => (
-                            <th
-                              key={ra.id}
-                              className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border bg-brand-purple/5"
-                              onClick={() => setEditingWeightRubrikAssessment && setEditingWeightRubrikAssessment(ra)}
-                              title="Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini"
-                            >
-                              <div className="flex flex-col items-center gap-0.5">
-                                <span className="text-[9px] text-muted-foreground font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-secondary">
-                                  Rubrik
-                                </span>
-                                <span className="font-semibold flex items-center gap-1 text-brand-purple">
-                                  {ra.name}
-                                  <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
-                                </span>
-                              </div>
-                            </th>
-                          ))}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
                         {filteredAndSortedStudents.length === 0 ? (
                           <tr>
                             <td
-                              colSpan={displayComps.length + displayRAs.length + 2}
+                              colSpan={(showSyllabusColumns ? displayComps.length : 0) + displayRAs.length + 2}
                               className="px-4 py-8 text-center text-muted-foreground"
                             >
                               Belum ada mentee yang terdaftar atau cocok dengan pencarian.
                             </td>
                           </tr>
                         ) : (
-                          filteredAndSortedStudents.map((student) => {
+                          paginatedStudents.map((student) => {
                             return (
                               <tr key={student.id} className="hover:bg-muted/30 transition-colors">
                                 <td className="px-4 py-3 sticky left-0 z-10 bg-card shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
@@ -864,8 +892,21 @@ export function MentorAssessmentView({
                                   );
                                 })()}
 
+                                {/* Rubrik Assessment Cells */}
+                                {displayRAs.map((ra) => {
+                                  const score = calculateRAScore(student.id, ra);
+                                  return (
+                                    <td
+                                      key={ra.id}
+                                      className="px-4 py-3 text-center border-l border-border text-xs font-medium bg-brand-purple/5"
+                                    >
+                                      {ensureMinScore(score).toFixed(1)}
+                                    </td>
+                                  );
+                                })}
+
                                 {/* Syllabus / Competency Cells */}
-                                {displayComps.map((comp) => {
+                                {showSyllabusColumns && displayComps.map((comp) => {
                                   const directMatch = competencyScores.find(
                                     (s: any) => s.studentId === student.id && s.competencyId === comp.id
                                   );
@@ -887,19 +928,6 @@ export function MentorAssessmentView({
                                     </td>
                                   );
                                 })}
-
-                                {/* Rubrik Assessment Cells */}
-                                {displayRAs.map((ra) => {
-                                  const score = calculateRAScore(student.id, ra);
-                                  return (
-                                    <td
-                                      key={ra.id}
-                                      className="px-4 py-3 text-center border-l border-border text-xs font-medium bg-brand-purple/5"
-                                    >
-                                      {ensureMinScore(score).toFixed(1)}
-                                    </td>
-                                  );
-                                })}
                               </tr>
                             );
                           })
@@ -907,6 +935,35 @@ export function MentorAssessmentView({
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Pagination Controls */}
+                  {filteredAndSortedStudents.length > ITEMS_PER_PAGE && (
+                    <div className="flex items-center justify-between px-4 py-3 mt-4 border border-border rounded-xl bg-muted/20">
+                      <span className="text-xs text-muted-foreground font-medium">
+                        Menampilkan {(currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedStudents.length)} dari {filteredAndSortedStudents.length} mentee
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          className="h-8 text-xs cursor-pointer"
+                        >
+                          Sebelumnya
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentPage * ITEMS_PER_PAGE >= filteredAndSortedStudents.length}
+                          onClick={() => setCurrentPage((p) => p + 1)}
+                          className="h-8 text-xs cursor-pointer"
+                        >
+                          Selanjutnya
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
               );
             })}
