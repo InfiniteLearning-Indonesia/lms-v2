@@ -121,6 +121,10 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
   const displayRAs = rubrikAssessments.filter((r) => r.phase === activePhaseUpper);
   const hasRAs = displayRAs.length > 0;
 
+  const attComp = displayComps.find((c) => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
+  const oncamComp = displayComps.find((c) => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
+  const regularComps = displayComps.filter(c => !c.name?.toLowerCase().includes("attendance"));
+
   const filteredStudents = students.filter(
     (s) =>
       s.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -140,11 +144,6 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
   const handleExportCSV = () => {
     if (filteredStudents.length === 0) return;
 
-    const attComp = displayComps.find((c) => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
-    const oncamComp = displayComps.find((c) => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
-    
-    const regularComps = displayComps.filter(c => !c.name?.toLowerCase().includes("attendance"));
-
     const headers = [
       "No",
       "Nama Mentee",
@@ -160,7 +159,7 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
     const rows = filteredStudents.map((s, idx) => {
       const att = attendanceScores[s.id];
       const details = activePhase === "micro" ? att?.microDetails : att?.massiveDetails;
-      
+
       const attScoreVal = activePhase === "micro" ? att?.microScore ?? 65.0 : att?.massiveScore ?? 65.0;
       const oncamScoreVal = details?.oncamScore ?? 65.0;
 
@@ -257,10 +256,10 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
             >
               <TabsList className="bg-secondary p-1 rounded-lg border border-border">
                 <TabsTrigger value="micro" className="text-xs font-semibold px-4 py-1.5 cursor-pointer">
-                  Phase Micro Learning
+                  Initial Assessment
                 </TabsTrigger>
                 <TabsTrigger value="massive" className="text-xs font-semibold px-4 py-1.5 cursor-pointer">
-                  Phase Massive Learning
+                  Final Assessment
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -290,20 +289,26 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
                   <tr className="border-b border-border bg-secondary/50 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
                     <th className="px-4 py-3 text-center w-12">No</th>
                     <th className="px-4 py-3">Nama Mentee</th>
-                    <th className="px-4 py-3 text-center border-l border-border bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
-                      Nilai Absensi
-                    </th>
-                    {hasRAs
-                      ? displayRAs.map((r) => (
-                          <th key={r.id} className="px-4 py-3 text-center border-l border-border">
-                            {r.name}
-                          </th>
-                        ))
-                      : displayComps.map((c) => (
-                          <th key={c.id} className="px-4 py-3 text-center border-l border-border">
-                            {c.name}
-                          </th>
-                        ))}
+                    {attComp && (
+                      <th className="px-4 py-3 text-center border-l border-border bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+                        {attComp.name}
+                      </th>
+                    )}
+                    {oncamComp && (
+                      <th className="px-4 py-3 text-center border-l border-border bg-blue-500/10 text-blue-700 dark:text-blue-300">
+                        {oncamComp.name}
+                      </th>
+                    )}
+                    {displayRAs.map((r) => (
+                      <th key={r.id} className="px-4 py-3 text-center border-l border-border">
+                        {r.name}
+                      </th>
+                    ))}
+                    {regularComps.map((c) => (
+                      <th key={c.id} className="px-4 py-3 text-center border-l border-border">
+                        {c.name}
+                      </th>
+                    ))}
                     <th className="px-4 py-3 text-center border-l border-border bg-brand-purple/10 text-brand-purple">
                       Rata-Rata
                     </th>
@@ -322,17 +327,22 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
                   ) : (
                     filteredStudents.map((s, idx) => {
                       const att = attendanceScores[s.id];
-                      const attScore =
-                        activePhase === "micro" ? att?.microScore ?? 65.0 : att?.massiveScore ?? 65.0;
+                      const details = activePhase === "micro" ? att?.microDetails : att?.massiveDetails;
+                      
+                      const attScoreVal = activePhase === "micro" ? att?.microScore ?? 65.0 : att?.massiveScore ?? 65.0;
+                      const oncamScoreVal = details?.oncamScore ?? 65.0;
 
-                      const itemScores = hasRAs
-                        ? displayRAs.map((r) => getStudentRAScore(s.id, r.id))
-                        : displayComps.map((c) => getStudentCompScore(s.id, c.id));
+                      const raScores = displayRAs.map((r) => getStudentRAScore(s.id, r.id));
+                      const compScores = regularComps.map((c) => getStudentCompScore(s.id, c.id));
 
-                      const avgScore =
-                        itemScores.length > 0
-                          ? itemScores.reduce((a, b) => a + b, 0) / itemScores.length
-                          : attScore;
+                      const allScores = [
+                        ...(attComp ? [attScoreVal] : []),
+                        ...(oncamComp ? [oncamScoreVal] : []),
+                        ...raScores,
+                        ...compScores,
+                      ];
+
+                      const avgScore = allScores.length > 0 ? allScores.reduce((a, b) => a + b, 0) / allScores.length : 65.0;
 
                       return (
                         <tr key={s.id} className="hover:bg-muted/30 transition-colors">
@@ -343,26 +353,32 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
                             <div className="font-semibold text-foreground">{s.name}</div>
                             <div className="text-[10px] text-muted-foreground">{s.email}</div>
                           </td>
-                          <td className="px-4 py-3 text-center border-l border-border font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5">
-                            {attScore.toFixed(1)}
-                          </td>
-                          {hasRAs
-                            ? displayRAs.map((r) => {
-                                const sc = getStudentRAScore(s.id, r.id);
-                                return (
-                                  <td key={r.id} className="px-4 py-3 text-center border-l border-border font-medium">
-                                    {sc.toFixed(1)}
-                                  </td>
-                                );
-                              })
-                            : displayComps.map((c) => {
-                                const sc = getStudentCompScore(s.id, c.id);
-                                return (
-                                  <td key={c.id} className="px-4 py-3 text-center border-l border-border font-medium">
-                                    {sc.toFixed(1)}
-                                  </td>
-                                );
-                              })}
+                          {attComp && (
+                            <td className="px-4 py-3 text-center border-l border-border font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5">
+                              {attScoreVal.toFixed(1)}
+                            </td>
+                          )}
+                          {oncamComp && (
+                            <td className="px-4 py-3 text-center border-l border-border font-bold text-blue-600 dark:text-blue-400 bg-blue-500/5">
+                              {oncamScoreVal.toFixed(1)}
+                            </td>
+                          )}
+                          {displayRAs.map((r) => {
+                            const sc = getStudentRAScore(s.id, r.id);
+                            return (
+                              <td key={r.id} className="px-4 py-3 text-center border-l border-border font-medium">
+                                {sc.toFixed(1)}
+                              </td>
+                            );
+                          })}
+                          {regularComps.map((c) => {
+                            const sc = getStudentCompScore(s.id, c.id);
+                            return (
+                              <td key={c.id} className="px-4 py-3 text-center border-l border-border font-medium">
+                                {sc.toFixed(1)}
+                              </td>
+                            );
+                          })}
                           <td className="px-4 py-3 text-center border-l border-border font-extrabold text-brand-purple bg-brand-purple/5">
                             {avgScore.toFixed(1)}
                           </td>
