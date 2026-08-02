@@ -3,8 +3,8 @@
 import { API_BASE_URL } from "@/lib/config";
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText, AlertTriangle, ShieldAlert, X, CheckCircle2 } from "lucide-react";
+import { useState, useEffect, useMemo } from "react";
+import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText, AlertTriangle, ShieldAlert, X, CheckCircle2, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +104,22 @@ export function MentorAssessmentView({
   const activeRubrikTab = externalActiveRubrikTab || internalActiveRubrikTab;
   const setActiveRubrikTab = externalSetActiveRubrikTab || setInternalActiveRubrikTab;
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  const filteredAndSortedStudents = useMemo(() => {
+    let result = [...allStudents];
+    if (searchQuery) {
+      result = result.filter(s => s.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+    result.sort((a, b) => {
+      const nameA = a.name || "";
+      const nameB = b.name || "";
+      return sortOrder === "asc" ? nameA.localeCompare(nameB) : nameB.localeCompare(nameA);
+    });
+    return result;
+  }, [allStudents, searchQuery, sortOrder]);
+
   const [isReleaseModalOpen, setIsReleaseModalOpen] = useState(false);
   const [releaseCountdown, setReleaseCountdown] = useState(5);
   const [isSubmittingRelease, setIsSubmittingRelease] = useState(false);
@@ -177,41 +193,37 @@ export function MentorAssessmentView({
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-xl w-fit border border-border">
             <button
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeRubrikTab === "program_competensi"
-                  ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "program_competensi"
+                ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
               onClick={() => setActiveRubrikTab("program_competensi")}
             >
               Manajemen Kompetensi
             </button>
             <button
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeRubrikTab === "kompetensi"
-                  ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "kompetensi"
+                ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
               onClick={() => setActiveRubrikTab("kompetensi")}
             >
               Daftar Syllabus
             </button>
             <button
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeRubrikTab === "assessment"
-                  ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "assessment"
+                ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
               onClick={() => setActiveRubrikTab("assessment")}
             >
               Kolom Penilaian (Gradebook)
             </button>
             <button
-              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeRubrikTab === "professional"
-                  ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-medium transition-all ${activeRubrikTab === "professional"
+                ? "bg-card text-brand-purple shadow-sm border border-border/50 font-bold"
+                : "text-muted-foreground hover:text-foreground"
+                }`}
               onClick={() => setActiveRubrikTab("professional")}
             >
               Rubrik Professional
@@ -453,13 +465,13 @@ export function MentorAssessmentView({
                     value="Micro"
                     className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
                   >
-                    Phase Micro
+                    Initial Assessment
                   </TabsTrigger>
                   <TabsTrigger
                     value="Massive"
                     className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
                   >
-                    Phase Massive
+                    Final Assessment
                   </TabsTrigger>
                 </TabsList>
 
@@ -557,319 +569,350 @@ export function MentorAssessmentView({
   return (
     <>
       <Card className="border-border shadow-xs bg-card overflow-hidden font-sans">
-      <CardHeader className="border-b border-border bg-secondary/20 p-5">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <Badge variant="outline" className="bg-brand-purple/10 text-brand-purple border-brand-purple/30 text-[11px] font-bold">
-                Transkrip & Penilaian Mentee
-              </Badge>
+        <CardHeader className="border-b border-border bg-secondary/20 p-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Badge variant="outline" className="bg-brand-purple/10 text-brand-purple border-brand-purple/30 text-[11px] font-bold">
+                  Transkrip & Penilaian Mentee
+                </Badge>
+              </div>
+              <CardTitle className="font-heading font-extrabold text-xl text-foreground">
+                Tabel Gradebook Akademik
+              </CardTitle>
+              <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                Kelola hasil penilaian seluruh mentee per fase pembelajaran dan rilis dokumen resmi akademik.
+              </CardDescription>
             </div>
-            <CardTitle className="font-heading font-extrabold text-xl text-foreground">
-              Tabel Gradebook Akademik
-            </CardTitle>
-            <CardDescription className="text-xs text-muted-foreground mt-0.5">
-              Kelola hasil penilaian seluruh mentee per fase pembelajaran dan rilis dokumen resmi akademik.
-            </CardDescription>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            {uniquePrograms.length > 1 && setSelectedProgramId && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-muted-foreground font-medium text-xs">Program:</span>
-                <select
-                  value={selectedProgramId || ""}
-                  onChange={(e) => setSelectedProgramId(e.target.value)}
-                  className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[180px] truncate cursor-pointer"
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Search & Sort UI */}
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Cari nama mentee..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full sm:w-48 bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+                  className="h-8 px-2 text-xs border-border flex items-center gap-1 cursor-pointer"
+                  title="Urutkan berdasarkan nama"
                 >
-                  <option value="all">Semua Program (Global)</option>
-                  {uniquePrograms.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
+                  <ArrowUpDown className="w-3.5 h-3.5" />
+                  {sortOrder === "asc" ? "A-Z" : "Z-A"}
+                </Button>
+              </div>
+
+              {uniquePrograms.length > 1 && setSelectedProgramId && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground font-medium text-xs">Program:</span>
+                  <select
+                    value={selectedProgramId || ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSelectedProgramId(val === "all" ? "" : val);
+                    }}
+                    className="bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple max-w-[180px] truncate cursor-pointer"
+                  >
+                    <option value="all">Semua Program (Global)</option>
+                    {uniquePrograms.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </div>
+
+            {!isReadOnly && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="file"
+                  ref={csvInputRef}
+                  onChange={handleImportCSV}
+                  accept=".csv"
+                  className="hidden"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isImportingCSV}
+                  onClick={() => csvInputRef?.current?.click()}
+                  className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/30 hover:bg-brand-purple/5 text-brand-purple cursor-pointer"
+                >
+                  {isImportingCSV ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Upload className="w-3.5 h-3.5" />
+                  )}
+                  Import CSV
+                </Button>
+
+                {(() => {
+                  const isCurrentReleased = assessmentTab === "Micro" ? isTranscriptReleased : isCertificateReleased;
+                  return (
+                    <Button
+                      variant={isCurrentReleased ? "outline" : "default"}
+                      size="sm"
+                      onClick={() => {
+                        if (!selectedProgramId) {
+                          toast.error("Silakan pilih program terlebih dahulu.");
+                          return;
+                        }
+
+                        // 🛑 Sequential Dependency Constraint:
+                        // Require Transkrip (Phase Micro) to be released first before Sertifikat (Phase Massive) can be released!
+                        if (assessmentTab === "Massive" && !isCurrentReleased && !isTranscriptReleased) {
+                          toast.error("Gagal! Transkrip Nilai (Fase Micro) harus dirilis terlebih dahulu sebelum Sertifikat (Fase Massive) dapat dirilis.");
+                          return;
+                        }
+
+                        setReleaseCountdown(5);
+                        setIsReleaseModalOpen(true);
+                      }}
+                      className={
+                        isCurrentReleased
+                          ? "h-8 text-xs flex items-center gap-1.5 border-brand-purple text-brand-purple bg-brand-purple/5 hover:bg-brand-purple/10 cursor-pointer font-bold shadow-xs transition-all"
+                          : "h-8 text-xs flex items-center gap-1.5 bg-brand-purple hover:bg-brand-purple/90 text-white cursor-pointer shadow-xs font-semibold transition-all"
+                      }
+                    >
+                      {isCurrentReleased ? (
+                        <>
+                          <CheckCircle2 className="w-3.5 h-3.5 text-brand-purple" />
+                          {assessmentTab === "Micro" ? "Transkrip Sudah Rilis" : "Sertifikat Sudah Rilis"}
+                        </>
+                      ) : (
+                        <>
+                          {assessmentTab === "Micro" ? (
+                            <>
+                              <FileText className="w-3.5 h-3.5" />
+                              Rilis Transkrip Nilai (Micro)
+                            </>
+                          ) : (
+                            <>
+                              <Award className="w-3.5 h-3.5" />
+                              Rilis Sertifikat (Kelulusan & Magang)
+                            </>
+                          )}
+                        </>
+                      )}
+                    </Button>
+                  );
+                })()}
               </div>
             )}
           </div>
+        </CardHeader>
 
-          {!isReadOnly && (
-            <div className="flex items-center gap-2">
-              <input
-                type="file"
-                ref={csvInputRef}
-                onChange={handleImportCSV}
-                accept=".csv"
-                className="hidden"
-              />
+        <CardContent className="pt-6 space-y-4">
+          {/* Phase Dates Info Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-secondary/30 border border-border/80 text-xs font-sans">
+            <div className="flex flex-wrap items-center gap-4 text-foreground">
+              <div className="flex items-center gap-1.5 font-medium">
+                <Calendar className="w-3.5 h-3.5 text-brand-purple" />
+                <span className="text-muted-foreground">Phase Micro:</span>
+                <span className="font-semibold">
+                  {phaseDates?.microStartDate ? new Date(phaseDates.microStartDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Awal Batch'} s/d {phaseDates?.microEndDate ? new Date(phaseDates.microEndDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Pertengahan Batch'}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 font-medium">
+                <Calendar className="w-3.5 h-3.5 text-brand-purple" />
+                <span className="text-muted-foreground">Phase Massive:</span>
+                <span className="font-semibold">
+                  {phaseDates?.massiveStartDate ? new Date(phaseDates.massiveStartDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Pertengahan Batch'} s/d {phaseDates?.massiveEndDate ? new Date(phaseDates.massiveEndDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Akhir Batch'}
+                </span>
+              </div>
+            </div>
+            {setIsPhaseDatesModalOpen && (
               <Button
                 variant="outline"
                 size="sm"
-                disabled={isImportingCSV}
-                onClick={() => csvInputRef?.current?.click()}
-                className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/30 hover:bg-brand-purple/5 text-brand-purple cursor-pointer"
+                onClick={() => setIsPhaseDatesModalOpen(true)}
+                className="h-7 text-xs flex items-center gap-1.5 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10 cursor-pointer font-semibold"
               >
-                {isImportingCSV ? (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Upload className="w-3.5 h-3.5" />
-                )}
-                Import CSV
+                <Pencil className="w-3 h-3" /> Atur Tanggal Phase
               </Button>
-
-              {(() => {
-                const isCurrentReleased = assessmentTab === "Micro" ? isTranscriptReleased : isCertificateReleased;
-                return (
-                  <Button
-                    variant={isCurrentReleased ? "outline" : "default"}
-                    size="sm"
-                    onClick={() => {
-                      if (!selectedProgramId) {
-                        toast.error("Silakan pilih program terlebih dahulu.");
-                        return;
-                      }
-
-                      // 🛑 Sequential Dependency Constraint:
-                      // Require Transkrip (Phase Micro) to be released first before Sertifikat (Phase Massive) can be released!
-                      if (assessmentTab === "Massive" && !isCurrentReleased && !isTranscriptReleased) {
-                        toast.error("Gagal! Transkrip Nilai (Fase Micro) harus dirilis terlebih dahulu sebelum Sertifikat (Fase Massive) dapat dirilis.");
-                        return;
-                      }
-
-                      setReleaseCountdown(5);
-                      setIsReleaseModalOpen(true);
-                    }}
-                    className={
-                      isCurrentReleased
-                        ? "h-8 text-xs flex items-center gap-1.5 border-brand-purple text-brand-purple bg-brand-purple/5 hover:bg-brand-purple/10 cursor-pointer font-bold shadow-xs transition-all"
-                        : "h-8 text-xs flex items-center gap-1.5 bg-brand-purple hover:bg-brand-purple/90 text-white cursor-pointer shadow-xs font-semibold transition-all"
-                    }
-                  >
-                    {isCurrentReleased ? (
-                      <>
-                        <CheckCircle2 className="w-3.5 h-3.5 text-brand-purple" />
-                        {assessmentTab === "Micro" ? "Transkrip Sudah Rilis" : "Sertifikat Sudah Rilis"}
-                      </>
-                    ) : (
-                      <>
-                        {assessmentTab === "Micro" ? (
-                          <>
-                            <FileText className="w-3.5 h-3.5" />
-                            Rilis Transkrip Nilai (Micro)
-                          </>
-                        ) : (
-                          <>
-                            <Award className="w-3.5 h-3.5" />
-                            Rilis Sertifikat (Kelulusan & Magang)
-                          </>
-                        )}
-                      </>
-                    )}
-                  </Button>
-                );
-              })()}
-            </div>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-6 space-y-4">
-        {/* Phase Dates Info Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-secondary/30 border border-border/80 text-xs font-sans">
-          <div className="flex flex-wrap items-center gap-4 text-foreground">
-            <div className="flex items-center gap-1.5 font-medium">
-              <Calendar className="w-3.5 h-3.5 text-brand-purple" />
-              <span className="text-muted-foreground">Phase Micro:</span>
-              <span className="font-semibold">
-                {phaseDates?.microStartDate ? new Date(phaseDates.microStartDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Awal Batch'} s/d {phaseDates?.microEndDate ? new Date(phaseDates.microEndDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Pertengahan Batch'}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 font-medium">
-              <Calendar className="w-3.5 h-3.5 text-brand-purple" />
-              <span className="text-muted-foreground">Phase Massive:</span>
-              <span className="font-semibold">
-                {phaseDates?.massiveStartDate ? new Date(phaseDates.massiveStartDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Pertengahan Batch'} s/d {phaseDates?.massiveEndDate ? new Date(phaseDates.massiveEndDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Akhir Batch'}
-              </span>
-            </div>
+            )}
           </div>
-          {setIsPhaseDatesModalOpen && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsPhaseDatesModalOpen(true)}
-              className="h-7 text-xs flex items-center gap-1.5 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10 cursor-pointer font-semibold"
-            >
-              <Pencil className="w-3 h-3" /> Atur Tanggal Phase
-            </Button>
-          )}
-        </div>
 
-        <Tabs value={assessmentTab} onValueChange={(v) => setAssessmentTab(v as "Micro" | "Massive")} className="w-full">
-          <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex max-w-xs min-h-12 gap-1.5 mb-6">
-            <TabsTrigger
-              value="Micro"
-              className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
-            >
-              Phase Micro
-            </TabsTrigger>
-            <TabsTrigger
-              value="Massive"
-              className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
-            >
-              Phase Massive
-            </TabsTrigger>
-          </TabsList>
+          <Tabs value={assessmentTab} onValueChange={(v) => setAssessmentTab(v as "Micro" | "Massive")} className="w-full">
+            <TabsList className="bg-secondary/60 p-1.5 rounded-xl border border-border/60 flex max-w-xs min-h-12 gap-1.5 mb-6">
+              <TabsTrigger
+                value="Micro"
+                className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+              >
+                Initial Assessment
+              </TabsTrigger>
+              <TabsTrigger
+                value="Massive"
+                className="flex-1 rounded-lg text-xs font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all py-1.5 cursor-pointer text-muted-foreground hover:text-foreground"
+              >
+                Final Assessment
+              </TabsTrigger>
+            </TabsList>
 
-          {["Micro", "Massive"].map((phase) => {
-            const displayRAs = phase === "Micro" ? microRAs : massiveRAs;
-            const microComps = competencies.filter((c) => c.phase === "Micro" || (!c.phase && "Micro" === "Micro"));
-            const massiveComps = competencies.filter((c) => c.phase === "Massive");
-            const displayComps = phase === "Micro" ? microComps : massiveComps;
+            {["Micro", "Massive"].map((phase) => {
+              const displayRAs = phase === "Micro" ? microRAs : massiveRAs;
+              const microComps = competencies.filter((c) => c.phase === "Micro" || (!c.phase && "Micro" === "Micro"));
+              const massiveComps = competencies.filter((c) => c.phase === "Massive");
+              const displayComps = phase === "Micro" ? microComps : massiveComps;
 
-            return (
-              <TabsContent key={phase} value={phase} className="space-y-6">
-                <div className="overflow-x-auto border border-border rounded-xl">
-                  <table className="w-full text-sm text-left whitespace-nowrap">
-                    <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      <tr>
-                        <th className="px-4 py-3 sticky left-0 z-10 bg-muted/95 backdrop-blur shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
-                          Mentee
-                        </th>
-
-                        {/* Attendance Score Column */}
-                        <th className="px-4 py-3 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-r border-border text-center font-bold" title="Nilai Kehadiran Synchronous Mentee">
-                          Kehadiran (Absensi)
-                        </th>
-                        
-                        {/* Syllabus & Competency Columns */}
-                        {displayComps.map((comp) => (
-                          <th
-                            key={comp.id}
-                            className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
-                            onClick={() => setEditingWeightCompetency(comp)}
-                            title="Klik untuk mengatur bobot tugas di kompetensi/syllabus ini"
-                          >
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className="text-[9px] text-brand-purple font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-brand-purple/10">
-                                {comp.category || "Syllabus"}
-                              </span>
-                              <span className="font-semibold flex items-center gap-1">
-                                {comp.name}
-                                <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
-                              </span>
-                            </div>
-                          </th>
-                        ))}
-
-                        {/* Rubrik Assessment Columns */}
-                        {displayRAs.map((ra) => (
-                          <th
-                            key={ra.id}
-                            className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border bg-brand-purple/5"
-                            onClick={() => setEditingWeightRubrikAssessment && setEditingWeightRubrikAssessment(ra)}
-                            title="Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini"
-                          >
-                            <div className="flex flex-col items-center gap-0.5">
-                              <span className="text-[9px] text-muted-foreground font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-secondary">
-                                Rubrik
-                              </span>
-                              <span className="font-semibold flex items-center gap-1 text-brand-purple">
-                                {ra.name}
-                                <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
-                              </span>
-                            </div>
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-border">
-                      {allStudents.length === 0 ? (
+              return (
+                <TabsContent key={phase} value={phase} className="space-y-6">
+                  <div className="overflow-x-auto border border-border rounded-xl">
+                    <table className="w-full text-sm text-left whitespace-nowrap">
+                      <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                         <tr>
-                          <td
-                            colSpan={displayComps.length + displayRAs.length + 2}
-                            className="px-4 py-8 text-center text-muted-foreground"
-                          >
-                            Belum ada mentee yang terdaftar.
-                          </td>
+                          <th className="px-4 py-3 sticky left-0 z-10 bg-muted/95 backdrop-blur shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
+                            Mentee
+                          </th>
+
+                          {/* Attendance Score Column */}
+                          <th className="px-4 py-3 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-r border-border text-center font-bold" title="Nilai Kehadiran Synchronous Mentee">
+                            Kehadiran (Absensi)
+                          </th>
+
+                          {/* Syllabus & Competency Columns */}
+                          {displayComps.map((comp) => (
+                            <th
+                              key={comp.id}
+                              className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
+                              onClick={() => setEditingWeightCompetency(comp)}
+                              title="Klik untuk mengatur bobot tugas di kompetensi/syllabus ini"
+                            >
+                              <div className="flex flex-col items-center gap-0.5">
+                                <span className="text-[9px] text-brand-purple font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-brand-purple/10">
+                                  {comp.category || "Syllabus"}
+                                </span>
+                                <span className="font-semibold flex items-center gap-1">
+                                  {comp.name}
+                                  <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
+                                </span>
+                              </div>
+                            </th>
+                          ))}
+
+                          {/* Rubrik Assessment Columns */}
+                          {displayRAs.map((ra) => (
+                            <th
+                              key={ra.id}
+                              className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border bg-brand-purple/5"
+                              onClick={() => setEditingWeightRubrikAssessment && setEditingWeightRubrikAssessment(ra)}
+                              title="Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini"
+                            >
+                              <div className="flex flex-col items-center gap-0.5">
+                                <span className="text-[9px] text-muted-foreground font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-secondary">
+                                  Rubrik
+                                </span>
+                                <span className="font-semibold flex items-center gap-1 text-brand-purple">
+                                  {ra.name}
+                                  <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
+                                </span>
+                              </div>
+                            </th>
+                          ))}
                         </tr>
-                      ) : (
-                        allStudents.map((student) => {
-                          return (
-                            <tr key={student.id} className="hover:bg-muted/30 transition-colors">
-                              <td className="px-4 py-3 sticky left-0 z-10 bg-card shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
-                                <div className="font-semibold text-foreground text-xs">
-                                  {student.name}
-                                </div>
-                                <div className="text-[10px] text-muted-foreground">
-                                  {student.email}
-                                </div>
-                              </td>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {filteredAndSortedStudents.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={displayComps.length + displayRAs.length + 2}
+                              className="px-4 py-8 text-center text-muted-foreground"
+                            >
+                              Belum ada mentee yang terdaftar atau cocok dengan pencarian.
+                            </td>
+                          </tr>
+                        ) : (
+                          filteredAndSortedStudents.map((student) => {
+                            return (
+                              <tr key={student.id} className="hover:bg-muted/30 transition-colors">
+                                <td className="px-4 py-3 sticky left-0 z-10 bg-card shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
+                                  <div className="font-semibold text-foreground text-xs">
+                                    {student.name}
+                                  </div>
+                                  <div className="text-[10px] text-muted-foreground">
+                                    {student.email}
+                                  </div>
+                                </td>
 
-                              {/* Attendance Cell */}
-                              {(() => {
-                                const att = attendanceScores?.[student.id];
-                                const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
-                                const scoreVal = phaseScore !== undefined ? phaseScore : 65.0;
-                                const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
-                                return (
-                                  <td
-                                    className="px-4 py-3 text-center border-r border-border text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 cursor-help"
-                                    title={details && details.totalSyncDays > 0 ? `Kehadiran Synchronous: ${details.cleanAttendance}/${details.totalSyncDays} Hari (Alpha: ${details.alphaDays})` : "Nilai Absensi Minimal: 65.0"}
-                                  >
-                                    {scoreVal.toFixed(1)}
-                                  </td>
-                                );
-                              })()}
+                                {/* Attendance Cell */}
+                                {(() => {
+                                  const att = attendanceScores?.[student.id];
+                                  const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
+                                  const scoreVal = phaseScore !== undefined ? phaseScore : 65.0;
+                                  const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
+                                  return (
+                                    <td
+                                      className="px-4 py-3 text-center border-r border-border text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/5 cursor-help"
+                                      title={details && details.totalSyncDays > 0 ? `Kehadiran Synchronous: ${details.cleanAttendance}/${details.totalSyncDays} Hari (Alpha: ${details.alphaDays})` : "Nilai Absensi Minimal: 65.0"}
+                                    >
+                                      {scoreVal.toFixed(1)}
+                                    </td>
+                                  );
+                                })()}
 
-                              {/* Syllabus / Competency Cells */}
-                              {displayComps.map((comp) => {
-                                const directMatch = competencyScores.find(
-                                  (s: any) => s.studentId === student.id && s.competencyId === comp.id
-                                );
-                                const score = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
-                                return (
-                                  <td
-                                    key={comp.id}
-                                    className="px-4 py-3 text-center border-l border-border text-xs font-medium cursor-pointer hover:bg-brand-purple/10 transition-colors"
-                                    onClick={() => {
-                                      const val = prompt(`Masukkan nilai direct untuk ${comp.name} (${student.name}):`, score.toString());
-                                      if (val !== null && !isNaN(parseFloat(val))) {
-                                        handleSaveDirectCompetencyScore?.(student.id, comp.id, parseFloat(val));
-                                      }
-                                    }}
-                                    title="Klik untuk menginput/mengubah nilai secara langsung"
-                                  >
-                                    {ensureMinScore(score).toFixed(1)}
-                                    <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />
-                                  </td>
-                                );
-                              })}
+                                {/* Syllabus / Competency Cells */}
+                                {displayComps.map((comp) => {
+                                  const directMatch = competencyScores.find(
+                                    (s: any) => s.studentId === student.id && s.competencyId === comp.id
+                                  );
+                                  const score = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
+                                  return (
+                                    <td
+                                      key={comp.id}
+                                      className="px-4 py-3 text-center border-l border-border text-xs font-medium cursor-pointer hover:bg-brand-purple/10 transition-colors"
+                                      onClick={() => {
+                                        const val = prompt(`Masukkan nilai direct untuk ${comp.name} (${student.name}):`, score.toString());
+                                        if (val !== null && !isNaN(parseFloat(val))) {
+                                          handleSaveDirectCompetencyScore?.(student.id, comp.id, parseFloat(val));
+                                        }
+                                      }}
+                                      title="Klik untuk menginput/mengubah nilai secara langsung"
+                                    >
+                                      {ensureMinScore(score).toFixed(1)}
+                                      <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />
+                                    </td>
+                                  );
+                                })}
 
-                              {/* Rubrik Assessment Cells */}
-                              {displayRAs.map((ra) => {
-                                const score = calculateRAScore(student.id, ra);
-                                return (
-                                  <td
-                                    key={ra.id}
-                                    className="px-4 py-3 text-center border-l border-border text-xs font-medium bg-brand-purple/5"
-                                  >
-                                    {ensureMinScore(score).toFixed(1)}
-                                  </td>
-                                );
-                              })}
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </TabsContent>
-            );
-          })}
-        </Tabs>
-      </CardContent>
-    </Card>
+                                {/* Rubrik Assessment Cells */}
+                                {displayRAs.map((ra) => {
+                                  const score = calculateRAScore(student.id, ra);
+                                  return (
+                                    <td
+                                      key={ra.id}
+                                      className="px-4 py-3 text-center border-l border-border text-xs font-medium bg-brand-purple/5"
+                                    >
+                                      {ensureMinScore(score).toFixed(1)}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </TabsContent>
+              );
+            })}
+          </Tabs>
+        </CardContent>
+      </Card>
 
       {/* ── WARNING MODAL: RILIS SERTIFIKAT & TRANSKRIP ── */}
       {isReleaseModalOpen && (
