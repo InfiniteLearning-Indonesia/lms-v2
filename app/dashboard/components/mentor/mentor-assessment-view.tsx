@@ -133,6 +133,15 @@ export function MentorAssessmentView({
     return filteredAndSortedStudents.slice(start, start + ITEMS_PER_PAGE);
   }, [filteredAndSortedStudents, currentPage]);
 
+  const [directScoreModal, setDirectScoreModal] = useState({
+    isOpen: false,
+    studentId: "",
+    studentName: "",
+    compId: "",
+    compName: "",
+    scoreInput: "",
+  });
+
   const [isReleaseModalOpen, setIsReleaseModalOpen] = useState(false);
   const [releaseCountdown, setReleaseCountdown] = useState(5);
   const [isSubmittingRelease, setIsSubmittingRelease] = useState(false);
@@ -812,6 +821,11 @@ export function MentorAssessmentView({
                             Kehadiran (Absensi)
                           </th>
 
+                          {/* Oncam Score Column */}
+                          <th className="px-4 py-3 bg-blue-500/10 text-blue-700 dark:text-blue-300 border-r border-border text-center font-bold" title="Nilai Kehadiran On-Cam Mentee">
+                            Kehadiran (On-Cam)
+                          </th>
+
                           {/* Rubrik Assessment Columns */}
                           {displayRAs.map((ra) => (
                             <th
@@ -892,6 +906,21 @@ export function MentorAssessmentView({
                                   );
                                 })()}
 
+                                {/* Oncam Cell */}
+                                {(() => {
+                                  const att = attendanceScores?.[student.id];
+                                  const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
+                                  const oncamScoreVal = details?.oncamScore !== undefined ? details.oncamScore : 65.0;
+                                  return (
+                                    <td
+                                      className="px-4 py-3 text-center border-r border-border text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-500/5 cursor-help"
+                                      title={details && details.totalSyncDays > 0 ? `Kehadiran On-Cam: ${details.oncamDays}/${details.totalSyncDays} Hari` : "Nilai On-Cam Minimal: 65.0"}
+                                    >
+                                      {oncamScoreVal.toFixed(1)}
+                                    </td>
+                                  );
+                                })()}
+
                                 {/* Rubrik Assessment Cells */}
                                 {displayRAs.map((ra) => {
                                   const score = calculateRAScore(student.id, ra);
@@ -916,10 +945,14 @@ export function MentorAssessmentView({
                                       key={comp.id}
                                       className="px-4 py-3 text-center border-l border-border text-xs font-medium cursor-pointer hover:bg-brand-purple/10 transition-colors"
                                       onClick={() => {
-                                        const val = prompt(`Masukkan nilai direct untuk ${comp.name} (${student.name}):`, score.toString());
-                                        if (val !== null && !isNaN(parseFloat(val))) {
-                                          handleSaveDirectCompetencyScore?.(student.id, comp.id, parseFloat(val));
-                                        }
+                                        setDirectScoreModal({
+                                          isOpen: true,
+                                          studentId: student.id,
+                                          studentName: student.name || "",
+                                          compId: comp.id,
+                                          compName: comp.name || "",
+                                          scoreInput: score.toString()
+                                        });
                                       }}
                                       title="Klik untuk menginput/mengubah nilai secara langsung"
                                     >
@@ -1098,6 +1131,78 @@ export function MentorAssessmentView({
                     Ya, Konfirmasi Rilis
                   </>
                 )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── DIRECT SCORE MODAL ── */}
+      {directScoreModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-start justify-between border-b border-border pb-3">
+              <div>
+                <h4 className="font-heading font-extrabold text-base text-foreground">
+                  Input Nilai Direct
+                </h4>
+                <p className="text-2xs text-muted-foreground mt-0.5 font-sans">
+                  {directScoreModal.compName} ({directScoreModal.studentName})
+                </p>
+              </div>
+              <button
+                onClick={() => setDirectScoreModal({ ...directScoreModal, isOpen: false })}
+                className="p-1 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-xs font-semibold">Nilai (0 - 100)</label>
+              <input 
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-purple"
+                value={directScoreModal.scoreInput}
+                onChange={(e) => setDirectScoreModal({ ...directScoreModal, scoreInput: e.target.value })}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const val = parseFloat(directScoreModal.scoreInput);
+                    if (!isNaN(val)) {
+                      handleSaveDirectCompetencyScore?.(directScoreModal.studentId, directScoreModal.compId, val);
+                      setDirectScoreModal({ ...directScoreModal, isOpen: false });
+                    }
+                  }
+                }}
+                autoFocus
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setDirectScoreModal({ ...directScoreModal, isOpen: false })}
+                className="text-xs h-9 cursor-pointer"
+              >
+                Batal
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  const val = parseFloat(directScoreModal.scoreInput);
+                  if (!isNaN(val)) {
+                    handleSaveDirectCompetencyScore?.(directScoreModal.studentId, directScoreModal.compId, val);
+                    setDirectScoreModal({ ...directScoreModal, isOpen: false });
+                  }
+                }}
+                className="text-xs h-9 bg-brand-purple hover:bg-brand-purple/90 text-white cursor-pointer"
+              >
+                Simpan
               </Button>
             </div>
           </div>
