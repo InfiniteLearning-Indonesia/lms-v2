@@ -73,6 +73,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     classes.filter(c => c.program).map(c => [c.program!.id, c.program!])
   ).values());
 
+  const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   // Suspend Dialog States
   const [isSuspendDialogOpen, setIsSuspendDialogOpen] = useState(false);
   const [selectedStudentForSuspend, setSelectedStudentForSuspend] = useState<any | null>(null);
@@ -785,6 +786,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const handleCreateCompetency = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isFormSubmitting) return;
+    setIsFormSubmitting(true);
     const formData = new FormData(e.currentTarget);
     const isGlobal = activeRubrikTab === "professional";
     try {
@@ -811,6 +814,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     } catch (err) {
       console.error(err);
       toast.error("Terjadi kesalahan koneksi.");
+    } finally {
+      setIsFormSubmitting(false);
     }
   };
 
@@ -917,6 +922,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const handleCreateProgramCompetency = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isFormSubmitting) return;
+    setIsFormSubmitting(true);
     const fd = new FormData(e.currentTarget);
     try {
       let syllabuses = [];
@@ -954,6 +961,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     } catch (err) {
       console.error(err);
       toast.error("Terjadi kesalahan koneksi.");
+    } finally {
+      setIsFormSubmitting(false);
     }
   };
 
@@ -1827,6 +1836,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         setEditingProgramCompetency={setEditingProgramCompetency}
         handleCreateProgramCompetency={handleCreateProgramCompetency}
         handleCreateCompetency={handleCreateCompetency}
+        isFormSubmitting={isFormSubmitting}
         editingCompetency={editingCompetency}
         setEditingCompetency={setEditingCompetency}
         handleUpdateCompetency={handleUpdateCompetency}

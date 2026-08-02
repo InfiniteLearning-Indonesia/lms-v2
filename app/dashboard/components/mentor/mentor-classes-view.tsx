@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle,
   ArrowRight,
@@ -9,6 +10,8 @@ import {
   BookOpen,
   Calendar,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   ChevronRight,
   ExternalLink,
   FileText,
@@ -87,6 +90,7 @@ export function MentorClassesView({
     id: string;
     title: string;
   } | null>(null);
+  const [isCompetencyExpanded, setIsCompetencyExpanded] = useState(false);
   const [deleteCountdown, setDeleteCountdown] = useState(5);
 
   const [isEasterEggLoading, setIsEasterEggLoading] = useState(false);
@@ -415,16 +419,24 @@ export function MentorClassesView({
                 );
               })()}
 
-              {/* 1. Competencies Section */}
-              <div className="space-y-3">
-                <h4 className="font-heading font-bold text-sm text-foreground flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2">
+              {/* 1. Kompetensi Section */}
+              <div className="space-y-3 pt-6 border-t border-border">
+                <div className="flex items-center justify-between">
+                  <h4 
+                    className="font-heading font-bold text-sm text-foreground flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setIsCompetencyExpanded(!isCompetencyExpanded)}
+                  >
                     <Layers className="w-4 h-4 text-brand-purple" />
                     Kompetensi Pembelajaran ({competencies?.length || 0})
-                  </span>
-                  {!isReadOnly && (onOpenAddProgramCompetency || onOpenAddCompetency) && (
+                    {isCompetencyExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-muted-foreground ml-2" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />
+                    )}
+                  </h4>
+                  {!isReadOnly && onOpenAddCompetency && (
                     <Button
-                      onClick={onOpenAddProgramCompetency || onOpenAddCompetency}
+                      onClick={onOpenAddCompetency}
                       size="sm"
                       variant="outline"
                       className="h-8 text-xs flex items-center gap-1.5 cursor-pointer border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10"
@@ -433,14 +445,23 @@ export function MentorClassesView({
                       Tambah Kompetensi
                     </Button>
                   )}
-                </h4>
-                <div className="grid gap-2">
-                  {competencies && competencies.length > 0 ? (
-                    competencies.map((comp: any, idx: number) => (
-                      <div
-                        key={comp.id || idx}
-                        className="flex items-center justify-between p-3 rounded-lg border border-border bg-brand-purple/5 hover:bg-brand-purple/10 transition-colors h-14"
-                      >
+                </div>
+
+                <AnimatePresence>
+                  {isCompetencyExpanded && (
+                    <motion.div 
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      className="space-y-3 overflow-hidden"
+                    >
+                      <div className="grid gap-2">
+                        {competencies && competencies.length > 0 ? (
+                          competencies.map((comp: any, idx: number) => (
+                            <div
+                              key={comp.id || idx}
+                              className="flex items-center justify-between p-3 rounded-lg border border-border bg-brand-purple/5 hover:bg-brand-purple/10 transition-colors h-14"
+                            >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="w-8 h-8 rounded-lg bg-brand-purple/10 flex items-center justify-center text-brand-purple font-bold text-xs shrink-0">
                             K{idx + 1}
@@ -497,6 +518,9 @@ export function MentorClassesView({
                     </p>
                   )}
                 </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* 2. Materials Section */}

@@ -24,6 +24,7 @@ interface MentorModalsProps {
   isAddCompetencyModalOpen: boolean;
   setIsAddCompetencyModalOpen: (v: boolean) => void;
   handleCreateCompetency: (e: React.FormEvent<HTMLFormElement>) => void;
+  isFormSubmitting?: boolean;
 
   // Edit Competency Modal
   editingCompetency: CompetencyItem | null;
@@ -99,6 +100,7 @@ export function MentorModals({
   isAddCompetencyModalOpen,
   setIsAddCompetencyModalOpen,
   handleCreateCompetency,
+  isFormSubmitting,
   editingCompetency,
   setEditingCompetency,
   handleUpdateCompetency,
@@ -216,8 +218,8 @@ export function MentorModals({
                 >
                   Batal
                 </Button>
-                <Button type="submit" className="bg-brand-purple hover:bg-brand-purple-hover text-white">
-                  Simpan
+                <Button type="submit" disabled={isFormSubmitting} className="bg-brand-purple hover:bg-brand-purple-hover text-white">
+                  {isFormSubmitting ? "Menyimpan..." : "Simpan"}
                 </Button>
               </div>
             </form>
@@ -283,8 +285,8 @@ export function MentorModals({
                 >
                   Batal
                 </Button>
-                <Button type="submit" className="bg-brand-purple hover:bg-brand-purple-hover text-white">
-                  Simpan
+                <Button type="submit" disabled={isFormSubmitting} className="bg-brand-purple hover:bg-brand-purple-hover text-white">
+                  {isFormSubmitting ? "Menyimpan..." : "Simpan"}
                 </Button>
               </div>
             </form>
