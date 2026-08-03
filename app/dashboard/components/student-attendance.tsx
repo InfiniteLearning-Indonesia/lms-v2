@@ -280,7 +280,7 @@ export function StudentAttendance({ batchId, studentId }: { batchId: string, stu
           <CardHeader className="py-4 pb-2">
             <CardTitle className="text-sm font-semibold text-brand-purple flex items-center justify-between">
               <span className="flex items-center gap-2">
-                <CalendarIcon className="w-4 h-4" /> Kehadiran (Opsi A)
+                <CalendarIcon className="w-4 h-4" /> Kehadiran
               </span>
               <span className="text-[10px] font-normal text-brand-purple bg-brand-purple/10 px-2 py-0.5 rounded-md">
                 {requiredActiveDaysCount} Hari Wajib
