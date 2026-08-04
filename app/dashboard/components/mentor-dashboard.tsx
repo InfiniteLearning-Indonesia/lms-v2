@@ -1739,6 +1739,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
           <MentorAttendance
             batchId={(selectedClassId ? classes.find((c) => c.id === selectedClassId)?.batchId : "") || ""}
             mentorId={profile?.id || ""}
+            classId={selectedClassId || undefined}
           />
         </TabsContent>
 

@@ -13,7 +13,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/
 import { TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 
-export function MentorAttendance({ batchId, mentorId, programName }: { batchId: string, mentorId: string, programName?: string }) {
+export function MentorAttendance({ batchId, mentorId, classId, programName }: { batchId: string, mentorId: string, classId?: string, programName?: string }) {
   const [loading, setLoading] = useState(true);
   const [attendanceSubTab, setAttendanceSubTab] = useState<'calendar' | 'recap'>('calendar');
   const [recapMonth, setRecapMonth] = useState<Date>(new Date());
@@ -81,9 +81,21 @@ export function MentorAttendance({ batchId, mentorId, programName }: { batchId: 
         });
         if (classesRes.ok) {
           const classes = await classesRes.json();
-          const activeClass = classes.find((c: any) => c.batchId === batchId);
-          if (activeClass && activeClass.enrolledStudents && activeClass.enrolledStudents.length > 0) {
-            batchStudents = activeClass.enrolledStudents;
+          const activeClass = classId
+            ? classes.find((c: any) => c.id === classId)
+            : classes.find((c: any) => c.batchId === batchId);
+
+          if (activeClass) {
+            let stList = activeClass.enrolledStudents || [];
+            if (stList.length === 0 && activeClass.programId) {
+              const sameProgramClass = classes.find(
+                (c: any) => c.programId === activeClass.programId && c.batchId === batchId && c.enrolledStudents?.length > 0
+              );
+              if (sameProgramClass) {
+                stList = sameProgramClass.enrolledStudents;
+              }
+            }
+            batchStudents = stList;
           }
         }
       } catch (e) {}
