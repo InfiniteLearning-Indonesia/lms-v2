@@ -974,7 +974,7 @@ export function MentorModals({
         (() => {
           const compAssignments = classes.flatMap((cls: any) =>
             (cls.assignments || []).filter(
-              (a: any) => a.competency === editingWeightCompetency.id
+              (a: any) => a.competency === editingWeightCompetency.name
             )
           );
           return (
