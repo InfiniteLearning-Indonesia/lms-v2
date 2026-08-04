@@ -16,8 +16,9 @@ export interface ClassLinkItem {
 interface ManageClassLinksModalProps {
   isOpen: boolean;
   onClose: () => void;
-  programId: string;
-  programName: string;
+  programId?: string | null;
+  classId?: string | null;
+  programName?: string;
   initialLinks?: ClassLinkItem[];
   onSuccess?: () => void;
 }
@@ -33,6 +34,7 @@ export function ManageClassLinksModal({
   isOpen,
   onClose,
   programId,
+  classId,
   programName,
   initialLinks = [],
   onSuccess,
@@ -75,7 +77,7 @@ export function ManageClassLinksModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!programId) return;
+    if (!classId && !programId) return;
 
     setIsSubmitting(true);
     try {
@@ -86,7 +88,11 @@ export function ManageClassLinksModal({
         iconType: item.iconType || "link",
       }));
 
-      const res = await fetch(`${API_BASE_URL}/classes/programs/${programId}/links`, {
+      const endpoint = classId
+        ? `${API_BASE_URL}/classes/${classId}/links`
+        : `${API_BASE_URL}/classes/programs/${programId}/links`;
+
+      const res = await fetch(endpoint, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ links: cleanedLinks }),
@@ -124,7 +130,7 @@ export function ManageClassLinksModal({
             <div>
               <h3 className="font-heading font-extrabold text-lg text-foreground flex items-center gap-2">
                 <Link2 className="w-5 h-5 text-brand-purple" />
-                Kelola Link Penting Kelas: {programName}
+                Kelola Link Penting Kelas{programName ? `: ${programName}` : ""}
               </h3>
               <p className="text-xs text-muted-foreground mt-1">
                 Atur link Zoom, roadmap, drive rekaman, dan kontak SR yang akan tampil di banner dasbor mentor & siswa.

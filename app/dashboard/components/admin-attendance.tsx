@@ -527,6 +527,70 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
                 </div>
               </div>
             )}
+
+            {/* Per-Mentor Breakdown Table (Only shown when "Semua Mentor" filter is active) */}
+            {selectedDateAtts.length > 0 && selectedMentor === "all" && mentorsList.length > 0 && (
+              <div className="mt-8 border-t border-border pt-6 space-y-4 font-sans">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-heading font-bold text-sm text-foreground flex items-center gap-2">
+                    <Users className="w-4 h-4 text-brand-purple" />
+                    Rincian Kehadiran Per-Mentor
+                  </h4>
+                  <span className="text-xs text-muted-foreground font-medium">
+                    Menampilkan {mentorsList.length} Mentor
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto rounded-xl border border-border bg-card shadow-2xs">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-secondary/40 text-muted-foreground font-semibold uppercase tracking-wider text-[10px] border-b border-border">
+                      <tr>
+                        <th className="px-4 py-3">Nama Mentor</th>
+                        <th className="px-4 py-3 text-center">Hadir</th>
+                        <th className="px-4 py-3 text-center">Izin / Sakit</th>
+                        <th className="px-4 py-3 text-center">Alpha</th>
+                        <th className="px-4 py-3 text-center">Total Absen</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/60">
+                      {mentorsList.map((mentor: any) => {
+                        const mAtts = selectedDateAtts.filter((a) => a.mentorId === mentor.id);
+                        const mHadir = mAtts.filter((a) => a.status.includes('Hadir')).length;
+                        const mIzin = mAtts.filter((a) => a.status.includes('Izin') || a.status.includes('Sakit')).length;
+                        const mAlpha = mAtts.filter((a) => a.status === 'Alpha').length;
+                        const mTotal = mAtts.length;
+
+                        return (
+                          <tr key={mentor.id} className="hover:bg-secondary/20 transition-colors">
+                            <td className="px-4 py-3 font-semibold text-foreground flex items-center gap-2">
+                              <div className="w-7 h-7 rounded-full bg-brand-purple/10 text-brand-purple flex items-center justify-center font-bold text-xs shrink-0">
+                                {mentor.name?.charAt(0).toUpperCase() || 'M'}
+                              </div>
+                              <div>
+                                <p className="font-bold">{mentor.name}</p>
+                                <p className="text-[10px] text-muted-foreground">{mentor.email || ''}</p>
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 text-center font-bold text-emerald-600 bg-emerald-50/50">
+                              {mHadir}
+                            </td>
+                            <td className="px-4 py-3 text-center font-bold text-amber-600 bg-amber-50/50">
+                              {mIzin}
+                            </td>
+                            <td className="px-4 py-3 text-center font-bold text-red-600 bg-red-50/50">
+                              {mAlpha}
+                            </td>
+                            <td className="px-4 py-3 text-center font-semibold text-foreground">
+                              {mTotal} Records
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

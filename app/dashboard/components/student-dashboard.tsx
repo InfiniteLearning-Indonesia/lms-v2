@@ -405,7 +405,9 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
           {/* Quick Links Widget inside Banner */}
           {(() => {
             const firstCls = (activeClasses[0] || classes[0]) as any;
-            const classLinks = firstCls?.importantLinks || firstCls?.program?.importantLinks || [];
+            const classLinks = firstCls?.importantLinks && firstCls.importantLinks.length > 0
+              ? firstCls.importantLinks
+              : (firstCls?.program?.importantLinks || []);
             const activeLinks = (classLinks || []).filter((l: any) => l.url && l.url.trim() !== "");
             if (activeLinks.length === 0) return null;
 

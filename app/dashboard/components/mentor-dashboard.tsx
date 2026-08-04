@@ -43,6 +43,7 @@ import { CompetencyItem, MentorClass, MentorDashboardProps } from "./mentor/type
 import { MentorClassesView } from "./mentor/mentor-classes-view";
 import { MentorStudentsView } from "./mentor/mentor-students-view";
 import { MentorAssessmentView } from "./mentor/mentor-assessment-view";
+import { ManageClassLinksModal } from "./admin/modals/manage-class-links-modal";
 import { MentorProfileSettings } from "./mentor/mentor-profile-settings";
 import { MentorPastBatches } from "./mentor/mentor-past-batches";
 import { MentorModals } from "./mentor/modals/mentor-modals";
@@ -67,6 +68,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("classes");
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+  const [isManageClassLinksModalOpen, setIsManageClassLinksModalOpen] = useState(false);
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
 
   const uniquePrograms = Array.from(new Map(
@@ -1322,6 +1324,20 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+              {!isSecondaryProgram && selectedClassId && (
+                <Button
+                  onClick={() => setIsManageClassLinksModalOpen(true)}
+                  className="bg-brand-yellow hover:bg-brand-yellow/90 text-brand-purple-dark font-bold text-xs shadow-sm cursor-pointer border-0"
+                >
+                  <Link2 className="w-3.5 h-3.5 mr-1.5" />
+                  Kelola Link Kelas
+                </Button>
+              )}
+              {isSecondaryProgram && (
+                <span className="text-[11px] text-white/70 italic bg-white/10 px-3 py-1.5 rounded-lg border border-white/10" title="Link kelas diatur oleh Mentor Utama program ini">
+                  Link diatur Mentor Utama
+                </span>
+              )}
               <Button
                 onClick={fetchMentorData}
                 variant="outline"
@@ -1335,7 +1351,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
           {/* Quick Links Widget inside Banner */}
           {(() => {
-            const classLinks = (selectedCls as any)?.importantLinks || (selectedCls as any)?.program?.importantLinks || [];
+            const cls = selectedCls as any;
+            const classLinks = cls?.importantLinks && cls.importantLinks.length > 0
+              ? cls.importantLinks
+              : (cls?.program?.importantLinks || []);
             const activeLinks = (classLinks || []).filter((l: any) => l.url && l.url.trim() !== "");
             if (activeLinks.length === 0) return null;
 
@@ -1901,6 +1920,18 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         availableCompetencies={activeCompetencies}
         onSaveMapping={handleRemapCompetencies}
         isSubmitting={isRemapping}
+      />
+      <ManageClassLinksModal
+        isOpen={isManageClassLinksModalOpen}
+        onClose={() => setIsManageClassLinksModalOpen(false)}
+        classId={selectedClassId || undefined}
+        programName={selectedCls?.program?.name || "Kelas Saya"}
+        initialLinks={
+          (selectedCls as any)?.importantLinks && (selectedCls as any).importantLinks.length > 0
+            ? (selectedCls as any).importantLinks
+            : ((selectedCls as any)?.program?.importantLinks || [])
+        }
+        onSuccess={fetchMentorData}
       />
     </div>
   );
