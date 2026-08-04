@@ -1327,7 +1327,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
               {!isSecondaryProgram && selectedClassId && (
                 <Button
                   onClick={() => setIsManageClassLinksModalOpen(true)}
-                  className="bg-brand-yellow hover:bg-brand-yellow/90 text-brand-purple-dark font-bold text-xs shadow-sm cursor-pointer border-0"
+                  className="bg-white/10 hover:bg-white/20 text-white border-white/20 hover:text-white transition-all text-xs shadow-sm cursor-pointer"
                 >
                   <Link2 className="w-3.5 h-3.5 mr-1.5" />
                   Kelola Link Kelas
