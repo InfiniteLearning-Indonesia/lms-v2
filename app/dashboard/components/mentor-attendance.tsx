@@ -23,7 +23,7 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [batch, setBatch] = useState<any>(null);
   const [month, setMonth] = useState<Date>(new Date());
-  
+
   const [students, setStudents] = useState<any[]>([]);
   const [allAttendances, setAllAttendances] = useState<any[]>([]);
   const [modalAttendances, setModalAttendances] = useState<Record<string, string>>({});
@@ -81,46 +81,30 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
         });
         if (classesRes.ok) {
           const classes = await classesRes.json();
+          let activeClass = null;
           if (classId) {
-            const activeClass = classes.find((c: any) => c.id === classId);
-            if (activeClass) {
-              let stList = activeClass.enrolledStudents || [];
-              if (stList.length === 0 && activeClass.programId) {
-                const sameProgramClass = classes.find(
-                  (c: any) => c.programId === activeClass.programId && c.batchId === batchId && c.enrolledStudents?.length > 0
-                );
-                if (sameProgramClass) {
-                  stList = sameProgramClass.enrolledStudents;
-                }
-              }
-              batchStudents = stList;
-            }
-          } else {
-            // Facilitator or Program-wide View: Aggregate students across all mentor classes in the program & batch
-            const matchingClasses = classes.filter((c: any) => {
-              if (c.batchId !== batchId) return false;
-              if (!programName) return true;
-              return c.program?.name?.toLowerCase() === programName.toLowerCase();
-            });
+            activeClass = classes.find((c: any) => c.id === classId);
+          } else if (programName) {
+            activeClass = classes.find((c: any) => c.batchId === batchId && c.program?.name?.toLowerCase() === programName.toLowerCase());
+          }
+          if (!activeClass) {
+            activeClass = classes.find((c: any) => c.batchId === batchId);
+          }
 
-            const stMap = new Map<string, any>();
-            matchingClasses.forEach((clsItem: any) => {
-              (clsItem.enrolledStudents || []).forEach((st: any) => {
-                if (st && st.id) stMap.set(st.id, st);
-              });
-            });
-
-            if (stMap.size > 0) {
-              batchStudents = Array.from(stMap.values());
-            } else {
-              const activeClass = classes.find((c: any) => c.batchId === batchId);
-              if (activeClass && activeClass.enrolledStudents) {
-                batchStudents = activeClass.enrolledStudents;
+          if (activeClass) {
+            let stList = activeClass.enrolledStudents || [];
+            if (stList.length === 0 && activeClass.programId) {
+              const sameProgramClass = classes.find(
+                (c: any) => c.programId === activeClass.programId && c.batchId === batchId && c.enrolledStudents?.length > 0
+              );
+              if (sameProgramClass) {
+                stList = sameProgramClass.enrolledStudents;
               }
             }
+            batchStudents = stList;
           }
         }
-      } catch (e) {}
+      } catch (e) { }
 
       if (batchStudents.length === 0 && Array.isArray(batchData)) {
         const targetBatch = batchData.find((b: any) => b.id === batchId);
@@ -192,10 +176,10 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
   // Update modal state when date is selected
   useEffect(() => {
     if (!selectedDate || students.length === 0) return;
-    
+
     const tzOffset = selectedDate.getTimezoneOffset() * 60000;
     const localDateStr = (new Date(selectedDate.getTime() - tzOffset)).toISOString().split('T')[0];
-    
+
     const attData: Record<string, string> = {};
     const dateAtts = allAttendances.filter(d => d.date.startsWith(localDateStr));
     dateAtts.forEach(d => {
@@ -273,14 +257,14 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
     const isFriday = dayOfWeek === 5;
     const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
-    const isActive = activeDays.some(d => 
-      d.getDate() === date.getDate() && 
-      d.getMonth() === date.getMonth() && 
+    const isActive = activeDays.some(d =>
+      d.getDate() === date.getDate() &&
+      d.getMonth() === date.getMonth() &&
       d.getFullYear() === date.getFullYear()
     );
 
     const today = new Date();
-    today.setHours(0,0,0,0);
+    today.setHours(0, 0, 0, 0);
     const isToday = date.getTime() === today.getTime();
 
     // Calculate stats
@@ -352,7 +336,7 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
     }
 
     return (
-      <div 
+      <div
         {...props}
         onClick={(e) => {
           if (inBatchRange && !holiday && !isFriday && !isWeekend) {
@@ -396,10 +380,10 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
 
   for (let d = 1; d <= daysInMonth; d++) {
     const iterDate = new Date(month.getFullYear(), month.getMonth(), d);
-    
+
     // Format to local date string yyyy-mm-dd safely
     const iterLocalDateStr = new Date(iterDate.getTime() - iterDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-    
+
     // Check if it's an active day (not holiday, not weekend, not Friday Asynchronous, and in activeDays)
     const isDayActive = activeDays.some(ad => ad.getDate() === iterDate.getDate() && ad.getMonth() === iterDate.getMonth());
     const isHoliday = holidays.some(h => h.date === iterLocalDateStr);
@@ -408,12 +392,12 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
 
     if (isDayActive && !isHoliday && !isWeekend && !isFriday) {
       activeDaysMonth++;
-      
+
       const dayAtts = allAttendances.filter(a => a.date.startsWith(iterLocalDateStr));
       const hadirCount = dayAtts.filter(a => a.status.includes('Hadir')).length;
       const izinCount = dayAtts.filter(a => a.status.includes('Izin') || a.status.includes('Sakit')).length;
       const alphaCount = dayAtts.filter(a => a.status === 'Alpha').length;
-      
+
       chartData.push({
         name: d.toString(),
         Hadir: hadirCount,
@@ -436,27 +420,27 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
 
   const isPrevRecapDisabled = batchStart
     ? (recapMonth.getFullYear() < batchStart.getFullYear() ||
-        (recapMonth.getFullYear() === batchStart.getFullYear() && recapMonth.getMonth() <= batchStart.getMonth()))
+      (recapMonth.getFullYear() === batchStart.getFullYear() && recapMonth.getMonth() <= batchStart.getMonth()))
     : false;
 
   const isNextRecapDisabled = batchEnd
     ? (recapMonth.getFullYear() > batchEnd.getFullYear() ||
-        (recapMonth.getFullYear() === batchEnd.getFullYear() && recapMonth.getMonth() >= batchEnd.getMonth()))
+      (recapMonth.getFullYear() === batchEnd.getFullYear() && recapMonth.getMonth() >= batchEnd.getMonth()))
     : false;
 
   // ── RECAP MONTH COMPUTATIONS ──
   const recapDaysInMonth = new Date(recapMonth.getFullYear(), recapMonth.getMonth() + 1, 0).getDate();
   let totalActiveDaysMonth = 0;
-  
+
   for (let d = 1; d <= recapDaysInMonth; d++) {
     const iterDate = new Date(recapMonth.getFullYear(), recapMonth.getMonth(), d);
     const iterLocalDateStr = new Date(iterDate.getTime() - iterDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-    
+
     const isDayActive = activeDays.some(ad => ad.getDate() === iterDate.getDate() && ad.getMonth() === iterDate.getMonth());
     const isHoliday = holidays.some(h => h.date === iterLocalDateStr);
     const isWeekend = iterDate.getDay() === 0 || iterDate.getDay() === 6;
     const isFriday = iterDate.getDay() === 5;
-    
+
     if (isDayActive && !isHoliday && !isWeekend && !isFriday) {
       totalActiveDaysMonth++;
     }
@@ -492,11 +476,10 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
           <Button
             variant={attendanceSubTab === "calendar" ? "default" : "ghost"}
             onClick={() => setAttendanceSubTab("calendar")}
-            className={`rounded-xl text-xs font-semibold gap-2 py-2 cursor-pointer transition-all ${
-              attendanceSubTab === "calendar"
+            className={`rounded-xl text-xs font-semibold gap-2 py-2 cursor-pointer transition-all ${attendanceSubTab === "calendar"
                 ? "bg-brand-purple text-white hover:bg-brand-purple/90 shadow-xs"
                 : "text-muted-foreground hover:bg-secondary"
-            }`}
+              }`}
           >
             <CalendarIcon className="w-4 h-4" />
             Input & Kalender Absensi
@@ -504,11 +487,10 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
           <Button
             variant={attendanceSubTab === "recap" ? "default" : "ghost"}
             onClick={() => setAttendanceSubTab("recap")}
-            className={`rounded-xl text-xs font-semibold gap-2 py-2 cursor-pointer transition-all ${
-              attendanceSubTab === "recap"
+            className={`rounded-xl text-xs font-semibold gap-2 py-2 cursor-pointer transition-all ${attendanceSubTab === "recap"
                 ? "bg-brand-purple text-white hover:bg-brand-purple/90 shadow-xs"
                 : "text-muted-foreground hover:bg-secondary"
-            }`}
+              }`}
           >
             <PieIcon className="w-4 h-4" />
             Rekap Absensi Bulanan
@@ -532,7 +514,7 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
                 Persentase dan rincian statistik kehadiran seluruh siswa per bulan.
               </p>
             </div>
-            
+
             <div className="flex items-center gap-3 bg-secondary/50 p-1.5 rounded-xl border border-border">
               <Button
                 variant="ghost"
@@ -805,13 +787,12 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
                             </td>
                             <td className="py-3 px-4 text-center">
                               <span
-                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                                  sPct >= 80
+                                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${sPct >= 80
                                     ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                                     : sPct >= 70
-                                    ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
-                                    : "bg-red-500/10 text-red-600 border border-red-500/20"
-                                }`}
+                                      ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                                      : "bg-red-500/10 text-red-600 border border-red-500/20"
+                                  }`}
                               >
                                 {sPct}%
                               </span>
@@ -847,7 +828,7 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
                   </AlertDescription>
                 </Alert>
               )}
-              
+
               <div className="w-full bg-background rounded-xl border p-4 shadow-sm">
                 <Calendar
                   mode="single"
@@ -897,17 +878,17 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                        <XAxis 
-                          dataKey="name" 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tickMargin={10} 
-                          tick={{ fill: '#6b7280', fontSize: 12 }} 
+                        <XAxis
+                          dataKey="name"
+                          axisLine={false}
+                          tickLine={false}
+                          tickMargin={10}
+                          tick={{ fill: '#6b7280', fontSize: 12 }}
                         />
-                        <YAxis 
-                          axisLine={false} 
-                          tickLine={false} 
-                          tick={{ fill: '#6b7280', fontSize: 12 }} 
+                        <YAxis
+                          axisLine={false}
+                          tickLine={false}
+                          tick={{ fill: '#6b7280', fontSize: 12 }}
                           allowDecimals={false}
                         />
                         <Tooltip content={<ChartTooltipContent />} />
@@ -1141,9 +1122,8 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
             const isExtraAsync = !isFriday && mentorAsyncDays.some((a: any) => a.date === localDateStr);
 
             return (
-              <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-sans ${
-                isAsync ? "bg-emerald-500/10 border-emerald-500/30" : "bg-secondary/30 border-border"
-              }`}>
+              <div className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 font-sans ${isAsync ? "bg-emerald-500/10 border-emerald-500/30" : "bg-secondary/30 border-border"
+                }`}>
                 <div>
                   <h4 className="text-xs font-bold text-foreground flex items-center gap-2">
                     <CalendarDays className="w-4 h-4 text-brand-purple" />
@@ -1153,8 +1133,8 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
                     {isFriday
                       ? "✨ Hari Jumat secara otomatis merupakan Hari Asynchronous Wajib (Pembelajaran Mandiri / Tugas). Absensi tatap muka dinonaktifkan."
                       : isExtraAsync
-                      ? "✨ Hari ini ditandai sebagai +1 Hari Asynchronous Tambahan Mentor. Absensi tatap muka dinonaktifkan."
-                      : "Hari aktif tatap muka reguler. Anda dapat menambah +1 Hari Asynchronous Tambahan (kuota 1x per minggu)."}
+                        ? "✨ Hari ini ditandai sebagai +1 Hari Asynchronous Tambahan Mentor. Absensi tatap muka dinonaktifkan."
+                        : "Hari aktif tatap muka reguler. Anda dapat menambah +1 Hari Asynchronous Tambahan (kuota 1x per minggu)."}
                   </p>
                 </div>
 
@@ -1250,8 +1230,8 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
                             ) : status ? (
                               <Badge variant="outline" className={
                                 status.includes('Hadir') ? 'bg-emerald-100 text-emerald-800 border-emerald-200 py-1 px-3 text-xs' :
-                                status.includes('Izin') ? 'bg-amber-100 text-amber-800 border-amber-200 py-1 px-3 text-xs' :
-                                'bg-red-100 text-red-800 border-red-200 py-1 px-3 text-xs'
+                                  status.includes('Izin') ? 'bg-amber-100 text-amber-800 border-amber-200 py-1 px-3 text-xs' :
+                                    'bg-red-100 text-red-800 border-red-200 py-1 px-3 text-xs'
                               }>
                                 {status}
                               </Badge>
@@ -1270,8 +1250,8 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
                                   Izin via Form
                                 </div>
                               ) : (
-                                <Select 
-                                  value={status || ""} 
+                                <Select
+                                  value={status || ""}
                                   onValueChange={(val) => val && handleStatusChange(student.id, val)}
                                 >
                                   <SelectTrigger className="w-[200px] h-12 text-sm">
@@ -1300,8 +1280,8 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
             <Button variant="outline" size="lg" onClick={() => setIsModalOpen(false)} disabled={saving}>
               Batal & Tutup
             </Button>
-            <Button 
-              onClick={handleSave} 
+            <Button
+              onClick={handleSave}
               size="lg"
               disabled={saving || students.length === 0}
               className="bg-brand-purple hover:bg-brand-purple-hover text-white gap-2 font-bold px-8"
