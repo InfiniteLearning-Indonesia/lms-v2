@@ -864,7 +864,7 @@ export function MentorAssessmentView({
 
                           {/* Syllabus Attendance Column (Extracted) */}
                           {(() => {
-                            const attComp = displayComps.find(c => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
+                            const attComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
                             if (attComp) {
                               return (
                                 <th
@@ -890,7 +890,7 @@ export function MentorAssessmentView({
 
                           {/* Syllabus Attendance On-Cam Column (Extracted) */}
                           {(() => {
-                            const oncamComp = displayComps.find(c => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
+                            const oncamComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
                             if (oncamComp) {
                               return (
                                 <th
@@ -982,7 +982,7 @@ export function MentorAssessmentView({
 
                                 {/* Extracted Syllabus Attendance Cell */}
                                 {(() => {
-                                  const attComp = displayComps.find(c => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
+                                  const attComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
                                   if (attComp) {
                                     const att = attendanceScores?.[student.id];
                                     const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
@@ -1010,7 +1010,7 @@ export function MentorAssessmentView({
 
                                 {/* Extracted Syllabus Oncam Cell */}
                                 {(() => {
-                                  const oncamComp = displayComps.find(c => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
+                                  const oncamComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
                                   if (oncamComp) {
                                     const att = attendanceScores?.[student.id];
                                     const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;

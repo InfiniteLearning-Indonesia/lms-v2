@@ -56,6 +56,8 @@ interface MentorClassesViewProps {
   onOpenAddCompetency?: () => void;
   onOpenAddProgramCompetency?: () => void;
   onEditCompetency?: (comp: any) => void;
+  onEditMaterial?: (mat: any) => void;
+  onEditAssignment?: (ass: any) => void;
   competencies?: any[];
   onDeleteMaterial?: (id: string) => void;
   onDeleteAssignment?: (id: string) => void;
@@ -79,6 +81,8 @@ export function MentorClassesView({
   onOpenAddCompetency,
   onOpenAddProgramCompetency,
   onEditCompetency,
+  onEditMaterial,
+  onEditAssignment,
   competencies = [],
   onDeleteMaterial,
   onDeleteAssignment,
@@ -591,6 +595,18 @@ export function MentorClassesView({
                             Lihat Modul
                           </Link>
 
+                          {!isReadOnly && onEditMaterial && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 p-0 border-blue-500/20 hover:bg-blue-50 cursor-pointer"
+                              onClick={() => onEditMaterial(mat)}
+                              title="Edit Materi"
+                            >
+                              <Pencil className="w-3.5 h-3.5 text-blue-500" />
+                            </Button>
+                          )}
+
                           {!isReadOnly && onDeleteMaterial && (
                             <Button
                               variant="outline"
@@ -661,6 +677,18 @@ export function MentorClassesView({
                               Lihat Detail / Periksa Nilai <ChevronRight className="w-3 h-3" />
                             </span>
                           </Link>
+
+                          {!isReadOnly && onEditAssignment && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 p-0 border-blue-500/20 hover:bg-blue-50 cursor-pointer"
+                              onClick={() => onEditAssignment(ass)}
+                              title="Edit Tugas"
+                            >
+                              <Pencil className="w-3.5 h-3.5 text-blue-500" />
+                            </Button>
+                          )}
 
                           {!isReadOnly && onDeleteAssignment && (
                             <Button

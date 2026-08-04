@@ -1,7 +1,7 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { AlertCircle, Loader2, Save, ShieldAlert, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -39,10 +39,20 @@ interface MentorModalsProps {
   handleCreateMaterial: (e: React.FormEvent<HTMLFormElement>) => void;
   competencies: CompetencyItem[];
 
+  // Edit Material Modal
+  editingMaterial?: any;
+  setEditingMaterial?: (v: any) => void;
+  handleUpdateMaterial?: (e: React.FormEvent<HTMLFormElement>) => void;
+
   // Add Assignment Modal
   isAddAssignmentModalOpen: boolean;
   setIsAddAssignmentModalOpen: (v: boolean) => void;
   handleCreateAssignment: (e: React.FormEvent<HTMLFormElement>) => void;
+
+  // Edit Assignment Modal
+  editingAssignment?: any;
+  setEditingAssignment?: (v: any) => void;
+  handleUpdateAssignment?: (e: React.FormEvent<HTMLFormElement>) => void;
 
   // Edit Weight Modal
   editingWeightCompetency: CompetencyItem | null;
@@ -119,6 +129,12 @@ export function MentorModals({
   isAddAssignmentModalOpen,
   setIsAddAssignmentModalOpen,
   handleCreateAssignment,
+  editingMaterial,
+  setEditingMaterial,
+  handleUpdateMaterial,
+  editingAssignment,
+  setEditingAssignment,
+  handleUpdateAssignment,
   editingWeightCompetency,
   setEditingWeightCompetency,
   classes,
@@ -159,6 +175,23 @@ export function MentorModals({
   const [newSyllabusName, setNewSyllabusName] = useState("");
   const [materialRichContent, setMaterialRichContent] = useState("");
   const [assignmentRichContent, setAssignmentRichContent] = useState("");
+
+  useEffect(() => {
+    if (editingMaterial && editingMaterial.type === "text") {
+      setMaterialRichContent(editingMaterial.content || "");
+    }
+  }, [editingMaterial]);
+
+  useEffect(() => {
+    if (editingAssignment) {
+      setAssignmentRichContent(editingAssignment.description || "");
+      if (editingAssignment.selectedRubrics) {
+        setSelectedRubricIds(editingAssignment.selectedRubrics.map((r: any) => r.rubricId));
+      } else {
+        setSelectedRubricIds([]);
+      }
+    }
+  }, [editingAssignment]);
 
   const addSyllabus = () => {
     if (newSyllabusName.trim()) {
@@ -359,6 +392,128 @@ export function MentorModals({
         </div>
       )}
 
+      {/* Edit Material Modal */}
+      {editingMaterial && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border shadow-2xl w-full max-w-3xl sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+            <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
+              Edit Materi
+            </h3>
+            <form onSubmit={handleUpdateMaterial} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Judul Materi
+                </label>
+                <Input
+                  name="title"
+                  required
+                  defaultValue={editingMaterial.title}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Tipe Materi
+                </label>
+                <select
+                  name="type"
+                  required
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
+                  value={materialType}
+                  onChange={(e) => setMaterialType?.(e.target.value)}
+                >
+                  <option value="pdf">PDF</option>
+                  <option value="video">Video</option>
+                  <option value="text">Rich Text Artikel (Tiptap Editor)</option>
+                  <option value="link">Tautan Luar</option>
+                  <option value="custom">Custom Editor (HTML Embed)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Kompetensi Terkait
+                </label>
+                <select
+                  name="competency"
+                  required
+                  defaultValue={editingMaterial.competency}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
+                >
+                  <option value="">Pilih Kompetensi...</option>
+                  {competencies.map((c) => (
+                    <option key={c.id} value={c.name}>
+                      {c.name} ({c.category})
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {materialType === "text" ? (
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-foreground">
+                    Isi Materi & Artikel (Rich Text Format)
+                  </label>
+                  <RichTextEditor
+                    content={materialRichContent}
+                    onChange={(html) => setMaterialRichContent(html)}
+                  />
+                  <input type="hidden" name="content" value={materialRichContent} />
+                </div>
+              ) : materialType === "custom" ? (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-foreground">
+                      Kode HTML Embed (Canva, YouTube, dll)
+                    </label>
+                    <textarea
+                      name="content"
+                      required
+                      defaultValue={editingMaterial.content}
+                      className="w-full p-3 rounded-md border border-input bg-background text-sm font-mono text-foreground"
+                      rows={4}
+                    ></textarea>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-foreground">
+                      Keterangan / Caption (Opsional)
+                    </label>
+                    <textarea
+                      name="caption"
+                      defaultValue={editingMaterial.url}
+                      className="w-full p-3 rounded-md border border-input bg-background text-sm text-foreground"
+                      rows={2}
+                    ></textarea>
+                  </div>
+                </>
+              ) : (
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-foreground">
+                    URL / Link Materi
+                  </label>
+                  <Input
+                    name="url"
+                    required
+                    type="url"
+                    defaultValue={editingMaterial.url}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingMaterial?.(null)}
+                >
+                  Batal
+                </Button>
+                <Button type="submit" className="bg-brand-purple hover:bg-brand-purple-hover text-white">
+                  Simpan Perubahan
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Add Material Modal */}
       {isAddMaterialModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-sans">
@@ -477,6 +632,169 @@ export function MentorModals({
                 </Button>
                 <Button type="submit" className="bg-brand-purple hover:bg-brand-purple-hover text-white">
                   Simpan
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Assignment Modal */}
+      {editingAssignment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs font-sans">
+          <div className="bg-card p-6 sm:p-8 rounded-2xl border border-border shadow-2xl w-full max-w-3xl sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+            <h3 className="font-heading font-bold text-lg mb-4 text-foreground">
+              Edit Tugas Praktik
+            </h3>
+            <form onSubmit={handleUpdateAssignment} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Judul Tugas
+                </label>
+                <Input
+                  name="title"
+                  required
+                  defaultValue={editingAssignment.title}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-foreground">
+                    Tenggat Waktu (Opsional)
+                  </label>
+                  <Input
+                    name="dueDate"
+                    type="date"
+                    defaultValue={editingAssignment.dueDate ? new Date(editingAssignment.dueDate).toISOString().split('T')[0] : ""}
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Kosongkan jika ingin diset default (7 Hari)</p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1 text-foreground">
+                    Kompetensi Terkait
+                  </label>
+                  <select
+                    name="competency"
+                    required
+                    defaultValue={editingAssignment.competency}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
+                  >
+                    <option value="">Pilih Kompetensi...</option>
+                    {competencies.map((c) => (
+                      <option key={c.id} value={c.name}>
+                        {c.name} ({c.category})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Tipe Pengumpulan Tugas
+                </label>
+                <select
+                  name="submissionType"
+                  defaultValue={editingAssignment.submissionType || "file_or_link"}
+                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm text-foreground"
+                >
+                  <option value="file_or_link">File PDF / Link URL Terbuka (Default)</option>
+                  <option value="link_only">Hanya Link URL (Github / Figma / Google Drive)</option>
+                  <option value="file_only">Hanya File Berkas (PDF, ZIP, dll)</option>
+                </select>
+              </div>
+
+              {/* Integrasi dengan Penilaian Assessment (Rubrik) */}
+              <div>
+                <label className="block text-sm font-medium mb-2 text-foreground flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-emerald-500" />
+                  Kaitkan dengan Rubrik (Assessment)
+                </label>
+                <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg border border-emerald-100 dark:border-emerald-900/30">
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Pilih rubrik dan sub-rubrik mana yang akan dinilai secara otomatis saat mentor menilai tugas ini. Nilai pada tugas akan diteruskan secara pro-rata ke sub-rubrik yang dipilih.
+                  </p>
+                  
+                  <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                    {rubrikAssessments?.map((ra: any) => (
+                      <div key={ra.id} className="space-y-2">
+                        <div className="font-semibold text-xs bg-white dark:bg-black/40 px-2 py-1.5 rounded border border-border shadow-xs">
+                          {ra.name} ({ra.phase.toUpperCase()})
+                        </div>
+                        <div className="pl-3 space-y-1.5 border-l-2 border-emerald-500/20 ml-2">
+                          {ra.subAssessments?.map((sub: any) => {
+                            const isSelected = selectedRubricIds.includes(sub.id);
+                            return (
+                              <label key={sub.id} className="flex items-start gap-2 cursor-pointer group">
+                                <input
+                                  type="checkbox"
+                                  className="mt-0.5 rounded border-gray-300 text-emerald-600 focus:ring-emerald-600"
+                                  checked={isSelected}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedRubricIds(prev => [...prev, sub.id]);
+                                    } else {
+                                      setSelectedRubricIds(prev => prev.filter(id => id !== sub.id));
+                                    }
+                                  }}
+                                />
+                                <div className="text-xs">
+                                  <span className="font-medium text-foreground group-hover:text-emerald-600 transition-colors">{sub.name}</span>
+                                  <span className="text-muted-foreground ml-1">({sub.weight}%)</span>
+                                </div>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                    {(!rubrikAssessments || rubrikAssessments.length === 0) && (
+                      <p className="text-xs text-center text-muted-foreground italic py-2">
+                        Belum ada rubrik assessment yang dibuat untuk program ini.
+                      </p>
+                    )}
+                  </div>
+                </div>
+                
+                {selectedRubricIds.length > 0 && (
+                  <input 
+                    type="hidden" 
+                    name="selectedRubrics" 
+                    value={JSON.stringify(
+                      rubrikAssessments
+                        ?.flatMap((ra: any) => ra.subAssessments)
+                        .filter((sub: any) => selectedRubricIds.includes(sub.id))
+                        .map((sub: any) => ({
+                          rubricId: sub.id,
+                          rubricName: sub.name,
+                          rubricAssessmentId: sub.rubrikAssessmentId
+                        })) || []
+                    )} 
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1 text-foreground">
+                  Deskripsi & Instruksi Tugas
+                </label>
+                <RichTextEditor
+                  content={assignmentRichContent}
+                  onChange={(html) => setAssignmentRichContent(html)}
+                />
+                <input type="hidden" name="description" value={assignmentRichContent} />
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-border">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditingAssignment?.(null)}
+                >
+                  Batal
+                </Button>
+                <Button type="submit" className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  Simpan Perubahan
                 </Button>
               </div>
             </form>

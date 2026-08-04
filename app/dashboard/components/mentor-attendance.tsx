@@ -423,10 +423,22 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
     : false;
 
   // ── RECAP MONTH COMPUTATIONS ──
-  const recapActiveDays = activeDays.filter(
-    (d) => d.getMonth() === recapMonth.getMonth() && d.getFullYear() === recapMonth.getFullYear()
-  );
-  const totalActiveDaysMonth = recapActiveDays.length;
+  const recapDaysInMonth = new Date(recapMonth.getFullYear(), recapMonth.getMonth() + 1, 0).getDate();
+  let totalActiveDaysMonth = 0;
+  
+  for (let d = 1; d <= recapDaysInMonth; d++) {
+    const iterDate = new Date(recapMonth.getFullYear(), recapMonth.getMonth(), d);
+    const iterLocalDateStr = new Date(iterDate.getTime() - iterDate.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    
+    const isDayActive = activeDays.some(ad => ad.getDate() === iterDate.getDate() && ad.getMonth() === iterDate.getMonth());
+    const isHoliday = holidays.some(h => h.date === iterLocalDateStr);
+    const isWeekend = iterDate.getDay() === 0 || iterDate.getDay() === 6;
+    const isFriday = iterDate.getDay() === 5;
+    
+    if (isDayActive && !isHoliday && !isWeekend && !isFriday) {
+      totalActiveDaysMonth++;
+    }
+  }
 
   const recapAttendances = allAttendances.filter((a) => {
     const d = new Date(a.date);

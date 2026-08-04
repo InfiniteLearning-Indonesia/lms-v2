@@ -121,8 +121,8 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
   const displayRAs = rubrikAssessments.filter((r) => r.phase === activePhaseUpper);
   const hasRAs = displayRAs.length > 0;
 
-  const attComp = displayComps.find((c) => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
-  const oncamComp = displayComps.find((c) => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
+  const attComp = competencies.find((c) => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
+  const oncamComp = competencies.find((c) => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
   const regularComps = displayComps.filter(c => !c.name?.toLowerCase().includes("attendance"));
 
   const filteredStudents = students.filter(

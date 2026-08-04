@@ -331,6 +331,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [isAddRubrikAssessmentModalOpen, setIsAddRubrikAssessmentModalOpen] = useState(false);
   const [isAddMaterialModalOpen, setIsAddMaterialModalOpen] = useState(false);
   const [isAddAssignmentModalOpen, setIsAddAssignmentModalOpen] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState<any>(null);
+  const [editingAssignment, setEditingAssignment] = useState<any>(null);
   const [materialType, setMaterialType] = useState("pdf");
 
   const [weightUpdates, setWeightUpdates] = useState<Record<string, number>>({});
@@ -1048,7 +1050,85 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       toast.error("Terjadi kesalahan koneksi.");
     }
   };
+  const handleUpdateMaterial = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingMaterial) return;
+    const formData = new FormData(e.currentTarget);
+    const rawSelectedRubrics = formData.get("selectedRubrics") as string;
+    let selectedRubrics = null;
+    if (rawSelectedRubrics) {
+      try {
+        selectedRubrics = JSON.parse(rawSelectedRubrics);
+      } catch (err) { }
+    }
 
+    try {
+      const res = await fetch(`${API_BASE_URL}/classes/material/${editingMaterial.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.get("title"),
+          type: formData.get("type"),
+          competency: formData.get("competency"),
+          url: formData.get("url") || formData.get("caption") || "",
+          content: formData.get("content") || "",
+          selectedRubrics,
+        }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        toast.success("Materi pembelajaran berhasil diperbarui!");
+        setEditingMaterial(null);
+        fetchMentorData();
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Gagal memperbarui materi.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
+    }
+  };
+
+  const handleUpdateAssignment = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingAssignment) return;
+    const formData = new FormData(e.currentTarget);
+    const rawSelectedRubrics = formData.get("selectedRubrics") as string;
+    let selectedRubrics = null;
+    if (rawSelectedRubrics) {
+      try {
+        selectedRubrics = JSON.parse(rawSelectedRubrics);
+      } catch (err) { }
+    }
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/classes/assignment/${editingAssignment.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: formData.get("title"),
+          description: formData.get("description"),
+          competency: formData.get("competency"),
+          selectedRubrics,
+          dueDate: formData.get("dueDate"),
+          submissionType: formData.get("submissionType"),
+        }),
+        credentials: "include",
+      });
+      if (res.ok) {
+        toast.success("Tugas praktik berhasil diperbarui!");
+        setEditingAssignment(null);
+        fetchMentorData();
+      } else {
+        const error = await res.json();
+        toast.error(error.message || "Gagal memperbarui tugas.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error("Terjadi kesalahan koneksi.");
+    }
+  };
   const handleDeleteMaterial = async (id: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/classes/materials/${id}`, {
@@ -1588,6 +1668,11 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             handleDistributeModulo={handleDistributeModulo}
             onOpenAddMaterial={() => setIsAddMaterialModalOpen(true)}
             onOpenAddAssignment={() => setIsAddAssignmentModalOpen(true)}
+            onEditMaterial={(mat) => {
+              setEditingMaterial(mat);
+              setMaterialType(mat.type || "pdf");
+            }}
+            onEditAssignment={(ass) => setEditingAssignment(ass)}
             onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
             onOpenAddProgramCompetency={() => setIsAddProgramCompetencyModalOpen(true)}
             onEditCompetency={(comp) => setEditingCompetency(comp)}
@@ -1865,6 +1950,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         handleUpdateCompetency={handleUpdateCompetency}
         isAddMaterialModalOpen={isAddMaterialModalOpen}
         setIsAddMaterialModalOpen={setIsAddMaterialModalOpen}
+        editingMaterial={editingMaterial}
+        setEditingMaterial={setEditingMaterial}
         materialType={materialType}
         setMaterialType={setMaterialType}
         handleCreateMaterial={handleCreateMaterial}
@@ -1872,7 +1959,11 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         competencies={activeCompetencies}
         isAddAssignmentModalOpen={isAddAssignmentModalOpen}
         setIsAddAssignmentModalOpen={setIsAddAssignmentModalOpen}
+        editingAssignment={editingAssignment}
+        setEditingAssignment={setEditingAssignment}
         handleCreateAssignment={handleCreateAssignment}
+        handleUpdateAssignment={handleUpdateAssignment}
+        handleUpdateMaterial={handleUpdateMaterial}
         editingWeightCompetency={editingWeightCompetency}
         setEditingWeightCompetency={setEditingWeightCompetency}
         classes={classes}
