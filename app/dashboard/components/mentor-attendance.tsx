@@ -81,21 +81,43 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
         });
         if (classesRes.ok) {
           const classes = await classesRes.json();
-          const activeClass = classId
-            ? classes.find((c: any) => c.id === classId)
-            : classes.find((c: any) => c.batchId === batchId);
+          if (classId) {
+            const activeClass = classes.find((c: any) => c.id === classId);
+            if (activeClass) {
+              let stList = activeClass.enrolledStudents || [];
+              if (stList.length === 0 && activeClass.programId) {
+                const sameProgramClass = classes.find(
+                  (c: any) => c.programId === activeClass.programId && c.batchId === batchId && c.enrolledStudents?.length > 0
+                );
+                if (sameProgramClass) {
+                  stList = sameProgramClass.enrolledStudents;
+                }
+              }
+              batchStudents = stList;
+            }
+          } else {
+            // Facilitator or Program-wide View: Aggregate students across all mentor classes in the program & batch
+            const matchingClasses = classes.filter((c: any) => {
+              if (c.batchId !== batchId) return false;
+              if (!programName) return true;
+              return c.program?.name?.toLowerCase() === programName.toLowerCase();
+            });
 
-          if (activeClass) {
-            let stList = activeClass.enrolledStudents || [];
-            if (stList.length === 0 && activeClass.programId) {
-              const sameProgramClass = classes.find(
-                (c: any) => c.programId === activeClass.programId && c.batchId === batchId && c.enrolledStudents?.length > 0
-              );
-              if (sameProgramClass) {
-                stList = sameProgramClass.enrolledStudents;
+            const stMap = new Map<string, any>();
+            matchingClasses.forEach((clsItem: any) => {
+              (clsItem.enrolledStudents || []).forEach((st: any) => {
+                if (st && st.id) stMap.set(st.id, st);
+              });
+            });
+
+            if (stMap.size > 0) {
+              batchStudents = Array.from(stMap.values());
+            } else {
+              const activeClass = classes.find((c: any) => c.batchId === batchId);
+              if (activeClass && activeClass.enrolledStudents) {
+                batchStudents = activeClass.enrolledStudents;
               }
             }
-            batchStudents = stList;
           }
         }
       } catch (e) {}
