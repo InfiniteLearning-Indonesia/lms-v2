@@ -93,24 +93,64 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
     fetchHistory();
   }, [profile?.id]);
 
-  // Handle Multi Proof Files (Images and PDF)
-  const handleProofFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
+  // Helper: Compress Image to max 1280px to prevent 413 Payload Too Large / Network Error
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      if (file.type === "application/pdf" || !file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+        return;
+      }
 
-    Array.from(files).forEach((file) => {
+      const img = new Image();
       const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Data = event.target?.result as string;
-        if (base64Data) {
-          setProofFiles((prev) => [
-            ...prev,
-            { name: file.name, type: file.type, data: base64Data },
-          ]);
+      reader.onload = (e) => {
+        img.src = e.target?.result as string;
+      };
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const MAX_WIDTH = 1280;
+        const MAX_HEIGHT = 1280;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
         }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx?.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", 0.75));
       };
       reader.readAsDataURL(file);
     });
+  };
+
+  // Handle Multi Proof Files (Images and PDF)
+  const handleProofFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (const file of Array.from(files)) {
+      const base64Data = await compressImage(file);
+      if (base64Data) {
+        setProofFiles((prev) => [
+          ...prev,
+          { name: file.name, type: file.type, data: base64Data },
+        ]);
+      }
+    }
   };
 
   const removeProofFile = (index: number) => {
@@ -118,27 +158,23 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
   };
 
   // Handle Chat Screenshot Files (Images Only)
-  const handleChatFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChatFilesChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    Array.from(files).forEach((file) => {
+    for (const file of Array.from(files)) {
       if (!file.type.startsWith("image/")) {
         toast.error("Bukti chat mentor hanya menerima format gambar (PNG, JPG, WEBP).");
-        return;
+        continue;
       }
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64Data = event.target?.result as string;
-        if (base64Data) {
-          setChatFiles((prev) => [
-            ...prev,
-            { name: file.name, type: file.type, data: base64Data },
-          ]);
-        }
-      };
-      reader.readAsDataURL(file);
-    });
+      const base64Data = await compressImage(file);
+      if (base64Data) {
+        setChatFiles((prev) => [
+          ...prev,
+          { name: file.name, type: file.type, data: base64Data },
+        ]);
+      }
+    }
   };
 
   const removeChatFile = (index: number) => {
@@ -158,6 +194,22 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
 
     if (!reason.trim()) {
       setSubmitMessage({ type: "error", text: "Mohon isi alasan izin Anda." });
+      return;
+    }
+
+    if (proofFiles.length === 0) {
+      setSubmitMessage({
+        type: "error",
+        text: "Mohon lampirkan minimal 1 file Bukti Dokumen / Surat Dokter.",
+      });
+      return;
+    }
+
+    if (chatFiles.length === 0) {
+      setSubmitMessage({
+        type: "error",
+        text: "Mohon lampirkan minimal 1 file Tangkapan Layar Chat Mentor.",
+      });
       return;
     }
 
