@@ -43,8 +43,16 @@ export default function DashboardPage() {
 
   const fetchProfile = async () => {
     try {
-      const existingToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
       const searchParams = new URLSearchParams(window.location.search);
+      const urlToken = searchParams.get("token");
+      if (urlToken) {
+        localStorage.setItem("auth_token", urlToken);
+        const url = new URL(window.location.href);
+        url.searchParams.delete("token");
+        window.history.replaceState({}, "", url.toString());
+      }
+
+      const existingToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
       const code = searchParams.get("code");
       
       if (code) {

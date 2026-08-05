@@ -71,6 +71,7 @@ function LoginContent() {
       }
 
       setSuccess("Login berhasil! Mengalihkan ke dasbor...");
+      localStorage.setItem("auth_token", data.token);
       setTimeout(() => {
         router.push(`/dashboard?token=${data.token}`);
       }, 500);
@@ -114,6 +115,7 @@ function LoginContent() {
 
       setIsSetupModalOpen(false);
       setSuccess("Password berhasil dibuat! Mengalihkan ke dasbor...");
+      localStorage.setItem("auth_token", data.token);
       setTimeout(() => {
         router.push(`/dashboard?token=${data.token}`);
       }, 500);
