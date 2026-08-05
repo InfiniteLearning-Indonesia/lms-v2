@@ -43,32 +43,39 @@ export default function DashboardPage() {
 
   const fetchProfile = async () => {
     try {
+      const existingToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
       const searchParams = new URLSearchParams(window.location.search);
       const code = searchParams.get("code");
       
       if (code) {
-        // Exchange code for token
-        const exchangeRes = await fetch(`${API_BASE_URL}/auth/exchange-code`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({ code }),
-          credentials: "include",
-        });
-        
-        if (!exchangeRes.ok) {
-          throw new Error("Gagal memverifikasi login.");
+        try {
+          // Exchange code for token
+          const exchangeRes = await fetch(`${API_BASE_URL}/auth/exchange-code`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({ code }),
+            credentials: "include",
+          });
+          
+          if (exchangeRes.ok) {
+            const data = await exchangeRes.json();
+            localStorage.setItem("auth_token", data.token);
+          } else if (!existingToken) {
+            throw new Error("Gagal memverifikasi login.");
+          }
+        } catch (exchangeErr) {
+          if (!existingToken) {
+            throw exchangeErr;
+          }
+        } finally {
+          // Always strip code parameter from URL to prevent re-submitting on back/forward
+          const url = new URL(window.location.href);
+          url.searchParams.delete("code");
+          window.history.replaceState({}, "", url.toString());
         }
-        
-        const data = await exchangeRes.json();
-        localStorage.setItem("auth_token", data.token);
-        
-        // Remove code from URL
-        const url = new URL(window.location.href);
-        url.searchParams.delete("code");
-        window.history.replaceState({}, "", url.toString());
       }
       
       const token = localStorage.getItem("auth_token");
