@@ -139,15 +139,6 @@ export function AdminProgramsList({
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {onOpenManageLinks && (
-                          <button
-                            onClick={() => onOpenManageLinks(prog)}
-                            className="px-3 py-1.5 rounded-lg border border-brand-purple/30 bg-brand-purple/5 hover:bg-brand-purple/10 text-brand-purple font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer"
-                          >
-                            <Link2 className="w-3.5 h-3.5" />
-                            Link Penting
-                          </button>
-                        )}
                         <button
                           onClick={() => onOpenProgramDetail(prog)}
                           className="px-3.5 py-1.5 rounded-lg bg-brand-purple hover:bg-brand-purple-hover text-white font-semibold text-xs transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
