@@ -487,6 +487,9 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
         const d = await res.json();
         setDistributeMessage(d.message || "Distribusi Modulo berhasil dijalankan.");
         fetchMentorData();
+      } else {
+        const errData = await res.json().catch(() => null);
+        toast.error(errData?.message || "Gagal menjalankan distribusi modulo.");
       }
     } catch (err) {
       console.error("Gagal distribusi modulo:", err);

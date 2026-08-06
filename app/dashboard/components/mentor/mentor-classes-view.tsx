@@ -422,7 +422,7 @@ export function MentorClassesView({
                       )}
                     </div>
                     <p className="text-2xs text-muted-foreground leading-relaxed">
-                      Sistem akan membagi siswa secara setara dan merata ke seluruh mentor yang mengampu program ini sebagai program utama.
+                      Sistem akan mendistribusikan mentee baru secara merata ke mentor yang tersedia. (Alokasi mentee yang sudah terdistribusi tidak akan berubah/tertimpa).
                     </p>
                     {distributeMessage && (
                       <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs font-medium flex items-center gap-2">
