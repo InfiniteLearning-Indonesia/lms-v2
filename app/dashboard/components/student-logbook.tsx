@@ -3,18 +3,20 @@
 import { API_BASE_URL } from "@/lib/config";
 
 import { useEffect, useState } from "react";
-import { Notebook, Calendar, Loader2, AlertCircle, CheckCircle2, FileEdit, Send, Lock } from "lucide-react";
+import { Notebook, Calendar, Loader2, AlertCircle, CheckCircle2, FileEdit, Send, Lock, BookOpen, X, Info } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function StudentLogbook({ batchId }: { batchId: string }) {
-  const [data, setData] = useState<{ totalMonths: number, startDate?: string, logbooks: any[] } | null>(null);
+  const [data, setData] = useState<{ totalMonths: number, startDate?: string, logbooks: any[], logbookSchedule?: any[] } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const [selectedMonth, setSelectedMonth] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const [q1, setQ1] = useState("");
   const [q2, setQ2] = useState("");
@@ -132,6 +134,13 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
   const isPending = currentLog?.status === "pending";
   
   const isMonthLocked = (m: number) => {
+    if (data.logbookSchedule && data.logbookSchedule.length > 0) {
+      const schedule = data.logbookSchedule.find(s => s.monthIndex === m);
+      if (schedule && schedule.startDate) {
+        return new Date() < new Date(schedule.startDate);
+      }
+    }
+    // Fallback logic
     if (!data.startDate) return false;
     const start = new Date(data.startDate);
     const target = new Date(start.setMonth(start.getMonth() + (m - 1)));
@@ -188,10 +197,19 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
             <CardHeader className="border-b border-border bg-secondary/20 pb-4">
               <div className="flex justify-between items-start gap-4">
                 <div>
-                  <CardTitle className="text-xl font-heading font-bold flex items-center gap-2">
-                    <Notebook className="w-5 h-5 text-brand-purple" />
-                    Logbook Bulan ke-{selectedMonth}
-                  </CardTitle>
+                  <div className="flex items-center gap-3">
+                    <CardTitle className="text-xl font-heading font-bold flex items-center gap-2">
+                      <Notebook className="w-5 h-5 text-brand-purple" />
+                      Logbook Bulan ke-{selectedMonth}
+                    </CardTitle>
+                    <button
+                      onClick={() => setIsGuideOpen(true)}
+                      className="px-2.5 py-1 bg-brand-yellow/10 text-brand-yellow hover:bg-brand-yellow/20 rounded-md text-[10px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      Panduan Pengisian
+                    </button>
+                  </div>
                   <CardDescription className="text-xs text-muted-foreground mt-1">
                     Isi kegiatan dan progress Anda selama sebulan terakhir. Minimal 200 kata total. 50 kata per pertanyaan.
                   </CardDescription>
@@ -312,6 +330,84 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
           </Card>
         </div>
       </div>
+
+      <AnimatePresence>
+        {isGuideOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsGuideOpen(false)}
+              className="absolute inset-0 bg-background/80 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative z-10 bg-card border border-border rounded-xl shadow-xl max-w-2xl w-full p-6 space-y-4 max-h-[90vh] overflow-y-auto"
+            >
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <h3 className="font-heading font-bold text-base text-foreground flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-brand-yellow" />
+                  Panduan Pengisian Logbook
+                </h3>
+                <button onClick={() => setIsGuideOpen(false)} className="text-muted-foreground hover:text-foreground">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <Alert className="bg-brand-purple/5 border-brand-purple/20">
+                  <Info className="w-4 h-4 text-brand-purple" />
+                  <AlertTitle className="text-brand-purple font-bold">Informasi Penting</AlertTitle>
+                  <AlertDescription className="text-xs">
+                    Logbook wajib diisi dengan minimal <strong>200 kata total</strong> (rata-rata 50 kata per pertanyaan).
+                    Logbook bulan ke-1 harus berstatus <span className="text-emerald-500 font-semibold">Accepted</span> untuk dapat mengakses transkrip nilai, dan logbook bulan ke-1 sampai ke-4 harus berstatus <span className="text-emerald-500 font-semibold">Accepted</span> untuk dapat mengakses sertifikat.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-2 border rounded-lg overflow-hidden">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-secondary/50 text-foreground font-semibold">
+                      <tr>
+                        <th className="px-4 py-2 border-b">Bulan Logbook</th>
+                        <th className="px-4 py-2 border-b">Tanggal Buka</th>
+                        <th className="px-4 py-2 border-b">Tanggal Tutup</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border bg-card">
+                      {months.map(m => {
+                        let startDate = "Menunggu info jadwal";
+                        let endDate = "Menunggu info jadwal";
+                        if (data.logbookSchedule && data.logbookSchedule.length > 0) {
+                          const sched = data.logbookSchedule.find((s: any) => s.monthIndex === m);
+                          if (sched?.startDate) startDate = new Date(sched.startDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+                          if (sched?.endDate) endDate = new Date(sched.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+                        } else if (data.startDate) {
+                          const start = new Date(data.startDate);
+                          const targetStart = new Date(start.setMonth(start.getMonth() + (m - 1)));
+                          const targetEnd = new Date(targetStart.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days later
+                          startDate = targetStart.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+                          endDate = targetEnd.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) + " (Estimasi)";
+                        }
+
+                        return (
+                          <tr key={m}>
+                            <td className="px-4 py-2 font-medium">Bulan {m}</td>
+                            <td className="px-4 py-2">{startDate}</td>
+                            <td className="px-4 py-2">{endDate}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

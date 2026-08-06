@@ -411,38 +411,72 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
             const activeLinks = (classLinks || []).filter((l: any) => l.url && l.url.trim() !== "");
             if (activeLinks.length === 0) return null;
 
-            return (
-              <div className="pt-4 border-t border-white/10 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white flex items-center gap-1.5 font-heading">
-                    <Link2 className="w-3.5 h-3.5 text-brand-yellow" />
-                    Tautan Cepat & Link Penting Kelas
-                  </span>
-                  <span className="text-[10px] text-white/60 font-medium">
-                    {activeLinks.length} Tautan Tersedia
-                  </span>
-                </div>
+            const mandatoryLinks = activeLinks.filter((l: any) => l.scope === "mandatory");
+            const personalLinks = activeLinks.filter((l: any) => l.scope !== "mandatory");
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
-                  {activeLinks.map((item: any) => (
-                    <a
-                      key={item.id || item.title}
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="group flex items-center justify-between p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 backdrop-blur-md transition-all duration-200"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="p-1.5 rounded-lg bg-brand-yellow/20 text-brand-yellow group-hover:scale-105 transition-transform shrink-0">
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </div>
-                        <span className="text-xs font-medium text-white truncate group-hover:text-brand-yellow transition-colors">
-                          {item.title}
-                        </span>
-                      </div>
-                    </a>
-                  ))}
-                </div>
+            return (
+              <div className="pt-4 border-t border-white/10 space-y-4">
+                {mandatoryLinks.length > 0 && (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white flex items-center gap-1.5 font-heading">
+                        <Link2 className="w-3.5 h-3.5 text-brand-yellow" />
+                        📌 Link Wajib (Semua Program)
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                      {mandatoryLinks.map((item: any) => (
+                        <a
+                          key={item.id || item.title}
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex items-center justify-between p-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-brand-yellow/30 backdrop-blur-md transition-all duration-200 shadow-sm shadow-brand-yellow/10"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="p-1.5 rounded-lg bg-brand-yellow/20 text-brand-yellow group-hover:scale-105 transition-transform shrink-0">
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="text-xs font-medium text-white truncate group-hover:text-brand-yellow transition-colors">
+                              {item.title}
+                            </span>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {personalLinks.length > 0 && (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white/80 flex items-center gap-1.5 font-heading">
+                        <Link2 className="w-3.5 h-3.5 text-white/60" />
+                        🔗 Link Tambahan Kelas Ini
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5">
+                      {personalLinks.map((item: any) => (
+                        <a
+                          key={item.id || item.title}
+                          href={item.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="group flex items-center justify-between p-2.5 rounded-xl bg-white/5 hover:bg-white/15 border border-white/10 backdrop-blur-md transition-all duration-200"
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <div className="p-1.5 rounded-lg bg-white/10 text-white/70 group-hover:scale-105 transition-transform shrink-0">
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </div>
+                            <span className="text-xs font-medium text-white/90 truncate group-hover:text-white transition-colors">
+                              {item.title}
+                            </span>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })()}

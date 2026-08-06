@@ -235,6 +235,12 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const [newBatchName, setNewBatchName] = useState("");
   const [newBatchStartDate, setNewBatchStartDate] = useState("");
   const [newBatchEndDate, setNewBatchEndDate] = useState("");
+  const [newBatchLogbookSchedule, setNewBatchLogbookSchedule] = useState<{ monthIndex: number; startDate: string; endDate: string }[]>([
+    { monthIndex: 1, startDate: "", endDate: "" },
+    { monthIndex: 2, startDate: "", endDate: "" },
+    { monthIndex: 3, startDate: "", endDate: "" },
+    { monthIndex: 4, startDate: "", endDate: "" },
+  ]);
   const [newBatchStatus, setNewBatchStatus] = useState<"draft" | "active">("draft");
   const [selectedProgramIdsForBatch, setSelectedProgramIdsForBatch] = useState<string[]>([]);
   const [customProgramInput, setCustomProgramInput] = useState("");
@@ -245,6 +251,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
   const [editBatchName, setEditBatchName] = useState("");
   const [editBatchStartDate, setEditBatchStartDate] = useState("");
   const [editBatchEndDate, setEditBatchEndDate] = useState("");
+  const [editBatchLogbookSchedule, setEditBatchLogbookSchedule] = useState<{ monthIndex: number; startDate: string; endDate: string }[]>([]);
   const [editBatchIncludedProgramIds, setEditBatchIncludedProgramIds] = useState<string[]>([]);
   const [isSubmittingEditBatch, setIsSubmittingEditBatch] = useState(false);
 
@@ -760,6 +767,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
           status: newBatchStatus,
           includedProgramIds: selectedProgramIdsForBatch,
           customPrograms: customProgramInput ? customProgramInput.split(",").map((p) => p.trim()) : [],
+          logbookSchedule: newBatchLogbookSchedule,
         }),
       });
 
@@ -794,6 +802,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
           startDate: editBatchStartDate || undefined,
           endDate: editBatchEndDate || undefined,
           includedProgramIds: editBatchIncludedProgramIds,
+          logbookSchedule: editBatchLogbookSchedule,
         }),
       });
 
@@ -1103,6 +1112,12 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
             onOpenCreateBatch={() => {
               setNewBatchName("");
               setNewBatchStatus("draft");
+              setNewBatchLogbookSchedule([
+                { monthIndex: 1, startDate: "", endDate: "" },
+                { monthIndex: 2, startDate: "", endDate: "" },
+                { monthIndex: 3, startDate: "", endDate: "" },
+                { monthIndex: 4, startDate: "", endDate: "" },
+              ]);
               setSelectedProgramIdsForBatch(
                 programsData?.programs?.map((p: any) => p.id) || []
               );
@@ -1124,6 +1139,16 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
               );
               setEditBatchEndDate(
                 b.endDate ? new Date(b.endDate).toISOString().split("T")[0] : ""
+              );
+              setEditBatchLogbookSchedule(
+                b.logbookSchedule && b.logbookSchedule.length > 0
+                  ? b.logbookSchedule
+                  : [
+                      { monthIndex: 1, startDate: "", endDate: "" },
+                      { monthIndex: 2, startDate: "", endDate: "" },
+                      { monthIndex: 3, startDate: "", endDate: "" },
+                      { monthIndex: 4, startDate: "", endDate: "" },
+                    ]
               );
               setIsEditBatchModalOpen(true);
             }}
@@ -1283,6 +1308,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         programsList={programsData?.programs || []}
         selectedProgramIds={selectedProgramIdsForBatch}
         setSelectedProgramIds={setSelectedProgramIdsForBatch}
+        logbookSchedule={newBatchLogbookSchedule}
+        setLogbookSchedule={setNewBatchLogbookSchedule}
         customProgramInput={customProgramInput}
         setCustomProgramInput={setCustomProgramInput}
         isSubmitting={isSubmittingCreateBatch}
@@ -1299,6 +1326,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         setStartDate={setEditBatchStartDate}
         endDate={editBatchEndDate}
         setEndDate={setEditBatchEndDate}
+        logbookSchedule={editBatchLogbookSchedule}
+        setLogbookSchedule={setEditBatchLogbookSchedule}
         programsList={programsData?.programs || []}
         includedProgramIds={editBatchIncludedProgramIds}
         setIncludedProgramIds={setEditBatchIncludedProgramIds}

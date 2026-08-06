@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
@@ -44,6 +45,14 @@ interface GradeData {
   finalScore: number;
   predicate: string;
   isCertificateReleased?: boolean;
+  isTranscriptReleased?: boolean;
+  logbookCompletionStatus?: {
+    allAccepted: boolean;
+    month1Accepted: boolean;
+    totalRequired: number;
+    totalAccepted: number;
+    firstIncompleteMonth: number | null;
+  };
 }
 
 export function StudentCertificateView({ profile }: { profile: any }) {
@@ -192,24 +201,61 @@ export function StudentCertificateView({ profile }: { profile: any }) {
 
       {/* Print Target Wrapper */}
       <div id="printable-area" className="space-y-6">
-        {!activeGrade.isCertificateReleased ? (
-          <Card className="border border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 p-12 text-center space-y-4 font-sans">
-            <div className="w-16 h-16 rounded-full bg-amber-500/20 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
-              <Lock className="w-8 h-8" />
-            </div>
-            <h3 className="font-heading font-bold text-xl text-foreground">
-              Dokumen Akademik Belum Dirilis oleh Mentor
-            </h3>
-            <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-              Transkrip Nilai dan Sertifikat Kelulusan untuk program <strong className="text-foreground">{activeGrade.program.name}</strong> belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.
-            </p>
-            <div className="pt-2">
-              <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-500/10 px-3 py-1 font-semibold text-xs">
-                Status: Menunggu Rilis Official Mentor
-              </Badge>
-            </div>
-          </Card>
-        ) : subTab === "transcript" ? (
+        {(() => {
+          let isBlocked = false;
+          let blockTitle = "";
+          let blockMessage = "";
+          let blockReason = "";
+
+          if (subTab === "transcript") {
+            if (!activeGrade.isTranscriptReleased) {
+              isBlocked = true;
+              blockTitle = "Transkrip Nilai Belum Dirilis oleh Mentor";
+              blockMessage = `Transkrip Nilai untuk program ${activeGrade.program.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
+              blockReason = "Menunggu Rilis Official Mentor";
+            } else if (!activeGrade.logbookCompletionStatus?.month1Accepted) {
+              isBlocked = true;
+              blockTitle = "Logbook Bulan ke-1 Belum Disetujui";
+              blockMessage = `Transkrip Nilai sudah dirilis, namun Anda belum bisa mengaksesnya karena Logbook bulan ke-1 Anda belum diisi atau belum berstatus Accepted oleh mentor. Silakan lengkapi Logbook bulan ke-1 terlebih dahulu.`;
+              blockReason = "Syarat Logbook Bulan 1 Belum Terpenuhi";
+            }
+          } else {
+            // Certificate & Internship Certificate
+            if (!activeGrade.isCertificateReleased) {
+              isBlocked = true;
+              blockTitle = "Sertifikat Belum Dirilis oleh Mentor";
+              blockMessage = `Sertifikat Kelulusan untuk program ${activeGrade.program.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
+              blockReason = "Menunggu Rilis Official Mentor";
+            } else if (!activeGrade.logbookCompletionStatus?.allAccepted) {
+              isBlocked = true;
+              blockTitle = "Logbook Belum Lengkap (Bulan 1 - 4)";
+              blockMessage = `Sertifikat Kelulusan sudah dirilis, namun Anda belum bisa mengaksesnya karena seluruh Logbook (Bulan 1 sampai 4) belum berstatus Accepted. Silakan lengkapi logbook Anda yang masih berstatus Pending/Revision.`;
+              blockReason = "Syarat Logbook 4 Bulan Belum Terpenuhi";
+            }
+          }
+
+          if (isBlocked) {
+            return (
+              <Card className="border border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 p-12 text-center space-y-4 font-sans">
+                <div className="w-16 h-16 rounded-full bg-amber-500/20 text-amber-600 flex items-center justify-center mx-auto shadow-xs">
+                  <Lock className="w-8 h-8" />
+                </div>
+                <h3 className="font-heading font-bold text-xl text-foreground">
+                  {blockTitle}
+                </h3>
+                <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  {blockMessage}
+                </p>
+                <div className="pt-2">
+                  <Badge variant="outline" className="border-amber-500/40 text-amber-600 bg-amber-500/10 px-3 py-1 font-semibold text-xs">
+                    Status: {blockReason}
+                  </Badge>
+                </div>
+              </Card>
+            );
+          }
+
+          return subTab === "transcript" ? (
           /* ── VIEW TRANSKRIP NILAI (MICRO PHASE) ── */
           <Card className="border border-border/60 shadow-md bg-card overflow-hidden">
             <CardHeader className="border-b border-border/60 bg-secondary/20 pb-6">
@@ -377,7 +423,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                     : "Telah secara sukses menyelesaikan seluruh rangkaian Program Studi Independen (Stupen) & Proyek Akhir pada:"}
                 </p>
                 <p className="font-heading font-bold text-base text-foreground">
-                  "{activeGrade.program.name}" ({activeGrade.program.batchName})
+                  `{activeGrade.program.name}` ({activeGrade.program.batchName})
                 </p>
                 {subTab === "internship_certificate" ? (
                   <p className="text-muted-foreground">
@@ -439,8 +485,9 @@ export function StudentCertificateView({ profile }: { profile: any }) {
               </div>
 
             </div>
-          </Card>
-        )}
+            </Card>
+          );
+        })()}
       </div>
     </div>
   );

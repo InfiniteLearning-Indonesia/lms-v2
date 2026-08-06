@@ -11,6 +11,7 @@ export interface ClassLinkItem {
   title: string;
   url: string;
   iconType?: string;
+  scope?: "mandatory" | "personal";
 }
 
 interface ManageClassLinksModalProps {
@@ -24,10 +25,10 @@ interface ManageClassLinksModalProps {
 }
 
 const DEFAULT_LINKS: ClassLinkItem[] = [
-  { id: "1", title: "Link Zoom Kelas Harian", url: "", iconType: "video" },
-  { id: "2", title: "Link Roadmap Program", url: "", iconType: "roadmap" },
-  { id: "3", title: "Link Drive Record Zoom", url: "", iconType: "drive" },
-  { id: "4", title: "Link Student Relation", url: "", iconType: "support" },
+  { id: "1", title: "Link Zoom Kelas Harian", url: "", iconType: "video", scope: "mandatory" },
+  { id: "2", title: "Link Roadmap Program", url: "", iconType: "roadmap", scope: "mandatory" },
+  { id: "3", title: "Link Drive Record Zoom", url: "", iconType: "drive", scope: "mandatory" },
+  { id: "4", title: "Link Student Relation", url: "", iconType: "support", scope: "mandatory" },
 ];
 
 export function ManageClassLinksModal({
@@ -57,7 +58,7 @@ export function ManageClassLinksModal({
     }
   }, [isOpen, initialLinks]);
 
-  const handleLinkChange = (id: string, field: "title" | "url", value: string) => {
+  const handleLinkChange = (id: string, field: "title" | "url" | "scope", value: string) => {
     setLinks((prev) =>
       prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );
@@ -67,7 +68,7 @@ export function ManageClassLinksModal({
     const newId = Date.now().toString();
     setLinks((prev) => [
       ...prev,
-      { id: newId, title: "Link Penting Baru", url: "", iconType: "link" },
+      { id: newId, title: "Link Penting Baru", url: "", iconType: "link", scope: "personal" },
     ]);
   };
 
@@ -86,6 +87,7 @@ export function ManageClassLinksModal({
         title: item.title.trim(),
         url: item.url.trim(),
         iconType: item.iconType || "link",
+        scope: item.scope || "personal",
       }));
 
       const endpoint = classId
@@ -159,6 +161,9 @@ export function ManageClassLinksModal({
                       {item.iconType === "support" && <Headphones className="w-3.5 h-3.5 text-amber-500" />}
                       {(!item.iconType || item.iconType === "link") && <Link2 className="w-3.5 h-3.5 text-brand-purple" />}
                       Space Link #{idx + 1}
+                      {item.scope === "mandatory" && (
+                        <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] bg-brand-purple/20 text-brand-purple font-bold">GLOBAL</span>
+                      )}
                     </span>
                     <button
                       type="button"
@@ -184,8 +189,16 @@ export function ManageClassLinksModal({
                       value={item.url}
                       onChange={(e) => handleLinkChange(item.id, "url", e.target.value)}
                       placeholder="https://..."
-                      className="sm:col-span-2 px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs font-mono focus:outline-none focus:ring-1 focus:ring-brand-purple"
+                      className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs font-mono focus:outline-none focus:ring-1 focus:ring-brand-purple"
                     />
+                    <select
+                      value={item.scope || "personal"}
+                      onChange={(e) => handleLinkChange(item.id, "scope", e.target.value)}
+                      className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-purple"
+                    >
+                      <option value="mandatory">Mandatory (Semua Program)</option>
+                      <option value="personal">Personal Mentee Only</option>
+                    </select>
                   </div>
                 </div>
               ))}

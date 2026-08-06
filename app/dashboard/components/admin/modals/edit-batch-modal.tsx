@@ -17,6 +17,8 @@ interface EditBatchModalProps {
   programsList: Program[];
   includedProgramIds: string[];
   setIncludedProgramIds: (ids: string[]) => void;
+  logbookSchedule: { monthIndex: number; startDate: string; endDate: string }[];
+  setLogbookSchedule: (v: { monthIndex: number; startDate: string; endDate: string }[]) => void;
   isSubmitting: boolean;
   onSubmit: (e: React.FormEvent) => void;
 }
@@ -34,6 +36,8 @@ export function EditBatchModal({
   programsList,
   includedProgramIds,
   setIncludedProgramIds,
+  logbookSchedule,
+  setLogbookSchedule,
   isSubmitting,
   onSubmit,
 }: EditBatchModalProps) {
@@ -159,6 +163,44 @@ export function EditBatchModal({
                       </label>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* Logbook Schedule Section */}
+              <div className="space-y-2 border-t border-b border-border py-3">
+                <label className="text-xs font-semibold text-foreground">Jadwal Pengisian Logbook (Bulan 1 - 4)</label>
+                <div className="space-y-2">
+                  {logbookSchedule.map((schedule, idx) => (
+                    <div key={idx} className="grid grid-cols-[auto_1fr_1fr] items-center gap-3 bg-secondary/30 p-2 rounded-lg border border-border">
+                      <span className="text-xs font-medium w-16">Bulan {schedule.monthIndex}</span>
+                      <div className="space-y-1">
+                        <label className="text-3xs text-muted-foreground uppercase tracking-wider">Mulai</label>
+                        <input
+                          type="date"
+                          value={schedule.startDate ? new Date(schedule.startDate).toISOString().split('T')[0] : ""}
+                          onChange={(e) => {
+                            const newSchedule = [...logbookSchedule];
+                            newSchedule[idx].startDate = e.target.value;
+                            setLogbookSchedule(newSchedule);
+                          }}
+                          className="w-full px-2 py-1.5 rounded-md bg-background border border-input text-foreground text-xs focus:ring-1 focus:ring-brand-purple outline-hidden font-sans"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-3xs text-muted-foreground uppercase tracking-wider">Selesai</label>
+                        <input
+                          type="date"
+                          value={schedule.endDate ? new Date(schedule.endDate).toISOString().split('T')[0] : ""}
+                          onChange={(e) => {
+                            const newSchedule = [...logbookSchedule];
+                            newSchedule[idx].endDate = e.target.value;
+                            setLogbookSchedule(newSchedule);
+                          }}
+                          className="w-full px-2 py-1.5 rounded-md bg-background border border-input text-foreground text-xs focus:ring-1 focus:ring-brand-purple outline-hidden font-sans"
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
