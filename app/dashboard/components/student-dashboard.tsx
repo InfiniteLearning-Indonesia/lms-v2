@@ -411,8 +411,12 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
             const activeLinks = (classLinks || []).filter((l: any) => l.url && l.url.trim() !== "");
             if (activeLinks.length === 0) return null;
 
-            const mandatoryLinks = activeLinks.filter((l: any) => l.scope === "mandatory");
-            const personalLinks = activeLinks.filter((l: any) => l.scope !== "mandatory");
+            const mandatoryLinks = activeLinks.filter((l: any) => l.scope === "mandatory" || l.scope === "restricted");
+            const mandatoryTitles = new Set(mandatoryLinks.map((l: any) => (l.title || '').toLowerCase().trim()));
+            const personalLinks = activeLinks.filter((l: any) => 
+              (l.scope !== "mandatory" && l.scope !== "restricted") && 
+              !mandatoryTitles.has((l.title || '').toLowerCase().trim())
+            );
 
             return (
               <div className="pt-4 border-t border-white/10 space-y-4">

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { API_BASE_URL } from "@/lib/config";
-import { ExternalLink, Link2, Loader2, Plus, Trash2, Video, MapPin, FolderGit2, Headphones, X, CheckCircle2 } from "lucide-react";
+import { ExternalLink, Link2, Loader2, Plus, Trash2, Video, MapPin, FolderGit2, Headphones, X, CheckCircle2, ChevronDown, Check } from "lucide-react";
 import { toast } from "sonner";
 
 export interface ClassLinkItem {
@@ -11,7 +11,8 @@ export interface ClassLinkItem {
   title: string;
   url: string;
   iconType?: string;
-  scope?: "mandatory" | "personal";
+  scope?: "mandatory" | "restricted" | "personal";
+  programs?: string[];
 }
 
 interface ManageClassLinksModalProps {
@@ -24,12 +25,116 @@ interface ManageClassLinksModalProps {
   onSuccess?: () => void;
 }
 
+const AVAILABLE_PROGRAMS = [
+  "Web Development and UI/UX Design",
+  "AI Development",
+  "Mobile Development and UI/UX Design",
+  "Game Development",
+];
+
+const PROGRAM_SHORT_NAMES: Record<string, string> = {
+  "Web Development and UI/UX Design": "Web",
+  "AI Development": "AI",
+  "Mobile Development and UI/UX Design": "Mobile",
+  "Game Development": "Game",
+};
+
 const DEFAULT_LINKS: ClassLinkItem[] = [
   { id: "1", title: "Link Zoom Kelas Harian", url: "", iconType: "video", scope: "mandatory" },
   { id: "2", title: "Link Roadmap Program", url: "", iconType: "roadmap", scope: "mandatory" },
   { id: "3", title: "Link Drive Record Zoom", url: "", iconType: "drive", scope: "mandatory" },
   { id: "4", title: "Link Student Relation", url: "", iconType: "support", scope: "mandatory" },
 ];
+
+function ProgramMultiSelect({
+  selected,
+  onChange,
+}: {
+  selected: string[];
+  onChange: (programs: string[]) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const toggleProgram = (program: string) => {
+    const isGame = program === "Game Development";
+    if (isGame) {
+      // Game is exclusive — selecting it deselects everything else
+      if (selected.includes(program)) {
+        onChange(selected.filter((p) => p !== program));
+      } else {
+        onChange([program]);
+      }
+    } else {
+      // Non-game — remove Game if present, then toggle
+      const withoutGame = selected.filter((p) => p !== "Game Development");
+      if (withoutGame.includes(program)) {
+        onChange(withoutGame.filter((p) => p !== program));
+      } else {
+        onChange([...withoutGame, program]);
+      }
+    }
+  };
+
+  const displayText =
+    selected.length === 0
+      ? "Pilih program..."
+      : selected.map((p) => PROGRAM_SHORT_NAMES[p] || p).join(", ");
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-purple cursor-pointer hover:border-brand-purple/50 transition-colors"
+      >
+        <span className="truncate">{displayText}</span>
+        <ChevronDown className={`w-3.5 h-3.5 ml-1.5 text-muted-foreground transition-transform shrink-0 ${isOpen ? "rotate-180" : ""}`} />
+      </button>
+      {isOpen && (
+        <div className="absolute z-50 mt-1 w-full bg-card border border-border rounded-lg shadow-xl py-1 max-h-48 overflow-y-auto">
+          {AVAILABLE_PROGRAMS.map((program) => {
+            const isSelected = selected.includes(program);
+            const isGame = program === "Game Development";
+            const hasNonGameSelected = selected.some((p) => p !== "Game Development");
+            const isGameSelected = selected.includes("Game Development");
+            // Disable non-game options if Game is selected, and disable Game if non-game is selected
+            const isDisabled = (isGame && hasNonGameSelected && !isGameSelected) || (!isGame && isGameSelected && !isSelected);
+
+            return (
+              <button
+                key={program}
+                type="button"
+                onClick={() => !isDisabled && toggleProgram(program)}
+                disabled={isDisabled}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors cursor-pointer
+                  ${isSelected ? "bg-brand-purple/10 text-brand-purple" : "text-foreground hover:bg-secondary"}
+                  ${isDisabled ? "opacity-40 cursor-not-allowed" : ""}
+                `}
+              >
+                <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-colors ${isSelected ? "bg-brand-purple border-brand-purple" : "border-border"}`}>
+                  {isSelected && <Check className="w-3 h-3 text-white" />}
+                </div>
+                <span className="truncate">{PROGRAM_SHORT_NAMES[program] || program}</span>
+                {isGame && <span className="text-[9px] text-muted-foreground ml-auto">(Eksklusif)</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function ManageClassLinksModal({
   isOpen,
@@ -60,7 +165,21 @@ export function ManageClassLinksModal({
 
   const handleLinkChange = (id: string, field: "title" | "url" | "scope", value: string) => {
     setLinks((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        const updated = { ...item, [field]: value };
+        // Clear programs when switching away from restricted
+        if (field === "scope" && value !== "restricted") {
+          updated.programs = [];
+        }
+        return updated;
+      })
+    );
+  };
+
+  const handleProgramsChange = (id: string, programs: string[]) => {
+    setLinks((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, programs } : item))
     );
   };
 
@@ -80,6 +199,15 @@ export function ManageClassLinksModal({
     e.preventDefault();
     if (!classId && !programId) return;
 
+    // Validate: restricted links must have at least one program selected
+    const invalidRestricted = links.find(
+      (l) => l.scope === "restricted" && (!l.programs || l.programs.length === 0)
+    );
+    if (invalidRestricted) {
+      toast.error(`Link "${invalidRestricted.title}" berskope Restricted tapi belum dipilih program-nya.`);
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const cleanedLinks = links.map((item) => ({
@@ -88,6 +216,7 @@ export function ManageClassLinksModal({
         url: item.url.trim(),
         iconType: item.iconType || "link",
         scope: item.scope || "personal",
+        programs: item.scope === "restricted" ? (item.programs || []) : [],
       }));
 
       const endpoint = classId
@@ -164,6 +293,9 @@ export function ManageClassLinksModal({
                       {item.scope === "mandatory" && (
                         <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] bg-brand-purple/20 text-brand-purple font-bold">GLOBAL</span>
                       )}
+                      {item.scope === "restricted" && (
+                        <span className="ml-2 px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-600 font-bold">RESTRICTED</span>
+                      )}
                     </span>
                     <button
                       type="button"
@@ -197,9 +329,23 @@ export function ManageClassLinksModal({
                       className="px-3 py-2 rounded-lg border border-border bg-background text-foreground text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-brand-purple"
                     >
                       <option value="mandatory">Mandatory (Semua Program)</option>
+                      <option value="restricted">Restricted (Program Tertentu)</option>
                       <option value="personal">Personal Mentee Only</option>
                     </select>
                   </div>
+
+                  {/* Program selector — only shown when scope is restricted */}
+                  {item.scope === "restricted" && (
+                    <div className="pt-1">
+                      <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-1 block">
+                        Tampilkan di program:
+                      </label>
+                      <ProgramMultiSelect
+                        selected={item.programs || []}
+                        onChange={(programs) => handleProgramsChange(item.id, programs)}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
