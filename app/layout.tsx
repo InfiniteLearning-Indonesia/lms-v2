@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   title: "Infinite Learning",
   description:
     "Platform manajemen pembelajaran yang menghubungkan siswa, mentor, dan administrator dalam satu ekosistem digital.",
+  icons: {
+    icon: "/favicon.jpeg",
+    shortcut: "/favicon.jpeg",
+    apple: "/favicon.jpeg",
+  },
 };
 
 export default function RootLayout({
@@ -36,6 +41,11 @@ export default function RootLayout({
       className={`${lexendDeca.variable} ${inclusiveSans.variable} h-full`}
       suppressHydrationWarning
     >
+      <head>
+        <link rel="icon" href="/favicon.jpeg?v=2" type="image/jpeg" />
+        <link rel="shortcut icon" href="/favicon.jpeg?v=2" type="image/jpeg" />
+        <link rel="apple-touch-icon" href="/favicon.jpeg?v=2" />
+      </head>
       <body className="min-h-full flex flex-col font-sans antialiased">
         <ThemeProvider
           attribute="class"
