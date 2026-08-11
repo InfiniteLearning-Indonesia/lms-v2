@@ -296,9 +296,9 @@ export function MentorClassesView({
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2 self-start sm:self-center">
-                  <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-xs font-semibold py-1">
+                  {/* <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-200 text-xs font-semibold py-1">
                     Silabus Berjalan
-                  </Badge>
+                  </Badge> */}
                   <Link
                     href={`/dashboard/class/${selectedCls.id}`}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-purple hover:bg-brand-purple-hover text-white text-xs font-semibold transition-all shadow-sm cursor-pointer"

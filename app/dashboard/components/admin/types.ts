@@ -39,9 +39,13 @@ export interface Program {
   batchesCount?: number;
   mentorsCount?: number;
   studentsCount?: number;
+  activeBatch?: any;
+  batch?: any;
   batches?: Batch[];
   mentors?: { id: string; name: string; email: string }[];
   students?: { id: string; name: string; email: string }[];
+  isTranscriptReleased?: boolean;
+  isCertificateReleased?: boolean;
 }
 
 export interface Batch {
