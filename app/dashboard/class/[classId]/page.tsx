@@ -6,7 +6,7 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   BookOpen,
-  CheckCircle2,
+  ClipboardList,
   ChevronDown,
   ChevronUp,
   FileText,
@@ -219,37 +219,52 @@ export default function ClassDetailPage() {
           );
           if (activeLinks.length === 0) return null;
 
+          const getLinkStyle = (title: string) => {
+            const t = title.toLowerCase();
+            if (t.includes("zoom")) return { bg: "bg-sky-500/10 text-sky-600 border-sky-500/20 hover:border-sky-500/50", iconBg: "bg-sky-500/20 text-sky-600" };
+            if (t.includes("figma")) return { bg: "bg-pink-500/10 text-pink-600 border-pink-500/20 hover:border-pink-500/50", iconBg: "bg-pink-500/20 text-pink-600" };
+            if (t.includes("discord")) return { bg: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 hover:border-indigo-500/50", iconBg: "bg-indigo-500/20 text-indigo-600" };
+            if (t.includes("drive")) return { bg: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:border-emerald-500/50", iconBg: "bg-emerald-500/20 text-emerald-600" };
+            if (t.includes("whatsapp")) return { bg: "bg-green-500/10 text-green-600 border-green-500/20 hover:border-green-500/50", iconBg: "bg-green-500/20 text-green-600" };
+            return { bg: "bg-brand-purple/10 text-brand-purple border-brand-purple/20 hover:border-brand-purple/50", iconBg: "bg-brand-purple/20 text-brand-purple" };
+          };
+
           return (
-            <div className="bg-card border border-border rounded-2xl p-5 shadow-xs space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-foreground flex items-center gap-2 font-heading">
-                  <ExternalLink className="w-4 h-4 text-brand-purple" />
+            <div className="bg-card border border-border/80 rounded-2xl p-5 shadow-xs space-y-3.5">
+              <div className="flex items-center justify-between border-b border-border/50 pb-3">
+                <span className="text-xs font-bold text-foreground flex items-center gap-2 font-heading tracking-wide">
+                  <span className="p-1 rounded-md bg-brand-purple/10 text-brand-purple">
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </span>
                   Akses Cepat & Link Penting Kelas
                 </span>
-                <span className="text-[10px] text-muted-foreground font-medium">
+                <span className="text-[10px] text-muted-foreground font-medium bg-secondary px-2.5 py-1 rounded-full border border-border/60">
                   {activeLinks.length} Tautan Tersedia
                 </span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                {activeLinks.map((item: any) => (
-                  <a
-                    key={item.id || item.title}
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group flex items-center justify-between p-3 rounded-xl border border-border bg-secondary/30 hover:bg-brand-purple/5 hover:border-brand-purple/40 transition-all cursor-pointer shadow-2xs"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="p-1.5 rounded-lg bg-brand-purple/10 text-brand-purple group-hover:scale-105 transition-transform shrink-0">
-                        <ExternalLink className="w-3.5 h-3.5" />
+                {activeLinks.map((item: any) => {
+                  const style = getLinkStyle(item.title);
+                  return (
+                    <a
+                      key={item.id || item.title}
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`group flex items-center justify-between p-3 rounded-xl border ${style.bg} transition-all cursor-pointer shadow-2xs hover:-translate-y-0.5`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className={`p-2 rounded-lg ${style.iconBg} group-hover:scale-110 transition-transform shrink-0`}>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </div>
+                        <span className="text-xs font-semibold truncate">
+                          {item.title}
+                        </span>
                       </div>
-                      <span className="text-xs font-medium text-foreground truncate group-hover:text-brand-purple transition-colors">
-                        {item.title}
-                      </span>
-                    </div>
-                  </a>
-                ))}
+                    </a>
+                  );
+                })}
               </div>
             </div>
           );
@@ -279,38 +294,57 @@ export default function ClassDetailPage() {
               {Object.keys(groupedData).length > 0 ? (
                 Object.entries(groupedData).map(([competency, items]) => {
                   const isExpanded = expandedCompetencies.includes(competency);
+                  const materialsInGroup = items.filter((i) => i.itemType === "material").length;
+                  const assignmentsInGroup = items.filter((i) => i.itemType === "assignment").length;
+
                   return (
                     <div
                       key={competency}
-                      className="border border-border rounded-2xl bg-card overflow-hidden shadow-2xs transition-all duration-200"
+                      className="border border-border/80 rounded-2xl bg-card overflow-hidden shadow-xs hover:border-brand-purple/40 transition-all duration-200"
                     >
                       <button
                         onClick={() => toggleCompetency(competency)}
-                        className="w-full flex items-center justify-between p-5 bg-secondary/15 hover:bg-secondary/30 transition-colors text-left cursor-pointer"
+                        className="w-full flex items-center justify-between p-5 bg-gradient-to-r from-secondary/40 via-secondary/20 to-card hover:from-brand-purple/10 hover:to-card transition-all text-left cursor-pointer border-b border-border/40"
                       >
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-brand-purple/10 text-brand-purple flex items-center justify-center shrink-0">
-                            <Folder className="w-5 h-5" />
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-purple to-indigo-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-brand-purple/20">
+                            <Folder className="w-5 h-5 fill-white/20 text-white" />
                           </div>
                           <div>
-                            <h3 className="font-heading font-bold text-sm sm:text-base text-foreground">
+                            <h3 className="font-heading font-bold text-sm sm:text-base text-foreground tracking-tight flex items-center gap-2">
                               {competency}
                             </h3>
-                            <p className="text-xs text-muted-foreground mt-0.5 font-medium">
-                              {items.length} Item Silabus (Materi & Tugas)
-                            </p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-[11px] text-muted-foreground font-medium">
+                                {items.length} Total Silabus
+                              </span>
+                              <span className="text-[10px] text-brand-purple font-semibold bg-brand-purple/10 px-2 py-0.5 rounded-md border border-brand-purple/20">
+                                {materialsInGroup} Modul
+                              </span>
+                              {assignmentsInGroup > 0 && (
+                                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20">
+                                  {assignmentsInGroup} Tugas
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        {isExpanded ? (
-                          <ChevronUp className="w-5 h-5 text-muted-foreground" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                        )}
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground font-medium hidden sm:inline-block">
+                            {isExpanded ? "Tutup Folder" : "Buka Folder"}
+                          </span>
+                          <div className="p-1.5 rounded-lg bg-secondary text-muted-foreground">
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                          </div>
+                        </div>
                       </button>
 
                       {isExpanded && (
-                        <div className="p-4 pt-2 space-y-3 bg-secondary/5">
-                          <div className="border-t border-border/50 pt-2" />
+                        <div className="p-4 space-y-3 bg-secondary/10">
                           {items.map((item: any) => {
                             if (item.itemType === "material") {
                               const isExternalLink =
@@ -335,9 +369,9 @@ export default function ClassDetailPage() {
                                   key={`mat-${item.id}`}
                                   className="block"
                                 >
-                                  <div className="p-4 border border-border rounded-xl flex items-center justify-between hover:border-brand-purple/50 hover:bg-brand-purple/5 transition-all cursor-pointer bg-card shadow-2xs">
+                                  <div className="p-4 border border-border/80 rounded-xl flex items-center justify-between hover:border-brand-purple hover:bg-brand-purple/5 transition-all cursor-pointer bg-card shadow-2xs group">
                                     <div className="flex items-center gap-3.5 min-w-0">
-                                      <div className="w-9 h-9 rounded-lg bg-brand-purple/10 text-brand-purple flex items-center justify-center shrink-0">
+                                      <div className="w-10 h-10 rounded-xl bg-brand-purple/10 text-brand-purple flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-brand-purple group-hover:text-white transition-all shadow-2xs">
                                         {item.type === "video" ? (
                                           <Video className="w-4 h-4" />
                                         ) : isExternalLink ? (
@@ -347,25 +381,27 @@ export default function ClassDetailPage() {
                                         )}
                                       </div>
                                       <div className="min-w-0">
-                                        <h4 className="font-heading font-semibold text-xs sm:text-sm text-foreground truncate">
+                                        <h4 className="font-heading font-bold text-xs sm:text-sm text-foreground truncate group-hover:text-brand-purple transition-colors">
                                           {item.title}
                                         </h4>
-                                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                                          {item.type === "video"
-                                            ? "Video Pembelajaran"
-                                            : isExternalLink
-                                            ? "Tautan Eksternal"
-                                            : "Materi Teks / PDF"}
-                                          {item.createdAt
-                                            ? ` • Diunggah ${new Date(
-                                                item.createdAt
-                                              ).toLocaleDateString("id-ID")}`
-                                            : ""}
+                                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate flex items-center gap-2">
+                                          <span className="font-medium text-brand-purple/90">
+                                            {item.type === "video"
+                                              ? "Video Pembelajaran"
+                                              : isExternalLink
+                                              ? "Tautan Eksternal"
+                                              : "Modul Dokumen / Teks"}
+                                          </span>
+                                          {item.createdAt && (
+                                            <span>
+                                              • Diunggah {new Date(item.createdAt).toLocaleDateString("id-ID")}
+                                            </span>
+                                          )}
                                         </p>
                                       </div>
                                     </div>
-                                    <Badge variant="outline" className="text-2xs bg-brand-purple/5 text-brand-purple border-brand-purple/20 shrink-0 ml-3">
-                                      Lihat Modul
+                                    <Badge variant="outline" className="text-2xs bg-brand-purple/10 text-brand-purple border-brand-purple/30 group-hover:bg-brand-purple group-hover:text-white transition-all shrink-0 ml-3 font-semibold px-3 py-1">
+                                      Lihat Modul →
                                     </Badge>
                                   </div>
                                 </Link>
@@ -377,24 +413,24 @@ export default function ClassDetailPage() {
                                   key={`ass-${item.id}`}
                                   className="block"
                                 >
-                                  <div className="p-4 border border-emerald-500/30 rounded-xl flex items-center justify-between hover:border-emerald-500 hover:bg-emerald-500/5 transition-all cursor-pointer bg-card shadow-2xs">
+                                  <div className="p-4 border border-amber-500/20 rounded-xl flex items-center justify-between hover:border-amber-500/60 hover:bg-amber-500/5 transition-all cursor-pointer bg-card shadow-2xs group">
                                     <div className="flex items-center gap-3.5 min-w-0">
-                                      <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                                        <CheckCircle2 className="w-4 h-4" />
+                                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-black transition-all shadow-2xs">
+                                        <ClipboardList className="w-4 h-4" />
                                       </div>
                                       <div className="min-w-0">
-                                        <h4 className="font-heading font-semibold text-xs sm:text-sm text-foreground truncate">
+                                        <h4 className="font-heading font-bold text-xs sm:text-sm text-foreground truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                                           {item.title}
                                         </h4>
-                                        <p className="text-[11px] text-muted-foreground mt-0.5">
-                                          Tugas Praktik
+                                        <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
+                                          {item.description ? item.description.replace(/<[^>]*>?/gm, "").trim() : "Tugas Praktik Spesialisasi"}
                                         </p>
                                       </div>
                                     </div>
                                     {item.dueDate && (
                                       <Badge
                                         variant="outline"
-                                        className="text-2xs shrink-0 ml-3 font-mono font-medium border-emerald-500/30 text-emerald-600 bg-emerald-500/10"
+                                        className="text-2xs shrink-0 ml-3 font-mono font-medium border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1"
                                       >
                                         Tenggat:{" "}
                                         {new Date(
@@ -433,24 +469,24 @@ export default function ClassDetailPage() {
                     key={a.id}
                     className="block"
                   >
-                    <div className="p-4 border border-border rounded-xl flex items-center justify-between hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all cursor-pointer bg-card shadow-2xs">
+                    <div className="p-4 border border-amber-500/20 rounded-xl flex items-center justify-between hover:border-amber-500/60 hover:bg-amber-500/5 transition-all cursor-pointer bg-card shadow-2xs group">
                       <div className="flex items-center gap-3.5 min-w-0">
-                        <div className="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                          <CheckCircle2 className="w-4 h-4" />
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-amber-500 group-hover:text-black transition-all shadow-2xs">
+                          <ClipboardList className="w-4 h-4" />
                         </div>
                         <div className="min-w-0">
-                          <h4 className="font-heading font-semibold text-xs sm:text-sm text-foreground truncate">
+                          <h4 className="font-heading font-bold text-xs sm:text-sm text-foreground truncate group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
                             {a.title}
                           </h4>
                           <p className="text-[11px] text-muted-foreground mt-0.5 truncate">
-                            {a.description || "Tugas Praktik Spesialisasi"}
+                            {a.description ? a.description.replace(/<[^>]*>?/gm, "").trim() : "Tugas Praktik Spesialisasi"}
                           </p>
                         </div>
                       </div>
                       {a.dueDate && (
                         <Badge
                           variant="outline"
-                          className="text-2xs shrink-0 ml-3 font-mono font-medium border-emerald-500/30 text-emerald-600 bg-emerald-500/10"
+                          className="text-2xs shrink-0 ml-3 font-mono font-medium border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1"
                         >
                           Tenggat:{" "}
                           {new Date(a.dueDate).toLocaleDateString("id-ID")}
@@ -461,7 +497,7 @@ export default function ClassDetailPage() {
                 ))
               ) : (
                 <div className="p-10 text-center border border-border border-dashed rounded-2xl bg-secondary/10 space-y-2">
-                  <CheckCircle2 className="w-8 h-8 text-muted-foreground/40 mx-auto" />
+                  <ClipboardList className="w-8 h-8 text-amber-500/40 mx-auto" />
                   <h4 className="font-heading font-bold text-sm text-foreground">
                     Belum Ada Tugas Praktik
                   </h4>
