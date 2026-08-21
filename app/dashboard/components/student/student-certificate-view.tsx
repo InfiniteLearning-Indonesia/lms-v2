@@ -112,21 +112,184 @@ export function StudentCertificateView({ profile }: { profile: any }) {
       };
 
       // 1. Replace NIM
-      docXml = docXml.replace("<w:t>23052010030</w:t>", `<w:t>${escapeXml(studentNim)}</w:t>`);
+      docXml = docXml.replace(/<w:t>23052010030<\/w:t>/g, `<w:t>${escapeXml(studentNim)}</w:t>`);
 
       // 2. Replace Name
-      docXml = docXml.replace("<w:t>Meitasari</w:t>", `<w:t>${escapeXml(studentName)}</w:t>`);
+      docXml = docXml.replace(/<w:t>Meitasari<\/w:t>/g, `<w:t>${escapeXml(studentName)}</w:t>`);
 
-      // 3. Replace Study Program (Desain Komunikasi Visual)
+      // 3. Replace Study Program
       const studyProgPattern = /<w:t xml:space="preserve">Desain <\/w:t>[\s\S]*?<w:t xml:space="preserve"> Visual<\/w:t>/;
-      docXml = docXml.replace(studyProgPattern, `<w:t>${escapeXml(studyProgram)}</w:t>`);
+      if (studyProgPattern.test(docXml)) {
+        docXml = docXml.replace(studyProgPattern, `<w:t>${escapeXml(studyProgram)}</w:t>`);
+      } else {
+        docXml = docXml.replace(/<w:t>Desain Komunikasi Visual<\/w:t>/g, `<w:t>${escapeXml(studyProgram)}</w:t>`);
+      }
 
-      // 4. Replace Program Studi Independen (Mobile Development & UI UX Design)
+      // 4. Replace Program Studi Independen
       const progPattern = /<w:t>Mobile<\/w:t>[\s\S]*?<w:t xml:space="preserve"> Development &amp; UI UX Design<\/w:t>/;
-      docXml = docXml.replace(progPattern, `<w:t>${escapeXml(programName)}</w:t>`);
+      if (progPattern.test(docXml)) {
+        docXml = docXml.replace(progPattern, `<w:t>${escapeXml(programName)}</w:t>`);
+      } else {
+        docXml = docXml.replace(/<w:t>Mobile Development &amp; UI UX Design<\/w:t>/g, `<w:t>${escapeXml(programName)}</w:t>`);
+      }
 
       // 5. Replace Date
-      docXml = docXml.replace("<w:t>01 Juli 2026</w:t>", `<w:t>${escapeXml(dateStr)}</w:t>`);
+      docXml = docXml.replace(/<w:t>01 Juli 2026<\/w:t>/g, `<w:t>${escapeXml(dateStr)}</w:t>`);
+
+      // 6. Build dynamic Table 2 rows
+      const allGrades = [...(activeGrade.microItems || []), ...(activeGrade.massiveItems || [])];
+      const softSkills = allGrades.filter((item) => {
+        const n = item.name.toLowerCase();
+        const c = (item.category || "").toLowerCase();
+        return (
+          c.includes("soft") ||
+          n.includes("cca") ||
+          n.includes("communication") ||
+          n.includes("collaboration") ||
+          n.includes("adaptive") ||
+          n.includes("project management") ||
+          n.includes("leadership") ||
+          n.includes("soft skill")
+        );
+      });
+      const hardSkills = allGrades.filter((item) => !softSkills.includes(item));
+
+      const displaySoft =
+        softSkills.length > 0
+          ? softSkills
+          : [
+              {
+                name: "CCA (Communication, Collaboration, Adaptive)",
+                score: activeGrade.totalMicroScore || 89.42,
+              },
+              {
+                name: "Project Management",
+                score: activeGrade.finalScore || 84.46,
+              },
+            ];
+
+      const displayHard =
+        hardSkills.length > 0
+          ? hardSkills
+          : activeGrade.microItems?.length > 0
+          ? activeGrade.microItems
+          : [
+              {
+                name: `${activeGrade.program.name} Core Competency`,
+                score: activeGrade.finalScore || 85.0,
+              },
+            ];
+
+      const makeRow = (idx: number, name: string, score: number) => `
+        <w:tr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:trPr><w:trHeight w:val="450" /></w:trPr>
+          <w:tc>
+            <w:tcPr><w:tcW w:w="705" w:type="dxa" /><w:vAlign w:val="center" /></w:tcPr>
+            <w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr></w:pPr>
+              <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr><w:t>${idx}.</w:t></w:r>
+            </w:p>
+          </w:tc>
+          <w:tc>
+            <w:tcPr><w:tcW w:w="4815" w:type="dxa" /><w:vAlign w:val="center" /></w:tcPr>
+            <w:p><w:pPr><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr></w:pPr>
+              <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr><w:t>${escapeXml(name)}</w:t></w:r>
+            </w:p>
+          </w:tc>
+          <w:tc>
+            <w:tcPr><w:tcW w:w="930" w:type="dxa" /><w:vAlign w:val="center" /></w:tcPr>
+            <w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr></w:pPr>
+              <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr><w:t>${Number(score).toFixed(2)}</w:t></w:r>
+            </w:p>
+          </w:tc>
+          <w:tc>
+            <w:tcPr><w:tcW w:w="2895" w:type="dxa" /><w:vAlign w:val="center" /></w:tcPr>
+            <w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr></w:pPr>
+              <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr><w:t>Final Assessment</w:t></w:r>
+            </w:p>
+          </w:tc>
+        </w:tr>`;
+
+      const makeSectionHeader = (title: string) => `
+        <w:tr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:trPr><w:trHeight w:val="450" /></w:trPr>
+          <w:tc>
+            <w:tcPr><w:tcW w:w="9345" w:type="dxa" /><w:gridSpan w:val="4" /><w:vAlign w:val="center" /></w:tcPr>
+            <w:p><w:pPr><w:spacing w:line="360" w:lineRule="auto" /><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22"/></w:rPr></w:pPr>
+              <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22"/></w:rPr><w:t>${title}</w:t></w:r>
+            </w:p>
+          </w:tc>
+        </w:tr>`;
+
+      let table2Xml = `
+        <w:tbl xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+          <w:tblPr>
+            <w:tblStyle w:val="a0" />
+            <w:tblW w:w="9345" w:type="dxa" />
+            <w:tblInd w:w="0" w:type="dxa" />
+            <w:tblBorders>
+              <w:top w:val="single" w:sz="4" w:space="0" w:color="000000" />
+              <w:left w:val="single" w:sz="4" w:space="0" w:color="000000" />
+              <w:bottom w:val="single" w:sz="4" w:space="0" w:color="000000" />
+              <w:right w:val="single" w:sz="4" w:space="0" w:color="000000" />
+              <w:insideH w:val="single" w:sz="4" w:space="0" w:color="000000" />
+              <w:insideV w:val="single" w:sz="4" w:space="0" w:color="000000" />
+            </w:tblBorders>
+            <w:tblLayout w:type="fixed" />
+            <w:tblLook w:val="0400" />
+          </w:tblPr>
+          <w:tblGrid>
+            <w:gridCol w:w="705" />
+            <w:gridCol w:w="4815" />
+            <w:gridCol w:w="930" />
+            <w:gridCol w:w="2895" />
+          </w:tblGrid>
+          <w:tr>
+            <w:trPr><w:trHeight w:val="488" /></w:trPr>
+            <w:tc>
+              <w:tcPr><w:tcW w:w="9345" w:type="dxa" /><w:gridSpan w:val="4" /><w:vAlign w:val="center" /></w:tcPr>
+              <w:p><w:pPr><w:jc w:val="center" /><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="24" /><w:szCs w:val="24" /></w:rPr></w:pPr>
+                <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="24" /><w:szCs w:val="24" /></w:rPr><w:t>DAFTAR PENILAIAN</w:t></w:r>
+              </w:p>
+            </w:tc>
+          </w:tr>
+          <w:tr>
+            <w:trPr><w:trHeight w:val="488" /></w:trPr>
+            <w:tc>
+              <w:tcPr><w:tcW w:w="705" w:type="dxa" /><w:vAlign w:val="center" /></w:tcPr>
+              <w:p><w:pPr><w:jc w:val="center" /><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22" /><w:szCs w:val="22" /></w:rPr></w:pPr>
+                <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22" /><w:szCs w:val="22" /></w:rPr><w:t>No</w:t></w:r>
+              </w:p>
+            </w:tc>
+            <w:tc>
+              <w:tcPr><w:tcW w:w="4815" w:type="dxa" /><w:vAlign w:val="center" /></w:tcPr>
+              <w:p><w:pPr><w:jc w:val="center" /><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22" /><w:szCs w:val="22" /></w:rPr></w:pPr>
+                <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22" /><w:szCs w:val="22" /></w:rPr><w:t>Unsur Penilaian</w:t></w:r>
+              </w:p>
+            </w:tc>
+            <w:tc>
+              <w:tcPr><w:tcW w:w="930" w:type="dxa" /><w:vAlign w:val="center" /></w:tcPr>
+              <w:p><w:pPr><w:jc w:val="center" /><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22" /><w:szCs w:val="22" /></w:rPr></w:pPr>
+                <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22" /><w:szCs w:val="22" /></w:rPr><w:t>Nilai</w:t></w:r>
+              </w:p>
+            </w:tc>
+            <w:tc>
+              <w:tcPr><w:tcW w:w="2895" w:type="dxa" /><w:vAlign w:val="center" /></w:tcPr>
+              <w:p><w:pPr><w:jc w:val="center" /><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22" /><w:szCs w:val="22" /></w:rPr></w:pPr>
+                <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" /><w:b /><w:sz w:val="22" /><w:szCs w:val="22" /></w:rPr><w:t>Keterangan</w:t></w:r>
+              </w:p>
+            </w:tc>
+          </w:tr>
+          ${makeSectionHeader("Soft Skill")}
+          ${displaySoft.map((it, i) => makeRow(i + 1, it.name, it.score)).join("")}
+          ${makeSectionHeader("Hard Skill")}
+          ${displayHard.map((it, i) => makeRow(i + 1, it.name, it.score)).join("")}
+        </w:tbl>`;
+
+      // Replace Table 2 in docXml
+      const tbl2Regex = /<w:tbl\b[^>]*>(?:(?!<w:tbl\b)[\s\S])*?DAFTAR PENILAIAN[\s\S]*?<\/w:tbl>/;
+      if (tbl2Regex.test(docXml)) {
+        docXml = docXml.replace(tbl2Regex, table2Xml);
+      }
 
       zip.file("word/document.xml", docXml);
       const blob = await zip.generateAsync({ type: "blob" });
