@@ -1736,6 +1736,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             isReadOnly={isReadOnly}
+            onRefreshData={fetchMentorData}
             onOpenSuspendDialog={(student, action) => {
               setSelectedStudentForSuspend(student);
               setSuspendError(null);
