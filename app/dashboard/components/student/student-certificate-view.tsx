@@ -437,7 +437,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
               }`}
             >
               <FileText className="w-4 h-4" />
-              Form Final Assessment (Transkrip)
+              Form Initial Assessment (Transkrip)
             </button>
 
             <button
@@ -595,7 +595,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                       </td>
                       <td className="w-2/3 border border-black p-3 align-middle text-center font-bold font-serif leading-snug">
                         <div className="text-sm sm:text-base font-extrabold tracking-wider text-black">
-                          FORM FINAL ASSESSMENT
+                          FORM Initial ASSESSMENT
                         </div>
                         <div className="text-xs sm:text-sm font-bold mt-0.5 text-black">
                           PENILAIAN STUDI INDEPENDEN
