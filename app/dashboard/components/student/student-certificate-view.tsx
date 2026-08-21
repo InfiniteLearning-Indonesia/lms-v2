@@ -8,6 +8,8 @@ import { Award, Download, FileText, GraduationCap, Loader2, Printer, CheckCircle
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import JSZip from "jszip";
+import { toast } from "sonner";
 
 interface GradeData {
   student: {
@@ -58,6 +60,7 @@ interface GradeData {
 export function StudentCertificateView({ profile }: { profile: any }) {
   const [gradesData, setGradesData] = useState<GradeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGeneratingDocx, setIsGeneratingDocx] = useState(false);
   const [selectedProgramIndex, setSelectedProgramIndex] = useState(0);
   const [subTab, setSubTab] = useState<"transcript" | "certificate" | "internship_certificate">("transcript");
 
@@ -77,6 +80,71 @@ export function StudentCertificateView({ profile }: { profile: any }) {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadDocx = async (activeGrade: GradeData) => {
+    if (!activeGrade) return;
+    setIsGeneratingDocx(true);
+    try {
+      const res = await fetch("/templates/Template-Final-Assessment.docx");
+      const arrayBuffer = await res.arrayBuffer();
+      const zip = await JSZip.loadAsync(arrayBuffer);
+      let docXml = await zip.file("word/document.xml")?.async("string");
+      if (!docXml) throw new Error("File template tidak valid");
+
+      const studentNim = activeGrade.student.id.slice(0, 11).toUpperCase();
+      const studentName = activeGrade.student.name;
+      const studyProgram = activeGrade.student.studyProgram || activeGrade.student.institution || "Studi Independen Bersertifikat";
+      const programName = activeGrade.program.name;
+      const dateStr = new Date().toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      });
+
+      const escapeXml = (unsafe: string) => {
+        return unsafe
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&apos;");
+      };
+
+      // 1. Replace NIM
+      docXml = docXml.replace("<w:t>23052010030</w:t>", `<w:t>${escapeXml(studentNim)}</w:t>`);
+
+      // 2. Replace Name
+      docXml = docXml.replace("<w:t>Meitasari</w:t>", `<w:t>${escapeXml(studentName)}</w:t>`);
+
+      // 3. Replace Study Program (Desain Komunikasi Visual)
+      const studyProgPattern = /<w:t xml:space="preserve">Desain <\/w:t>[\s\S]*?<w:t xml:space="preserve"> Visual<\/w:t>/;
+      docXml = docXml.replace(studyProgPattern, `<w:t>${escapeXml(studyProgram)}</w:t>`);
+
+      // 4. Replace Program Studi Independen (Mobile Development & UI UX Design)
+      const progPattern = /<w:t>Mobile<\/w:t>[\s\S]*?<w:t xml:space="preserve"> Development &amp; UI UX Design<\/w:t>/;
+      docXml = docXml.replace(progPattern, `<w:t>${escapeXml(programName)}</w:t>`);
+
+      // 5. Replace Date
+      docXml = docXml.replace("<w:t>01 Juli 2026</w:t>", `<w:t>${escapeXml(dateStr)}</w:t>`);
+
+      zip.file("word/document.xml", docXml);
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Final-Assessment-${studentName.replace(/\s+/g, "_")}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast.success("Dokumen Word (.docx) berhasil diunduh dengan data mentee!");
+    } catch (err) {
+      console.error("Error generating docx:", err);
+      toast.error("Gagal membuat file Word (.docx)");
+    } finally {
+      setIsGeneratingDocx(false);
+    }
   };
 
   if (isLoading) {
@@ -239,19 +307,24 @@ export function StudentCertificateView({ profile }: { profile: any }) {
         {!isBlocked ? (
           <div className="flex items-center gap-2 flex-wrap">
             {subTab === "transcript" && (
-              <a
-                href="/templates/Template-Final-Assessment.docx"
-                download={`Final-Assessment-${activeGrade.student.name.replace(/\s+/g, "_")}.docx`}
-                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card text-xs font-semibold text-foreground hover:bg-secondary transition-colors shadow-2xs"
+              <Button
+                variant="outline"
+                onClick={() => handleDownloadDocx(activeGrade)}
+                disabled={isGeneratingDocx}
+                className="border-border bg-card text-xs font-semibold text-foreground hover:bg-secondary transition-colors shadow-2xs gap-2 cursor-pointer h-9 px-3"
               >
-                <Download className="w-4 h-4 text-brand-purple" />
-                <span>Unduh Format Word (.docx)</span>
-              </a>
+                {isGeneratingDocx ? (
+                  <Loader2 className="w-4 h-4 animate-spin text-brand-purple" />
+                ) : (
+                  <Download className="w-4 h-4 text-brand-purple" />
+                )}
+                <span>{isGeneratingDocx ? "Menyiapkan Dokumen..." : "Unduh Format Word (.docx)"}</span>
+              </Button>
             )}
 
             <Button
               onClick={handlePrint}
-              className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold text-xs gap-2 cursor-pointer shadow-sm"
+              className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold text-xs gap-2 cursor-pointer shadow-sm h-9 px-3"
             >
               <Printer className="w-4 h-4" />
               Cetak / Unduh PDF
@@ -389,7 +462,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                       <td className="px-3 py-1.5 font-bold border-r border-black">Program Studi</td>
                       <td className="text-center border-r border-black font-bold">:</td>
                       <td className="px-3 py-1.5">
-                        {activeGrade.student.studyProgram || "Desain Komunikasi Visual"}
+                        {activeGrade.student.studyProgram || activeGrade.student.institution || "Studi Independen Bersertifikat"}
                       </td>
                     </tr>
                     <tr className="border-b border-black">
