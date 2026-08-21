@@ -16,6 +16,7 @@ import {
   Users,
   Video,
   ExternalLink,
+  Clock,
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -141,6 +142,42 @@ export default function ClassDetailPage() {
 
   const totalMaterialsCount = classData?.materials?.length || 0;
   const totalAssignmentsCount = classData?.assignments?.length || 0;
+
+  const getDeadlineBadge = (dueDate?: string) => {
+    if (!dueDate) return null;
+    const due = new Date(dueDate).getTime();
+    const now = new Date().getTime();
+    const diff = due - now;
+    const hours = Math.round(diff / (1000 * 60 * 60));
+    const days = Math.round(diff / (1000 * 60 * 60 * 24));
+
+    if (diff < 0) {
+      return (
+        <Badge variant="outline" className="text-2xs font-bold border-red-500/30 text-red-600 bg-red-500/10 px-2.5 py-0.5">
+          Tenggat Lewat
+        </Badge>
+      );
+    }
+    if (hours <= 24) {
+      return (
+        <Badge variant="outline" className="text-2xs font-bold border-red-500/40 text-red-600 bg-red-500/10 animate-pulse px-2.5 py-0.5">
+          Sisa {hours} Jam!
+        </Badge>
+      );
+    }
+    if (days <= 3) {
+      return (
+        <Badge variant="outline" className="text-2xs font-bold border-amber-500/40 text-amber-600 bg-amber-500/10 px-2.5 py-0.5">
+          Sisa {days} Hari
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="outline" className="text-2xs font-medium border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-0.5">
+        Tenggat: {new Date(dueDate).toLocaleDateString("id-ID")}
+      </Badge>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans selection:bg-brand-purple/20 selection:text-brand-purple">
@@ -360,7 +397,6 @@ export default function ClassDetailPage() {
                               const linkRel = isExternalLink
                                 ? "noopener noreferrer"
                                 : undefined;
-
                               return (
                                 <Link
                                   href={materialHref}
@@ -427,17 +463,7 @@ export default function ClassDetailPage() {
                                         </p>
                                       </div>
                                     </div>
-                                    {item.dueDate && (
-                                      <Badge
-                                        variant="outline"
-                                        className="text-2xs shrink-0 ml-3 font-mono font-medium border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1"
-                                      >
-                                        Tenggat:{" "}
-                                        {new Date(
-                                          item.dueDate
-                                        ).toLocaleDateString("id-ID")}
-                                      </Badge>
-                                    )}
+                                    {getDeadlineBadge(item.dueDate)}
                                   </div>
                                 </Link>
                               );
@@ -483,15 +509,7 @@ export default function ClassDetailPage() {
                           </p>
                         </div>
                       </div>
-                      {a.dueDate && (
-                        <Badge
-                          variant="outline"
-                          className="text-2xs shrink-0 ml-3 font-mono font-medium border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1"
-                        >
-                          Tenggat:{" "}
-                          {new Date(a.dueDate).toLocaleDateString("id-ID")}
-                        </Badge>
-                      )}
+                      {getDeadlineBadge(a.dueDate)}
                     </div>
                   </Link>
                 ))

@@ -138,8 +138,23 @@ export function AdminGradeRecapExport({ programs, batches }: AdminGradeRecapExpo
   };
 
   const activePhaseUpper = activePhase === "micro" ? "Micro" : "Massive";
-  const displayComps = competencies.filter((c) => c.phase === activePhaseUpper);
   const displayRAs = rubrikAssessments.filter((r) => r.phase === activePhaseUpper);
+
+  const phaseCompetencyIds = new Set(
+    displayRAs.flatMap((ra: any) => (ra.competencies || []).map((comp: any) => comp.competencyId))
+  );
+
+  const displayComps = competencies.filter((c) => {
+    if (activePhaseUpper === "Massive") {
+      return phaseCompetencyIds.has(c.id);
+    } else {
+      const massiveRAs = rubrikAssessments.filter((r) => r.phase === "Massive");
+      const massiveIds = new Set(
+        massiveRAs.flatMap((ra: any) => (ra.competencies || []).map((comp: any) => comp.competencyId))
+      );
+      return phaseCompetencyIds.has(c.id) || !massiveIds.has(c.id);
+    }
+  });
 
   const attComp = competencies.find((c) => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
   const oncamComp = competencies.find((c) => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));

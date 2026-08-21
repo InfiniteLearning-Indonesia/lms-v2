@@ -184,7 +184,8 @@ export function MentorAssessmentView({
     if (ra.competencies && Array.isArray(ra.competencies) && ra.competencies.length > 0) {
       hasComponents = true;
       for (const item of ra.competencies) {
-        const compScore = calculateCompetencyScore(studentId, item.competencyId);
+        const directMatch = competencyScores.find((cs: any) => cs.studentId === studentId && cs.competencyId === item.competencyId);
+        const compScore = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(studentId, item.competencyId);
         const weight = parseFloat(item.weight) || 0;
         total += compScore * weight;
       }

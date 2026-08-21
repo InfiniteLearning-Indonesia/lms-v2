@@ -55,11 +55,31 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
   useEffect(() => {
     if (data?.logbooks) {
       const log = data.logbooks.find(l => l.monthIndex === selectedMonth);
-      if (log) {
+      const isLogAccepted = log?.status === "accepted";
+      const isLogPending = log?.status === "pending";
+
+      // Check local draft
+      const draftKey = `draft_logbook_${batchId}_month_${selectedMonth}`;
+      const savedDraftRaw = typeof window !== "undefined" ? localStorage.getItem(draftKey) : null;
+      let savedDraft = null;
+      if (savedDraftRaw) {
+        try {
+          savedDraft = JSON.parse(savedDraftRaw);
+        } catch (e) {
+          // ignore error
+        }
+      }
+
+      if (log && (log.q1_experience || log.q2_progress || log.q3_challenges || log.q4_competencies)) {
         setQ1(log.q1_experience || "");
         setQ2(log.q2_progress || "");
         setQ3(log.q3_challenges || "");
         setQ4(log.q4_competencies || "");
+      } else if (!isLogAccepted && !isLogPending && savedDraft) {
+        setQ1(savedDraft.q1 || "");
+        setQ2(savedDraft.q2 || "");
+        setQ3(savedDraft.q3 || "");
+        setQ4(savedDraft.q4 || "");
       } else {
         setQ1("");
         setQ2("");
@@ -68,7 +88,28 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
       }
       setSubmitError(null);
     }
-  }, [selectedMonth, data]);
+  }, [selectedMonth, data, batchId]);
+
+  // Auto-save draft to localStorage whenever user types
+  useEffect(() => {
+    if (!batchId || !selectedMonth) return;
+    const currentLog = data?.logbooks?.find(l => l.monthIndex === selectedMonth);
+    if (currentLog?.status === "accepted" || currentLog?.status === "pending") return;
+
+    if (q1 || q2 || q3 || q4) {
+      const draftKey = `draft_logbook_${batchId}_month_${selectedMonth}`;
+      localStorage.setItem(
+        draftKey,
+        JSON.stringify({
+          q1,
+          q2,
+          q3,
+          q4,
+          updatedAt: new Date().toISOString(),
+        })
+      );
+    }
+  }, [q1, q2, q3, q4, batchId, selectedMonth, data]);
 
   const totalWords = (q1 + " " + q2 + " " + q3 + " " + q4).trim().split(/\s+/).filter(w => w.length > 0).length;
 
@@ -97,6 +138,9 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
       });
 
       if (res.ok) {
+        // Clear local draft on successful submission
+        const draftKey = `draft_logbook_${batchId}_month_${selectedMonth}`;
+        localStorage.removeItem(draftKey);
         await fetchLogbooks(); // Refresh data
       } else {
         const err = await res.json();
@@ -143,7 +187,7 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
     // Fallback logic
     if (!data.startDate) return false;
     const start = new Date(data.startDate);
-    const target = new Date(start.setMonth(start.getMonth() + (m - 1)));
+    const target = new Date(start.getFullYear(), start.getMonth() + (m - 1), start.getDate());
     return new Date() < target;
   };
 
@@ -386,7 +430,7 @@ export function StudentLogbook({ batchId }: { batchId: string }) {
                           if (sched?.endDate) endDate = new Date(sched.endDate).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
                         } else if (data.startDate) {
                           const start = new Date(data.startDate);
-                          const targetStart = new Date(start.setMonth(start.getMonth() + (m - 1)));
+                          const targetStart = new Date(start.getFullYear(), start.getMonth() + (m - 1), start.getDate());
                           const targetEnd = new Date(targetStart.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days later
                           startDate = targetStart.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
                           endDate = targetEnd.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) + " (Estimasi)";

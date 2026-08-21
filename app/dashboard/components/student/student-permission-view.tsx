@@ -142,7 +142,16 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
     const files = e.target.files;
     if (!files) return;
 
+    if (proofFiles.length + files.length > 3) {
+      toast.error("Maksimal 3 file bukti yang dapat diunggah.");
+      return;
+    }
+
     for (const file of Array.from(files)) {
+      if (file.size > 3 * 1024 * 1024) {
+        toast.error(`Ukuran file "${file.name}" melebihi batas maksimal 3MB.`);
+        continue;
+      }
       const base64Data = await compressImage(file);
       if (base64Data) {
         setProofFiles((prev) => [
@@ -162,9 +171,18 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
     const files = e.target.files;
     if (!files) return;
 
+    if (chatFiles.length + files.length > 3) {
+      toast.error("Maksimal 3 tangkapan layar chat mentor yang dapat diunggah.");
+      return;
+    }
+
     for (const file of Array.from(files)) {
       if (!file.type.startsWith("image/")) {
-        toast.error("Bukti chat mentor hanya menerima format gambar (PNG, JPG, WEBP).");
+        toast.error(`File "${file.name}" ditolak. Bukti chat mentor hanya menerima format gambar (PNG, JPG, WEBP).`);
+        continue;
+      }
+      if (file.size > 3 * 1024 * 1024) {
+        toast.error(`Ukuran gambar "${file.name}" melebihi batas maksimal 3MB.`);
         continue;
       }
       const base64Data = await compressImage(file);

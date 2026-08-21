@@ -3,6 +3,7 @@
 import { API_BASE_URL } from "@/lib/config";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import {
   AlertTriangle,
   Bot,
@@ -13,8 +14,10 @@ import {
   Globe,
   Key,
   Loader2,
+  Pencil,
   Play,
   RefreshCw,
+  Save,
   Sparkles,
   Terminal,
   Video,
@@ -60,8 +63,16 @@ export function BulkAiEvaluateModal({
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [activeDetailItem, setActiveDetailItem] = useState<any | null>(null);
 
+  const [isEditingGrade, setIsEditingGrade] = useState(false);
+  const [editedScore, setEditedScore] = useState<number>(0);
+  const [editedFeedback, setEditedFeedback] = useState<string>("");
+  const [isSavingGrade, setIsSavingGrade] = useState(false);
+
   const openDetailInspection = (sub: any) => {
     const sessionResult = evalResults.find((r) => r.submissionId === sub.id);
+    const initialScore = sessionResult?.score ?? sub.score ?? 0;
+    const initialFeedback = sessionResult?.feedback || sub.manualFeedback || sub.aiFeedback || "";
+
     const promptText = sessionResult?.prompt || `[INFORMASI TUGAS]
 Judul Tugas: ${assignment.title}
 Instruksi Tugas dari Mentor: ${assignment.description || 'Kerjakan sesuai instruksi dan rubrik.'}
@@ -72,14 +83,53 @@ ${sub.link}
 [HASIL INSPEKSI KONTEN TAUTAN / KODE]
 ${sessionResult?.analysis || sub.aiAnalysis || 'Berhasil membaca file/repositori mentee.'}`;
 
+    setIsEditingGrade(false);
+    setEditedScore(initialScore);
+    setEditedFeedback(initialFeedback);
+
     setActiveDetailItem({
+      submissionId: sub.id,
       studentName: sub.student?.name || "Mentee",
       link: sub.link,
-      score: sessionResult?.score ?? sub.score,
-      feedback: sessionResult?.feedback || sub.manualFeedback || sub.aiFeedback || "",
+      score: initialScore,
+      feedback: initialFeedback,
       analysis: sessionResult?.analysis || sub.aiAnalysis || "",
       prompt: promptText,
     });
+  };
+
+  const handleSaveEditedGrade = async () => {
+    if (!activeDetailItem?.submissionId) return;
+    setIsSavingGrade(true);
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/classes/${classId}/assignment/${assignment.id}/submissions/${activeDetailItem.submissionId}/grade`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            score: Number(editedScore),
+            manualFeedback: editedFeedback,
+          }),
+          credentials: "include",
+        }
+      );
+
+      if (!res.ok) {
+        throw new Error("Gagal menyimpan koreksi nilai.");
+      }
+
+      toast.success("Nilai dan feedback berhasil diperbarui!");
+      setActiveDetailItem((prev: any) =>
+        prev ? { ...prev, score: Number(editedScore), feedback: editedFeedback } : null
+      );
+      setIsEditingGrade(false);
+      onRefreshSubmissions();
+    } catch (err: any) {
+      toast.error(err.message || "Gagal menyimpan nilai.");
+    } finally {
+      setIsSavingGrade(false);
+    }
   };
 
   // Pre-detect video links
@@ -588,36 +638,95 @@ ${sessionResult?.analysis || sub.aiAnalysis || 'Berhasil membaca file/repositori
                     Inspeksi Log & Prompt AI — {activeDetailItem.studentName}
                   </h4>
                   <p className="text-[10px] text-muted-foreground">
-                    Nilai Akhir: <span className="font-bold text-brand-purple">{activeDetailItem.score} / 100</span>
+                    Nilai Saat Ini: <span className="font-bold text-brand-purple">{activeDetailItem.score} / 100</span>
                   </p>
                 </div>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setActiveDetailItem(null)}
-                className="h-7 w-7 p-0 rounded-full cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsEditingGrade(!isEditingGrade)}
+                  className="h-7 px-2.5 text-xs text-brand-purple border-brand-purple/30 hover:bg-brand-purple/10 flex items-center gap-1 cursor-pointer"
+                >
+                  <Pencil className="w-3 h-3" />
+                  {isEditingGrade ? "Batal Edit" : "Koreksi Nilai"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setActiveDetailItem(null)}
+                  className="h-7 w-7 p-0 rounded-full cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
 
             {/* Modal Body */}
             <div className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
-              {/* Umpan Balik AI */}
-              <div className="space-y-1.5">
-                <label className="font-bold text-foreground flex items-center gap-1">
-                  <Bot className="w-3.5 h-3.5 text-brand-purple" />
-                  Umpan Balik AI (Rendered Markdown):
-                </label>
-                <div className="p-3 bg-secondary/30 border border-border rounded-lg">
-                  {activeDetailItem.feedback ? (
-                    <MarkdownRenderer content={activeDetailItem.feedback} />
-                  ) : (
-                    <p className="text-muted-foreground italic">Belum ada umpan balik.</p>
-                  )}
+              {/* Mode Edit Nilai Manual */}
+              {isEditingGrade && (
+                <div className="p-4 rounded-xl border border-brand-purple/30 bg-brand-purple/5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-brand-purple text-xs flex items-center gap-1.5">
+                      <Pencil className="w-3.5 h-3.5" />
+                      Koreksi Nilai & Umpan Balik
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <label className="text-[11px] font-bold">Skor (0-100):</label>
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={editedScore}
+                        onChange={(e) => setEditedScore(Number(e.target.value))}
+                        className="w-20 h-7 text-xs font-bold text-center"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-muted-foreground mb-1">
+                      Feedback untuk Siswa:
+                    </label>
+                    <textarea
+                      value={editedFeedback}
+                      onChange={(e) => setEditedFeedback(e.target.value)}
+                      rows={4}
+                      className="w-full p-2.5 text-xs bg-background border border-input rounded-lg focus:ring-2 focus:ring-brand-purple outline-hidden resize-y font-sans"
+                      placeholder="Masukkan catatan / evaluasi untuk siswa..."
+                    />
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      size="sm"
+                      onClick={handleSaveEditedGrade}
+                      disabled={isSavingGrade}
+                      className="h-8 px-3 bg-brand-purple hover:bg-brand-purple/90 text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {isSavingGrade ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                      Simpan Koreksi Nilai
+                    </Button>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Umpan Balik AI */}
+              {!isEditingGrade && (
+                <div className="space-y-1.5">
+                  <label className="font-bold text-foreground flex items-center gap-1">
+                    <Bot className="w-3.5 h-3.5 text-brand-purple" />
+                    Umpan Balik AI (Rendered Markdown):
+                  </label>
+                  <div className="p-3 bg-secondary/30 border border-border rounded-lg">
+                    {activeDetailItem.feedback ? (
+                      <MarkdownRenderer content={activeDetailItem.feedback} />
+                    ) : (
+                      <p className="text-muted-foreground italic">Belum ada umpan balik.</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Formulasi Prompt Yang Dikirim ke AI */}
               <div className="space-y-1.5">

@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ArrowLeft,
   BookOpen,
+  CheckCircle2,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -32,9 +33,19 @@ interface NavbarProps {
   title?: string;
   showBackButton?: boolean;
   backUrl?: string;
+  currentViewMode?: string;
+  onSwitchViewMode?: (mode: "admin" | "facilitator" | "mentor" | "student") => void;
 }
 
-export function Navbar({ profile, onLogout, title = "Dasbor Utama", showBackButton = false, backUrl }: NavbarProps) {
+export function Navbar({
+  profile,
+  onLogout,
+  title = "Dasbor Utama",
+  showBackButton = false,
+  backUrl,
+  currentViewMode,
+  onSwitchViewMode,
+}: NavbarProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -148,6 +159,38 @@ export function Navbar({ profile, onLogout, title = "Dasbor Utama", showBackButt
                       </span>
                     </div>
                   </div>
+
+                  {/* Role Switcher (if user has multiple roles) */}
+                  {profile.roles && profile.roles.length > 1 && (
+                    <div className="p-1.5 space-y-1 bg-secondary/40 rounded-lg border border-border/40 my-1">
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase px-2 tracking-wider block">
+                        Pilihan Peran Aktif:
+                      </span>
+                      {profile.roles.map((r) => {
+                        const isCurrentActive = currentViewMode === r || (!currentViewMode && profile.role === r);
+                        return (
+                          <button
+                            key={r}
+                            onClick={() => {
+                              setIsOpen(false);
+                              onSwitchViewMode?.(r);
+                            }}
+                            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                              isCurrentActive
+                                ? "bg-brand-purple text-white shadow-xs"
+                                : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                            }`}
+                          >
+                            <span className="capitalize flex items-center gap-1.5">
+                              <Shield className="w-3 h-3" />
+                              {roleLabels[r] || r}
+                            </span>
+                            {isCurrentActive && <CheckCircle2 className="w-3.5 h-3.5" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {/* Dropdown Options */}
                   <div className="space-y-0.5 pt-1">

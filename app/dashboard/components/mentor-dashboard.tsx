@@ -841,8 +841,11 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const calculateCompetencyScore = (studentId: string, compId: string) => {
     let score = 0;
+    const competency = competencies.find((c: any) => c.id === compId);
+    const compName = competency ? competency.name : compId;
+    
     const compAssignments = classes.flatMap((cls: any) =>
-      (cls.assignments || []).filter((a: any) => a.competency === compId)
+      (cls.assignments || []).filter((a: any) => a.competency === compName || a.competency === compId)
     );
 
     for (const assignment of compAssignments) {

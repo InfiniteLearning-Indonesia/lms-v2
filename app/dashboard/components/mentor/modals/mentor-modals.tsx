@@ -1056,6 +1056,27 @@ export function MentorModals({
                           );
                         })}
                       </tbody>
+                      <tfoot className="bg-secondary/40 border-t border-border font-bold text-xs">
+                        <tr>
+                          <td colSpan={2} className="px-4 py-2.5 text-foreground">
+                            Total Bobot Tugas
+                          </td>
+                          <td className="px-4 py-2.5 text-right">
+                            {(() => {
+                              const totalWeight = compAssignments.reduce((acc: number, a: any) => {
+                                const w = weightUpdates[a.id] !== undefined ? weightUpdates[a.id] : (a.weight || 0.1);
+                                return acc + (Number(w) || 0);
+                              }, 0);
+                              const isIdeal = Math.abs(totalWeight - 1.0) < 0.001;
+                              return (
+                                <span className={isIdeal ? "text-emerald-500 font-extrabold" : "text-amber-500 font-extrabold"}>
+                                  {(totalWeight * 100).toFixed(0)}% {isIdeal ? "(Ideal)" : ""}
+                                </span>
+                              );
+                            })()}
+                          </td>
+                        </tr>
+                      </tfoot>
                     </table>
                   )}
                 </div>
@@ -1684,10 +1705,23 @@ function RubrikAssessmentWeightModal({
           )}
 
           {/* Total Summary */}
-          <div className="p-3 rounded-lg bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-between text-xs">
-            <span className="font-bold text-brand-purple">Total Bobot Keseluruhan:</span>
-            <span className="font-extrabold text-brand-purple text-sm">
-              {totalWeight.toFixed(2)} {totalWeight === 1 ? "(100% Ideal)" : ""}
+          <div
+            className={`p-3 rounded-lg border flex items-center justify-between text-xs ${
+              Math.abs(totalWeight - 1.0) < 0.001
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                : "bg-amber-500/10 border-amber-500/30 text-amber-600 dark:text-amber-400"
+            }`}
+          >
+            <div>
+              <span className="font-bold block">Total Bobot Keseluruhan:</span>
+              <span className="text-[11px] opacity-80">
+                {Math.abs(totalWeight - 1.0) < 0.001
+                  ? "Bobot ideal 100% tercapai."
+                  : `Bobot saat ini ${(totalWeight * 100).toFixed(0)}% (Disarankan tepat 100% / 1.0 agar nilai akhir proporsional)`}
+              </span>
+            </div>
+            <span className="font-extrabold text-sm">
+              {(totalWeight * 100).toFixed(0)}% {Math.abs(totalWeight - 1.0) < 0.001 ? "(Ideal)" : ""}
             </span>
           </div>
 

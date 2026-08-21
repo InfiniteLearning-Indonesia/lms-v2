@@ -134,7 +134,19 @@ export default function DashboardPage() {
       console.error(err);
     } finally {
       localStorage.removeItem("auth_token");
+      localStorage.removeItem("dashboard_view_mode");
       router.push("/login");
+    }
+  };
+
+  const [viewModeOverride, setViewModeOverride] = useState<string | null>(() => {
+    return typeof window !== "undefined" ? localStorage.getItem("dashboard_view_mode") : null;
+  });
+
+  const handleSwitchViewMode = (mode: "admin" | "facilitator" | "mentor" | "student") => {
+    setViewModeOverride(mode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("dashboard_view_mode", mode);
     }
   };
 
@@ -151,20 +163,37 @@ export default function DashboardPage() {
   }
 
   const activeRoles = profile?.roles || (profile?.role ? [profile.role] : []);
-  const isAdmin = activeRoles.includes("admin");
-  const isFacilitator = activeRoles.includes("facilitator");
-  const isMentor = activeRoles.includes("mentor");
-  const isStudent = activeRoles.includes("student");
+  
+  // Determine effective active role based on user selection or highest default priority
+  const effectiveRole = (viewModeOverride && activeRoles.includes(viewModeOverride as any))
+    ? viewModeOverride
+    : (activeRoles.includes("admin")
+        ? "admin"
+        : (activeRoles.includes("facilitator")
+            ? "facilitator"
+            : (activeRoles.includes("mentor")
+                ? "mentor"
+                : "student")));
+
+  const isAdmin = effectiveRole === "admin";
+  const isFacilitator = effectiveRole === "facilitator";
+  const isMentor = effectiveRole === "mentor";
+  const isStudent = effectiveRole === "student";
 
   return (
     <div className="min-h-screen bg-background flex flex-col font-sans">
-      <Navbar profile={profile} onLogout={handleLogout} />
+      <Navbar
+        profile={profile}
+        onLogout={handleLogout}
+        currentViewMode={effectiveRole}
+        onSwitchViewMode={handleSwitchViewMode}
+      />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isAdmin && profile && <AdminDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-        {!isAdmin && isFacilitator && profile && <FacilitatorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-        {!isAdmin && !isFacilitator && isMentor && profile && <MentorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-        {!isAdmin && !isFacilitator && !isMentor && isStudent && profile && <StudentDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {isFacilitator && profile && <FacilitatorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {isMentor && profile && <MentorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {isStudent && profile && <StudentDashboard profile={profile} onProfileUpdate={fetchProfile} />}
       </main>
     </div>
   );
