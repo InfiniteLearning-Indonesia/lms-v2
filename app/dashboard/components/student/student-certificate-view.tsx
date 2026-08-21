@@ -108,6 +108,38 @@ export function StudentCertificateView({ profile }: { profile: any }) {
 
   const activeGrade = gradesData[selectedProgramIndex] || gradesData[0];
 
+  let isBlocked = false;
+  let blockTitle = "";
+  let blockMessage = "";
+  let blockReason = "";
+
+  if (subTab === "transcript") {
+    if (!activeGrade?.isTranscriptReleased) {
+      isBlocked = true;
+      blockTitle = "Transkrip Nilai Belum Dirilis oleh Mentor";
+      blockMessage = `Transkrip Nilai untuk program ${activeGrade?.program?.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
+      blockReason = "Menunggu Rilis Official Mentor";
+    } else if (!activeGrade?.logbookCompletionStatus?.month1Accepted) {
+      isBlocked = true;
+      blockTitle = "Logbook Bulan ke-1 Belum Diisi";
+      blockMessage = `Transkrip Nilai sudah dirilis, namun Anda belum bisa mengaksesnya karena Logbook bulan ke-1 Anda belum diisi atau belum berstatus Accepted oleh mentor. Silakan lengkapi Logbook bulan ke-1 terlebih dahulu.`;
+      blockReason = "Syarat Logbook Bulan 1 Belum Terpenuhi";
+    }
+  } else {
+    // Certificate & Internship Certificate
+    if (!activeGrade?.isCertificateReleased) {
+      isBlocked = true;
+      blockTitle = "Sertifikat Belum Dirilis oleh Mentor";
+      blockMessage = `Sertifikat Kelulusan untuk program ${activeGrade?.program?.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
+      blockReason = "Menunggu Rilis Official Mentor";
+    } else if (!activeGrade?.logbookCompletionStatus?.allAccepted) {
+      isBlocked = true;
+      blockTitle = "Logbook Belum Lengkap (Bulan 1 - 4)";
+      blockMessage = `Sertifikat Kelulusan sudah dirilis, namun Anda belum bisa mengaksesnya karena seluruh Logbook (Bulan 1 sampai 4) belum berstatus Accepted. Silakan lengkapi logbook Anda yang masih berstatus Pending/Revision.`;
+      blockReason = "Syarat Logbook 4 Bulan Belum Terpenuhi";
+    }
+  }
+
   return (
     <div className="space-y-6 font-sans">
       {/* Printable CSS Rules */}
@@ -147,7 +179,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
         }
       `}</style>
 
-      {/* Control Bar (Program Selector, Subtab Switcher, Print Button, Word Download) */}
+      {/* Control Bar (Program Selector, Subtab Switcher, Action Buttons if Unlocked) */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-card border border-border/60 shadow-xs no-print">
         <div className="flex items-center gap-3 flex-wrap">
           {gradesData.length > 1 && (
@@ -203,61 +235,40 @@ export function StudentCertificateView({ profile }: { profile: any }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <a
-            href="/templates/Template-Final-Assessment.docx"
-            download={`Final-Assessment-${activeGrade.student.name.replace(/\s+/g, "_")}.docx`}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card text-xs font-semibold text-foreground hover:bg-secondary transition-colors shadow-2xs"
-          >
-            <Download className="w-4 h-4 text-brand-purple" />
-            <span>Unduh Format Word (.docx)</span>
-          </a>
+        {/* Action Buttons: Only show when document is unlocked */}
+        {!isBlocked ? (
+          <div className="flex items-center gap-2 flex-wrap">
+            {subTab === "transcript" && (
+              <a
+                href="/templates/Template-Final-Assessment.docx"
+                download={`Final-Assessment-${activeGrade.student.name.replace(/\s+/g, "_")}.docx`}
+                className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card text-xs font-semibold text-foreground hover:bg-secondary transition-colors shadow-2xs"
+              >
+                <Download className="w-4 h-4 text-brand-purple" />
+                <span>Unduh Format Word (.docx)</span>
+              </a>
+            )}
 
-          <Button
-            onClick={handlePrint}
-            className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold text-xs gap-2 cursor-pointer shadow-sm"
-          >
-            <Printer className="w-4 h-4" />
-            Cetak / Unduh PDF
-          </Button>
-        </div>
+            <Button
+              onClick={handlePrint}
+              className="bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold text-xs gap-2 cursor-pointer shadow-sm"
+            >
+              <Printer className="w-4 h-4" />
+              Cetak / Unduh PDF
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Badge variant="outline" className="text-xs font-semibold text-amber-600 bg-amber-500/10 border-amber-500/30 gap-1.5 py-1 px-3">
+              <Lock className="w-3.5 h-3.5" /> Akses Dokumen Terkunci
+            </Badge>
+          </div>
+        )}
       </div>
 
       {/* Print Target Wrapper */}
       <div id="printable-area" className="space-y-6">
         {(() => {
-          let isBlocked = false;
-          let blockTitle = "";
-          let blockMessage = "";
-          let blockReason = "";
-
-          if (subTab === "transcript") {
-            if (!activeGrade.isTranscriptReleased) {
-              isBlocked = true;
-              blockTitle = "Transkrip Nilai Belum Dirilis oleh Mentor";
-              blockMessage = `Transkrip Nilai untuk program ${activeGrade.program.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
-              blockReason = "Menunggu Rilis Official Mentor";
-            } else if (!activeGrade.logbookCompletionStatus?.month1Accepted) {
-              isBlocked = true;
-              blockTitle = "Logbook Bulan ke-1 Belum Diisi";
-              blockMessage = `Transkrip Nilai sudah dirilis, namun Anda belum bisa mengaksesnya karena Logbook bulan ke-1 Anda belum diisi atau belum berstatus Accepted oleh mentor. Silakan lengkapi Logbook bulan ke-1 terlebih dahulu.`;
-              blockReason = "Syarat Logbook Bulan 1 Belum Terpenuhi";
-            }
-          } else {
-            // Certificate & Internship Certificate
-            if (!activeGrade.isCertificateReleased) {
-              isBlocked = true;
-              blockTitle = "Sertifikat Belum Dirilis oleh Mentor";
-              blockMessage = `Sertifikat Kelulusan untuk program ${activeGrade.program.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
-              blockReason = "Menunggu Rilis Official Mentor";
-            } else if (!activeGrade.logbookCompletionStatus?.allAccepted) {
-              isBlocked = true;
-              blockTitle = "Logbook Belum Lengkap (Bulan 1 - 4)";
-              blockMessage = `Sertifikat Kelulusan sudah dirilis, namun Anda belum bisa mengaksesnya karena seluruh Logbook (Bulan 1 sampai 4) belum berstatus Accepted. Silakan lengkapi logbook Anda yang masih berstatus Pending/Revision.`;
-              blockReason = "Syarat Logbook 4 Bulan Belum Terpenuhi";
-            }
-          }
-
           if (isBlocked) {
             return (
               <Card className="border border-amber-500/30 bg-amber-500/5 dark:bg-amber-500/10 p-12 text-center space-y-4 font-sans">
