@@ -73,7 +73,7 @@ function LoginContent() {
       setSuccess("Login berhasil! Mengalihkan ke dasbor...");
       localStorage.setItem("auth_token", data.token);
       setTimeout(() => {
-        router.push(`/dashboard?token=${data.token}`);
+        router.push("/dashboard");
       }, 500);
     } catch (err: any) {
       console.error(err);
@@ -117,7 +117,7 @@ function LoginContent() {
       setSuccess("Password berhasil dibuat! Mengalihkan ke dasbor...");
       localStorage.setItem("auth_token", data.token);
       setTimeout(() => {
-        router.push(`/dashboard?token=${data.token}`);
+        router.push("/dashboard");
       }, 500);
     } catch (err) {
       console.error(err);
@@ -268,14 +268,20 @@ function LoginContent() {
 
       {/* Setup Password Modal */}
       {isSetupModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="setup-password-title"
+          onKeyDown={(e) => { if (e.key === "Escape") setIsSetupModalOpen(false); }}
+        >
           <div className="bg-card border border-border rounded-xl p-6 shadow-xl w-full max-w-md space-y-4">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-brand-purple/10 text-brand-purple rounded-lg">
                 <KeyRound className="w-5 h-5 text-brand-purple" />
               </div>
               <div>
-                <h3 className="font-heading font-bold text-base text-foreground">
+                <h3 id="setup-password-title" className="font-heading font-bold text-base text-foreground">
                   Buat Password Pertama Anda
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">

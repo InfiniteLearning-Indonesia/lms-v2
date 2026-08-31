@@ -92,7 +92,7 @@ export function ChangePasswordSection() {
           )}
 
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-foreground">Password Saat Ini / Default (Student123!)</label>
+            <label className="text-xs font-semibold text-foreground">Password Saat Ini</label>
             <Input
               type="password"
               value={currentPassword}

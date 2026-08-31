@@ -16,19 +16,10 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-
-interface UserProfile {
-  id: string;
-  email: string;
-  name: string;
-  role: "admin" | "facilitator" | "mentor" | "student";
-  roles?: ("admin" | "facilitator" | "mentor" | "student")[];
-  status: "invited" | "active" | "suspended";
-  avatarUrl: string | null;
-}
+import { Profile } from "@/lib/types/profile";
 
 interface NavbarProps {
-  profile: UserProfile | null;
+  profile: Profile | null;
   onLogout: () => void;
   title?: string;
   showBackButton?: boolean;
@@ -153,9 +144,9 @@ export function Navbar({
                     <div className="space-y-0.5 min-w-0">
                       <h4 className="font-heading font-bold text-xs text-foreground truncate">{profile.name}</h4>
                       <p className="text-[10px] text-muted-foreground truncate">{profile.email}</p>
-                      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.25 rounded-full text-[9px] font-bold uppercase tracking-wider border ${roleColors[profile.role]}`}>
+                      <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.25 rounded-full text-[9px] font-bold uppercase tracking-wider border ${roleColors[profile.role as keyof typeof roleColors] ?? 'bg-gray-500/10 text-gray-500 border-gray-500/20'}`}>
                         <Shield className="w-2 h-2 shrink-0" />
-                        {roleLabels[profile.role]}
+                        {roleLabels[profile.role as keyof typeof roleLabels] ?? profile.role}
                       </span>
                     </div>
                   </div>

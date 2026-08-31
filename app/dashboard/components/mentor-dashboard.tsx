@@ -1,10 +1,11 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
+import { Greeting } from "@/components/greeting";
 
 import Link from "next/link";
 import { useEffect, useState, useRef, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Papa from "papaparse";
 import { MentorLogbook } from "./mentor-logbook";
@@ -97,6 +98,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   }, [isSuspendDialogOpen, countdown]);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Listen to tab query parameter & localStorage dynamically for persistence on refresh
   useEffect(() => {
@@ -112,7 +114,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href);
         url.searchParams.set("tab", savedTab);
-        window.history.replaceState({}, "", url.toString());
+        router.replace(url.pathname + url.search, { scroll: false });
       }
     }
   }, [searchParams]);
@@ -121,10 +123,10 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     setActiveTab(val);
     if (typeof window !== "undefined") {
       localStorage.setItem("mentor_dashboard_active_tab", val);
-      const url = new URL(window.location.href);
-      url.searchParams.set("tab", val);
-      window.history.replaceState({}, "", url.toString());
     }
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", val);
+    router.replace(url.pathname + url.search, { scroll: false });
   };
 
   // Automatically switch program context when clicking a class card
@@ -1364,7 +1366,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             <div>
               <h4 className="text-xs font-bold font-heading">Peringatan Keamanan Akun</h4>
               <p className="text-[11px] opacity-90">
-                Anda masih menggunakan password default (<code className="font-mono font-bold bg-amber-500/20 px-1 py-0.5 rounded">Student123!</code>). Harap segera ganti password Anda demi keamanan akun.
+                Anda masih menggunakan password awal. Harap segera ganti password Anda demi keamanan akun.
               </p>
             </div>
           </div>
@@ -1395,14 +1397,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
                 <span>Mentor View • {selectedClassProgram || profile?.selectedProgram || "Akademik"}</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-white">
-                {(() => {
-                  const hour = new Date().getHours();
-                  let greeting = "Selamat Pagi";
-                  if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
-                  else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
-                  else if (hour >= 18 || hour < 4) greeting = "Selamat Malam";
-                  return `${greeting}, ${profile?.name || "Mentor"}`;
-                })()}
+                <Greeting name={profile?.name || "Mentor"} />
               </h1>
               <p className="text-sm text-white/80 leading-relaxed font-sans">
                 {randomQuote}

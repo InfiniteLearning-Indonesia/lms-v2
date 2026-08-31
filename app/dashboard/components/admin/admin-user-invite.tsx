@@ -43,7 +43,7 @@ interface AdminUserInviteProps {
   handleFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCsvReview: (e: React.FormEvent) => void;
   isSubmittingImport: boolean;
-  importResult: { successCount: number; failedCount: number } | null;
+  importResult: { invited: any[]; failed: any[] } | null;
 }
 
 export function AdminUserInvite({
@@ -456,8 +456,8 @@ export function AdminUserInvite({
                 <Check className="w-4 h-4 text-emerald-500" /> Hasil Impor CSV:
               </p>
               <p>
-                Berhasil menambahkan <strong>{importResult.successCount}</strong> siswa baru. Gagal:{" "}
-                <strong>{importResult.failedCount}</strong>.
+                Berhasil menambahkan <strong>{importResult.invited?.length ?? 0}</strong> siswa baru. Gagal:{" "}
+                <strong>{importResult.failed?.length ?? 0}</strong>.
               </p>
             </div>
           )}

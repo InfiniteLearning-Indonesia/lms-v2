@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
+import { logout } from "@/lib/logout";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -52,19 +53,7 @@ export default function MaterialDetailPage() {
       });
   }, [router]);
 
-  const handleLogout = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (res.ok) {
-        router.push("/login");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const handleLogout = () => { logout(); };
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/classes/${classId}/material/${materialId}`, {
@@ -132,14 +121,14 @@ export default function MaterialDetailPage() {
         const urlParams = new URLSearchParams(u.split("?")[1]);
         const videoId = urlParams.get("v");
         if (videoId) return `https://www.youtube.com/embed/${videoId}`;
-      } catch (e) {}
+      } catch (e) { }
     }
     return u;
   };
 
   const embedUrl = targetUrl ? getEmbedUrl(targetUrl) : null;
   const isYouTube = targetUrl && (targetUrl.includes("youtube.com") || targetUrl.includes("youtu.be"));
-  
+
   // Sites known to block iframe embedding (Craft.me, Notion, etc.)
   const isDirectExternalSite = targetUrl && (targetUrl.includes("craft.me") || targetUrl.includes("notion.site"));
   const canEmbedIframe = isYouTube || (embedUrl && !isDirectExternalSite && !iframeFailed);
@@ -187,12 +176,12 @@ export default function MaterialDetailPage() {
                 {materialData.type === "custom"
                   ? "Custom Embed (HTML)"
                   : materialData.type === "video" || isVideo
-                  ? "Video Pembelajaran"
-                  : materialData.type === "pdf"
-                  ? "Dokumen PDF"
-                  : materialData.type === "url"
-                  ? (urlInfo?.badge || "Tautan Luar")
-                  : "Artikel / Rich Text"}
+                    ? "Video Pembelajaran"
+                    : materialData.type === "pdf"
+                      ? "Dokumen PDF"
+                      : materialData.type === "url"
+                        ? (urlInfo?.badge || "Tautan Luar")
+                        : "Artikel / Rich Text"}
               </Badge>
               <span className="text-xs text-muted-foreground flex items-center gap-1 font-medium">
                 <Clock className="w-3.5 h-3.5" />

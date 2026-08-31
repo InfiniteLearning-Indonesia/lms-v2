@@ -33,15 +33,17 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [mentorAsyncDays, setMentorAsyncDays] = useState<any[]>([]);
 
-  const fetchData = async () => {
+  const fetchData = async (signal?: AbortSignal) => {
     if (!batchId) return;
     setLoading(true);
     try {
       // Fetch active days and holidays
       const daysRes = await fetch(`${API_BASE_URL}/attendance/active-days/${batchId}`, {
         headers: { Accept: "application/json" },
-        credentials: "include"
+        credentials: "include",
+        signal,
       });
+      if (!daysRes.ok) throw new Error("Gagal memuat hari aktif");
       const daysData = await daysRes.json();
       if (daysData.days) {
         setActiveDays(
@@ -60,6 +62,7 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
         headers: { Accept: "application/json" },
         credentials: "include"
       });
+      if (!batchRes.ok) throw new Error("Gagal memuat data batch");
       const batchData = await batchRes.json();
       const foundBatch = Array.isArray(batchData) ? batchData.find((b: any) => b.id === batchId) : null;
       if (foundBatch) {
@@ -150,6 +153,7 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
         headers: { Accept: "application/json" },
         credentials: "include"
       });
+      if (!attRes.ok) throw new Error("Gagal memuat data absensi");
       const attData = await attRes.json();
       setAllAttendances(Array.isArray(attData) ? attData : []);
 
@@ -183,7 +187,9 @@ export function MentorAttendance({ batchId, mentorId, classId, programName }: { 
   };
 
   useEffect(() => {
-    fetchData();
+    const controller = new AbortController();
+    fetchData(controller.signal);
+    return () => controller.abort();
   }, [batchId, mentorId]);
 
   // Update modal state when date is selected

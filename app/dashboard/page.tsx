@@ -17,28 +17,11 @@ import { MentorDashboard } from "./components/mentor-dashboard";
 import { AdminDashboard } from "./components/admin-dashboard";
 import { FacilitatorDashboard } from "./components/facilitator-dashboard";
 import { API_BASE_URL } from "@/lib/config";
-
-interface UserProfile {
-  id: string;
-  email: string;
-  name: string;
-  role: "admin" | "facilitator" | "mentor" | "student";
-  roles?: ("admin" | "facilitator" | "mentor" | "student")[];
-  status: "invited" | "active" | "suspended";
-  avatarUrl: string | null;
-  createdAt: string;
-  lastLoginAt: string | null;
-  selectedProgram?: string | null;
-  programId?: string | null;
-  specialization?: string | null;
-  whatsapp?: string | null;
-  institution?: string | null;
-  studyProgram?: string | null;
-}
+import { Profile } from "@/lib/types/profile";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   const fetchProfile = async () => {
@@ -54,7 +37,7 @@ export default function DashboardPage() {
 
       const existingToken = typeof window !== "undefined" ? localStorage.getItem("auth_token") : null;
       const code = searchParams.get("code");
-      
+
       if (code) {
         try {
           // Exchange code for token
@@ -67,7 +50,7 @@ export default function DashboardPage() {
             body: JSON.stringify({ code }),
             credentials: "include",
           });
-          
+
           if (exchangeRes.ok) {
             const data = await exchangeRes.json();
             localStorage.setItem("auth_token", data.token);
@@ -85,26 +68,22 @@ export default function DashboardPage() {
           window.history.replaceState({}, "", url.toString());
         }
       }
-      
+
       const token = localStorage.getItem("auth_token");
       if (!token) {
         throw new Error("Sesi login tidak ditemukan.");
       }
-      
-      const headers: Record<string, string> = { 
-        Accept: "application/json",
-        Authorization: `Bearer ${token}` 
-      };
 
+      // Interceptor automatically adds Bearer token + credentials
       const res = await fetch(`${API_BASE_URL}/auth/me`, {
-        headers,
+        headers: { Accept: "application/json" },
         credentials: "include",
       });
 
       if (!res.ok) {
         throw new Error("Sesi login berakhir atau belum terautentikasi.");
       }
-      
+
       const profileData = await res.json();
       setProfile(profileData);
       setIsLoadingProfile(false);
@@ -130,8 +109,8 @@ export default function DashboardPage() {
         headers,
         credentials: "include",
       });
-    } catch (err) {
-      console.error(err);
+    } catch {
+      // Network error: still clear local state and redirect
     } finally {
       localStorage.removeItem("auth_token");
       localStorage.removeItem("dashboard_view_mode");
@@ -163,17 +142,17 @@ export default function DashboardPage() {
   }
 
   const activeRoles = profile?.roles || (profile?.role ? [profile.role] : []);
-  
+
   // Determine effective active role based on user selection or highest default priority
   const effectiveRole = (viewModeOverride && activeRoles.includes(viewModeOverride as any))
     ? viewModeOverride
     : (activeRoles.includes("admin")
-        ? "admin"
-        : (activeRoles.includes("facilitator")
-            ? "facilitator"
-            : (activeRoles.includes("mentor")
-                ? "mentor"
-                : "student")));
+      ? "admin"
+      : (activeRoles.includes("facilitator")
+        ? "facilitator"
+        : (activeRoles.includes("mentor")
+          ? "mentor"
+          : "student")));
 
   const isAdmin = effectiveRole === "admin";
   const isFacilitator = effectiveRole === "facilitator";
@@ -191,9 +170,21 @@ export default function DashboardPage() {
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {isAdmin && profile && <AdminDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-        {isFacilitator && profile && <FacilitatorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-        {isMentor && profile && <MentorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
-        {isStudent && profile && <StudentDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {!isAdmin && isFacilitator && profile && <FacilitatorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {!isAdmin && !isFacilitator && isMentor && profile && <MentorDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {!isAdmin && !isFacilitator && !isMentor && isStudent && profile && <StudentDashboard profile={profile} onProfileUpdate={fetchProfile} />}
+        {!isAdmin && !isFacilitator && !isMentor && !isStudent && profile && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <Shield className="w-12 h-12 text-muted-foreground mb-4" />
+            <h2 className="font-heading font-bold text-lg text-foreground">Role Tidak Dikenal</h2>
+            <p className="text-sm text-muted-foreground mt-2 max-w-sm">
+              Akun Anda memiliki role &quot;{profile.role}&quot; yang belum didukung di dasbor ini. Hubungi admin untuk informasi lebih lanjut.
+            </p>
+            <button onClick={handleLogout} className="mt-6 px-4 py-2 text-xs font-medium text-brand-purple border border-brand-purple/30 rounded-lg hover:bg-brand-purple/10 transition-colors">
+              Keluar
+            </button>
+          </div>
+        )}
       </main>
     </div>
   );

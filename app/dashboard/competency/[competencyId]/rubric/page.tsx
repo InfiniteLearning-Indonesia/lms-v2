@@ -60,7 +60,10 @@ export default function AssignmentRubricPage() {
       headers: { Accept: "application/json" },
       credentials: "include",
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Gagal memuat kompetensi");
+        return res.json();
+      })
       .then((data) => {
         if (!Array.isArray(data)) {
           throw new Error("Invalid data format received");
@@ -192,7 +195,7 @@ export default function AssignmentRubricPage() {
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <Link
-            href={`/dashboard?tab=rubric`}
+            href={`/dashboard?tab=settings`}
             className="text-xs font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors border border-border px-3 py-1.5 rounded-lg shadow-sm"
           >
             <ArrowLeft className="w-3.5 h-3.5" />

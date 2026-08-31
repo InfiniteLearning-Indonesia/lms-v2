@@ -1,9 +1,11 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
+import Papa from "papaparse";
+import { Greeting } from "@/components/greeting";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertCircle,
@@ -130,6 +132,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
 
   // Tab & SubTab Navigation
   const searchParams = useSearchParams();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("users");
   const [adminSubTab, setAdminSubTab] = useState<"users" | "invite">("users");
 
@@ -154,7 +157,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     setActiveTab(val);
     const url = new URL(window.location.href);
     url.searchParams.set("tab", val);
-    window.history.pushState({}, "", url.toString());
+    router.push(url.pathname + url.search, { scroll: false });
   };
 
   // Data States
@@ -286,8 +289,8 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
         credentials: "include",
       });
       if (res.ok) {
-        const data = await res.json();
-        setUsersList(data);
+        const result = await res.json();
+        setUsersList(result.data || result);
       }
     } catch (err) {
       console.error("Gagal mengambil data pengguna", err);
@@ -597,18 +600,18 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     e.preventDefault();
     if (!selectedBatchForImport || !csvText.trim()) return;
 
-    const lines = csvText.split("\n").map((l) => l.trim()).filter(Boolean);
-    if (lines.length <= 1) {
+    const result = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+    const rows = result.data as Record<string, string>[];
+
+    if (rows.length === 0) {
       setError("Format CSV kosong atau tidak memiliki baris data murid.");
       return;
     }
 
-    const headers = lines[0].split(",").map((h) => h.trim());
+    const firstRow = rows[0];
+    const headers = Object.keys(firstRow);
     const nameIdx = headers.indexOf("name");
     const emailIdx = headers.indexOf("email");
-    const waIdx = headers.indexOf("whatsapp");
-    const instIdx = headers.indexOf("institution");
-    const studyIdx = headers.indexOf("studyProgram");
     const progIdx = headers.indexOf("selectedProgram");
 
     if (nameIdx === -1 || emailIdx === -1 || progIdx === -1) {
@@ -617,16 +620,15 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
     }
 
     const students: ParsedCsvStudent[] = [];
-    for (let i = 1; i < lines.length; i++) {
-      const cols = lines[i].split(",").map((c) => c.trim());
-      if (cols[nameIdx] && cols[emailIdx]) {
+    for (const row of rows) {
+      if (row.name && row.email) {
         students.push({
-          name: cols[nameIdx],
-          email: cols[emailIdx],
-          whatsapp: waIdx !== -1 ? cols[waIdx] : "",
-          institution: instIdx !== -1 ? cols[instIdx] : "",
-          studyProgram: studyIdx !== -1 ? cols[studyIdx] : "",
-          selectedProgram: cols[progIdx] || "AI Development",
+          name: row.name.trim(),
+          email: row.email.trim(),
+          whatsapp: row.whatsapp?.trim() || "",
+          institution: row.institution?.trim() || "",
+          studyProgram: row.studyProgram?.trim() || "",
+          selectedProgram: row.selectedProgram?.trim() || "AI Development",
         });
       }
     }
@@ -924,14 +926,7 @@ export function AdminDashboard({ profile, onProfileUpdate }: AdminDashboardProps
                 <span>Control Panel Administrator</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-white">
-                {(() => {
-                  const hour = new Date().getHours();
-                  let greeting = "Selamat Pagi";
-                  if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
-                  else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
-                  else if (hour >= 18 || hour < 4) greeting = "Selamat Malam";
-                  return `${greeting}, ${profile?.name || "Admin"}`;
-                })()}
+                <Greeting name={profile?.name || "Admin"} />
               </h1>
               <p className="text-sm text-white/80 leading-relaxed font-sans">
                 Selamat datang di pusat kendali LMS. Kelola pendaftaran pengguna, atur kurikulum & program akademik, alokasikan angkatan (batch), serta pantau rekapitulasi nilai dan absensi secara terpusat.

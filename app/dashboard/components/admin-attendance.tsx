@@ -28,12 +28,16 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
   const [mentorsList, setMentorsList] = useState<any[]>([]);
 
   useEffect(() => {
-    fetchAttendances();
+    const controller = new AbortController();
+    fetchAttendances(controller.signal);
+    return () => controller.abort();
   }, [selectedBatch, selectedMentor]);
 
   useEffect(() => {
     if (selectedBatch && selectedBatch !== "all") {
-      fetchActiveDays(selectedBatch);
+      const controller = new AbortController();
+      fetchActiveDays(selectedBatch, controller.signal);
+      return () => controller.abort();
     } else {
       setActiveDays([]);
       setHolidays([]);
@@ -42,12 +46,14 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
     }
   }, [selectedBatch]);
 
-  const fetchActiveDays = async (batchId: string) => {
+  const fetchActiveDays = async (batchId: string, signal?: AbortSignal) => {
     try {
       const res = await fetch(`${API_BASE_URL}/attendance/active-days/${batchId}`, {
         headers: { Accept: "application/json" },
-        credentials: "include"
+        credentials: "include",
+        signal,
       });
+      if (!res.ok) throw new Error("Gagal memuat hari aktif");
       const data = await res.json();
       if (data.days) {
         setActiveDays(
@@ -65,6 +71,7 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
         headers: { Accept: "application/json" },
         credentials: "include"
       });
+      if (!batchRes.ok) throw new Error("Gagal memuat data batch");
       const batchData = await batchRes.json();
       const foundBatch = batchData.find((b: any) => b.id === batchId);
       if (foundBatch) {
@@ -90,7 +97,7 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
     }
   };
 
-  const fetchAttendances = async () => {
+  const fetchAttendances = async (signal?: AbortSignal) => {
     setLoading(true);
     let url = `${API_BASE_URL}/attendance`;
     if (selectedBatch && selectedBatch !== "all") {
@@ -102,7 +109,8 @@ export function AdminAttendance({ batches }: { batches: any[] }) {
     try {
       const res = await fetch(url, {
         headers: { Accept: "application/json" },
-        credentials: "include"
+        credentials: "include",
+        signal,
       });
       if (res.ok) {
         const data = await res.json();

@@ -1,3 +1,5 @@
+import { Profile } from "@/lib/types/profile";
+
 export interface UserListItem {
   id: string;
   name: string;
@@ -16,17 +18,7 @@ export interface UserListItem {
 }
 
 export interface AdminDashboardProps {
-  profile?: {
-    id: string;
-    name: string;
-    email: string;
-    role: string;
-    roles?: string[];
-    whatsapp?: string | null;
-    institution?: string | null;
-    studyProgram?: string | null;
-    avatarUrl?: string | null;
-  };
+  profile?: Profile;
   onProfileUpdate?: () => void;
 }
 

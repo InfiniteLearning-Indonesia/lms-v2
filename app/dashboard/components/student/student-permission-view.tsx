@@ -148,8 +148,8 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
     }
 
     for (const file of Array.from(files)) {
-      if (file.size > 3 * 1024 * 1024) {
-        toast.error(`Ukuran file "${file.name}" melebihi batas maksimal 3MB.`);
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`File "${file.name}" terlalu besar. Maksimal 5MB.`);
         continue;
       }
       const base64Data = await compressImage(file);
@@ -183,6 +183,10 @@ export function StudentPermissionView({ profile, activeClasses }: StudentPermiss
       }
       if (file.size > 3 * 1024 * 1024) {
         toast.error(`Ukuran gambar "${file.name}" melebihi batas maksimal 3MB.`);
+        continue;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`File "${file.name}" terlalu besar. Maksimal 5MB.`);
         continue;
       }
       const base64Data = await compressImage(file);

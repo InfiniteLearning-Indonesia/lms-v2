@@ -68,7 +68,10 @@ export function StudentCertificateView({ profile }: { profile: any }) {
     fetch(`${API_BASE_URL}/classes/my-grades`, {
       credentials: "include",
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Gagal memuat data nilai");
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data)) {
           setGradesData(data);

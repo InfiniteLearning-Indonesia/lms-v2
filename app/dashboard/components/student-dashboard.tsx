@@ -1,8 +1,9 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
+import { Greeting } from "@/components/greeting";
 import { useEffect, useState, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   BookOpen,
@@ -58,6 +59,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
   const [activeTab, setActiveTab] = useState("activity");
 
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   // Listen to tab query parameter dynamically
   useEffect(() => {
@@ -71,15 +73,13 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
 
   const handleTabChange = (val: string) => {
     setActiveTab(val);
-    if (typeof window !== "undefined") {
-      const url = new URL(window.location.href);
-      if (val === "settings") {
-        url.searchParams.set("tab", "settings");
-      } else {
-        url.searchParams.delete("tab");
-      }
-      window.history.pushState({}, "", url.toString());
+    const url = new URL(window.location.href);
+    if (val === "settings") {
+      url.searchParams.set("tab", "settings");
+    } else {
+      url.searchParams.delete("tab");
     }
+    router.push(url.pathname + url.search, { scroll: false });
   };
 
   // Profile Form States
@@ -198,7 +198,10 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
       headers: { Accept: "application/json" },
       credentials: "include"
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) return [];
+        return res.json();
+      })
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           const maxSp = Math.max(...data.map((d: any) => d.spLevel || 0));
@@ -356,7 +359,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
             <div>
               <h4 className="text-xs font-bold font-heading">Peringatan Keamanan Akun</h4>
               <p className="text-[11px] opacity-90">
-                Anda masih menggunakan password default (<code className="font-mono font-bold bg-amber-500/20 px-1 py-0.5 rounded">Student123!</code>). Harap segera ganti password Anda demi keamanan akun.
+                Anda masih menggunakan password awal. Harap segera ganti password Anda demi keamanan akun.
               </p>
             </div>
           </div>
@@ -387,14 +390,7 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
                 <span>Student View</span>
               </div>
               <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-white">
-                {(() => {
-                  const hour = new Date().getHours();
-                  let greeting = "Selamat Pagi";
-                  if (hour >= 11 && hour < 15) greeting = "Selamat Siang";
-                  else if (hour >= 15 && hour < 18) greeting = "Selamat Sore";
-                  else if (hour >= 18 || hour < 4) greeting = "Selamat Malam";
-                  return `${greeting}, ${profile?.name || "Student"}`;
-                })()}
+                <Greeting name={profile?.name || "Student"} />
               </h1>
               <p className="text-sm text-white/80 leading-relaxed font-sans">
                 {randomQuote}

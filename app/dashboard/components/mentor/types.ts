@@ -1,18 +1,6 @@
-export interface MentorProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  roles?: string[];
-  status?: string | null;
-  whatsapp?: string | null;
-  institution?: string | null;
-  studyProgram?: string | null;
-  specialization?: string | null;
-  selectedProgram?: string | null;
-  avatarUrl?: string | null;
-  isPasswordChanged?: boolean;
-}
+import { Profile } from "@/lib/types/profile";
+
+export type MentorProfile = Profile;
 
 export interface MentorDashboardProps {
   profile?: MentorProfile;

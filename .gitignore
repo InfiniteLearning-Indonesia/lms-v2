@@ -44,3 +44,7 @@ next-env.d.ts
 step*.ps1
 graphify-out/
 
+# Debug & artefacts
+transcript_changes.txt
+*.sqlite
+

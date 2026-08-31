@@ -1,12 +1,15 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
+import { logout } from "@/lib/logout";
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { RichTextRenderer } from "@/components/rich-text-renderer";
 import { ArrowLeft, Loader2, CheckCircle2, Clock, UploadCloud, Link as LinkIcon, AlertCircle, FileSpreadsheet, Bot, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,8 +20,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Textarea } from "@/components/ui/textarea";
 import { Navbar } from "@/components/navbar";
 import { BulkAiEvaluateModal } from "@/app/dashboard/components/mentor/modals/bulk-ai-evaluate-modal";
-import { MarkdownRenderer } from "@/components/markdown-renderer";
-import { RichTextRenderer } from "@/components/rich-text-renderer";
 
 export default function AssignmentDetailPage() {
   const router = useRouter();
@@ -48,19 +49,7 @@ export default function AssignmentDetailPage() {
   // Bulk AI state
   const [isBulkModalOpen, setIsBulkModalOpen] = useState(false);
 
-  const handleLogout = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (res.ok) {
-        router.push("/login");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const handleLogout = () => { logout(); };
 
   useEffect(() => {
     Promise.all([
@@ -129,7 +118,7 @@ export default function AssignmentDetailPage() {
   };
 
   useEffect(() => {
-    if (profile?.role === 'mentor') {
+    if (profile?.roles?.includes('mentor')) {
       fetchMentorSubmissions();
     }
   }, [profile, classId, assignmentId]);
@@ -243,15 +232,21 @@ export default function AssignmentDetailPage() {
                 <Clock className="w-3.5 h-3.5 text-brand-purple" />
                 <span>Dibuat: {assignmentData.createdAt ? new Date(assignmentData.createdAt).toLocaleDateString('id-ID') : "Baru saja"}</span>
               </div>
-              <span>•</span>
-              <div>Batas Skor Maksimal: <span className="font-bold text-foreground">100 Poin</span></div>
+            </div>
+
+            <div className="font-sans text-sm leading-relaxed text-foreground/90 bg-card border border-border p-6 rounded-xl shadow-sm">
+              <h3 className="font-heading font-bold text-lg mb-4 text-foreground">Instruksi Tugas</h3>
+              {assignmentData.description ? (
+                <MarkdownRenderer content={assignmentData.description} />
+              ) : (
+                "Tidak ada deskripsi instruksi. Silakan tanyakan kepada mentor Anda."
+              )}
             </div>
           </div>
 
-          {profile?.role === 'mentor' ? (
-            /* ── Mentor Submissions Management Table ── */
-            <div className="bg-card border border-border/80 rounded-2xl shadow-xs overflow-hidden">
-              <div className="p-6 border-b border-border/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-secondary/20">
+          {profile?.roles?.includes('mentor') ? (
+            <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden mt-8">
+              <div className="p-6 border-b border-border flex items-center justify-between bg-secondary/10">
                 <div>
                   <h2 className="font-heading font-bold text-lg text-foreground">Daftar Pengumpulan Mentee</h2>
                   <p className="text-xs text-muted-foreground mt-0.5">Evaluasi pengumpulan mentee secara manual atau gunakan AI secara massal.</p>
@@ -323,7 +318,7 @@ export default function AssignmentDetailPage() {
                     <FileSpreadsheet className="w-5 h-5 text-brand-purple" />
                     Instruksi & Panduan Tugas
                   </h3>
-                  
+
                   {assignmentData.description ? (
                     <RichTextRenderer content={assignmentData.description} />
                   ) : (

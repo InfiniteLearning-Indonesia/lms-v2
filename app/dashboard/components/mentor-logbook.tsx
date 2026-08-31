@@ -169,7 +169,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
                 Tidak ada student ditemukan.
               </p>
             ) : (
-              filteredStudents.map((obj) => {
+              filteredStudents.map((obj, idx) => {
                 const isSelected = selectedStudentId === obj.student.id;
                 const pendingCount = (obj.logbooks || []).filter(
                   (l: any) => l.status === "pending"
@@ -177,7 +177,7 @@ export function MentorLogbook({ batchId }: { batchId: string }) {
 
                 return (
                   <button
-                    key={obj.student?.id || Math.random().toString()}
+                    key={obj.student?.id || `student-${idx}`}
                     onClick={() => {
                       if (obj.student?.id) {
                         setSelectedStudentId(obj.student.id);

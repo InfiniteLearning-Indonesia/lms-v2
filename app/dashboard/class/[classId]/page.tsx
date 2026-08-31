@@ -1,6 +1,7 @@
 "use client";
 
 import { API_BASE_URL } from "@/lib/config";
+import { logout } from "@/lib/logout";
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
@@ -49,19 +50,7 @@ export default function ClassDetailPage() {
       });
   }, [router]);
 
-  const handleLogout = async () => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
-      if (res.ok) {
-        router.push("/login");
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  const handleLogout = () => { logout(); };
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/classes/${classId}`, {

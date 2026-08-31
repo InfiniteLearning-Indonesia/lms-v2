@@ -1,17 +1,6 @@
-export interface StudentProfile {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  roles?: string[];
-  status?: string | null;
-  whatsapp?: string | null;
-  institution?: string | null;
-  studyProgram?: string | null;
-  selectedProgram?: string | null;
-  avatarUrl?: string | null;
-  isPasswordChanged?: boolean;
-}
+import { Profile } from "@/lib/types/profile";
+
+export type StudentProfile = Profile;
 
 export interface StudentDashboardProps {
   profile: StudentProfile;
