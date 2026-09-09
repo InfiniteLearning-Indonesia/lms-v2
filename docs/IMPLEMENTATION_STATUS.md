@@ -18,7 +18,7 @@ Current next action: FE01 membekukan kontrak browser identity (authorization red
 
 | FE | Fokus | Implementation | QA | Backend readiness | Next action/blocker |
 |---|---|---|---|---|---|
-| FE00 | Foundation/design system/contracts/tests | `COMPLETED` | `PASS` (locked install/assets/contract/unit/component/build/bundle/E2E) | OpenAPI CP11–CP12 tersedia lokal | Handoff ke FE01; source masih uncommitted sesuai scope |
+| FE00 | Foundation/design system/contracts/tests | `COMPLETED` | `PASS` (locked install/assets/contract/unit/component/build/bundle/E2E) | OpenAPI CP11–CP12 tersedia lokal | Handoff ke FE01; implementation commit `786d458ad914` |
 | FE01 | Identity/contextual workspace | `NOT_STARTED` | `NOT_RUN` | `PARTIAL_LOCAL` | Real issuer callback dan CSRF refresh belum tersedia |
 | FE02 | Class/participation | `NOT_STARTED` | `NOT_RUN` | `PARTIAL_LOCAL` | `/me/classes`, listing/capability/participant reads belum lengkap |
 | FE03 | Content/file | `NOT_STARTED` | `NOT_RUN` | `NOT_AVAILABLE` | Menunggu M06–M07 OpenAPI dan fixtures |
@@ -34,7 +34,7 @@ Status `PARTIAL_LOCAL` berarti backend mempunyai slice lab yang diuji secara lok
 
 | Check | Hasil 9 September 2026 | Implikasi |
 |---|---|---|
-| Git worktree | Branch `fe-v3`; baseline `77ba1a3`; implementasi FE00 belum di-commit | Perubahan hanya di frontend v3 dan docs |
+| Git worktree | Branch `fe-v3`; baseline `77ba1a3`; implementasi FE00 `786d458ad914` | Perubahan hanya di frontend v3 dan docs |
 | TypeScript | PASS: `npm run typecheck` | Strict compile foundation |
 | ESLint | PASS: `npm run lint` pada route/foundation v3; legacy dashboard di-redirect dan dikecualikan dari gate | Clean v3 boundary |
 | Production build | PASS: `npm run build` memakai webpack, font brand lokal, tanpa Google Fonts request | Lexend Deca/Inclusive Sans + OFL/checksum tersimpan lokal |
@@ -109,6 +109,7 @@ Run FE00 telah dicatat; belum ada deployment atau integrasi backend production.
 | 21:13 | `npm run test:e2e` | PASS — 3 tests | Chromium; 1440×900 + 360×800 visual baselines | restored login structure and focus order PASS |
 | 21:19 | `npm run check` | PASS — final rerun; 11 bundle patterns absent | baseline `77ba1a3f2333` + working tree; contract `00b66b2ee0ed…` | FE00 closure gate PASS |
 | 21:19 | `npm run test:e2e` | PASS — 3 tests | final Chromium screenshot comparison | desktop/360 px baselines unchanged |
+| 21:24 | `git commit` | PASS — `786d458ad914` | FE00 implementation source frozen | ready to push `fe-v3` |
 
 ## 7. Cara memperbarui status
 
