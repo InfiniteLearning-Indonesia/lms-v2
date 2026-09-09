@@ -40,7 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# test runner output (visual baselines under tests/ remain tracked)
+/test-results/
+/playwright-report/
+
 # Graphify temp steps and local files
 step*.ps1
 graphify-out/
-

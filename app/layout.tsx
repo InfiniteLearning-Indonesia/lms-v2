@@ -1,22 +1,26 @@
 import type { Metadata } from "next";
-import { Lexend_Deca, Inclusive_Sans } from "next/font/google";
+import localFont from "next/font/local";
+import { NextIntlClientProvider } from "next-intl";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { QueryProvider } from "@/lib/query/provider";
 import "./globals.css";
 
-const lexendDeca = Lexend_Deca({
+const lexendDeca = localFont({
+  src: "./fonts/LexendDeca[wght].ttf",
   variable: "--font-lexend-deca",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: "100 900",
   display: "swap",
+  fallback: ["Arial", "sans-serif"],
 });
 
-const inclusiveSans = Inclusive_Sans({
+const inclusiveSans = localFont({
+  src: "./fonts/InclusiveSans[wght].ttf",
   variable: "--font-inclusive-sans",
-  subsets: ["latin"],
-  weight: ["400"],
+  weight: "300 700",
   display: "swap",
+  fallback: ["Arial", "sans-serif"],
 });
 
 export const metadata: Metadata = {
@@ -43,10 +47,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TooltipProvider>
-            {children}
-            <Toaster />
-          </TooltipProvider>
+          <QueryProvider>
+            <NextIntlClientProvider>
+              <TooltipProvider>
+                {children}
+                <Toaster />
+              </TooltipProvider>
+            </NextIntlClientProvider>
+          </QueryProvider>
         </ThemeProvider>
       </body>
     </html>

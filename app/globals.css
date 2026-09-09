@@ -7,8 +7,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Inclusive Sans", ui-sans-serif, system-ui, sans-serif;
-  --font-heading: "Lexend Deca", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inclusive-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-lexend-deca), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, monospace;
   --color-brand-purple: #8A3DFF;
   --color-brand-purple-hover: #7528E6;
@@ -132,5 +132,16 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-primary;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

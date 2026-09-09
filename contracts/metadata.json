@@ -1,0 +1,8 @@
+{
+  "status": "PARTIAL_LOCAL",
+  "source": "../api-lms-v2/docs/api/cp11-cp12.openapi.json",
+  "backend_branch": "be-v3",
+  "backend_commit": "52cbc88",
+  "generated_command": "npm run contract:generate",
+  "generated_output": "lib/api/generated.ts"
+}

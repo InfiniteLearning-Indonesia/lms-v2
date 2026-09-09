@@ -1,0 +1,71 @@
+{
+  "appName": "Infinite Learning LMS",
+  "nav": {
+    "overview": "Ringkasan",
+    "learning": "Pembelajaran",
+    "people": "Orang",
+    "submissions": "Pengumpulan",
+    "gradebook": "Nilai",
+    "progress": "Progress",
+    "attendance": "Kehadiran",
+    "logbook": "Logbook",
+    "credentials": "Kredensial",
+    "settings": "Pengaturan"
+  },
+  "common": {
+    "loading": "Memuat…",
+    "retry": "Coba lagi",
+    "empty": "Belum ada data",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "close": "Tutup",
+    "readOnly": "Hanya baca"
+  },
+  "state": {
+    "forbiddenTitle": "Akses tidak tersedia",
+    "forbiddenBody": "Anda tidak memiliki capability untuk melihat bagian ini.",
+    "notFoundTitle": "Tidak ditemukan",
+    "conflictTitle": "Data berubah",
+    "conflictBody": "Versi terbaru tersedia. Muat ulang sebelum menyimpan.",
+    "unavailableTitle": "Layanan sedang tidak tersedia",
+    "unavailableBody": "Coba lagi beberapa saat lagi."
+  },
+  "workspace": {
+    "greeting": "Selamat datang kembali",
+    "chooseClass": "Pilih Class",
+    "noClass": "Belum ada Class yang dapat diakses",
+    "contextual": "Workspace kontekstual"
+  },
+  "login": {
+    "back": "Kembali",
+    "title": "Masuk ke LMS",
+    "intro": "Selamat datang kembali. Kredensial akun Anda dikelola oleh identity owner Infinite Learning.",
+    "email": "Email",
+    "emailPlaceholder": "Dikelola identity owner",
+    "password": "Password",
+    "passwordPlaceholder": "••••••••",
+    "credentialsManaged": "Email dan password ditampilkan sebagai referensi saja dan tidak dikirim ke LMS.",
+    "continue": "Lanjutkan ke Login Aman",
+    "loading": "Menyiapkan login aman…",
+    "serviceStatus": "Cek Status Layanan LMS",
+    "registeredHint": "Pastikan akun Anda sudah terdaftar pada identity owner Infinite Learning.",
+    "brandHeadline": "Kelola kelas, kerjakan tugas, dan pantau progresmu di satu tempat.",
+    "brandDescription": "Platform Learning Management System untuk mendukung pengalaman belajar yang terstruktur, terukur, dan menyenangkan.",
+    "benefitMaterials": "Akses langsung ke seluruh materi modul & tugas kelas",
+    "benefitAssessment": "Sistem penilaian transparan & transkrip kompetensi",
+    "copyright": "Infinite Learning Indonesia. Hak Cipta Dilindungi.",
+    "pendingTitle": "Integrasi identity owner belum tersedia",
+    "pendingBody": "Permintaan login aman berhasil disiapkan, tetapi kontrak pengalihan ke identity owner belum tersedia. Tidak ada redirect atau token yang dibuat.",
+    "genericErrorTitle": "Login belum dapat dimulai",
+    "genericErrorBody": "Terjadi kendala saat menyiapkan login aman. Coba lagi beberapa saat lagi.",
+    "unauthorizedTitle": "Sesi login tidak dapat dimulai",
+    "unauthorizedBody": "Identity owner menolak permintaan login. Muat ulang halaman lalu coba lagi.",
+    "rateLimitTitle": "Terlalu banyak percobaan",
+    "rateLimitBody": "Tunggu beberapa saat sebelum mencoba login kembali.",
+    "unavailableTitle": "Layanan login sedang tidak tersedia",
+    "unavailableBody": "Identity owner belum dapat dihubungi. Coba lagi beberapa saat lagi.",
+    "requestId": "ID permintaan: {requestId}",
+    "callbackTitle": "Integrasi login belum tersedia",
+    "callbackBody": "Callback browser dinonaktifkan sampai kontrak identity owner untuk kode sekali pakai dan pertukarannya dibekukan pada FE01."
+  }
+}
