@@ -1,13 +1,18 @@
 import type { components } from "./generated";
 
-export type ActorContext = components["schemas"]["Actor"] & {
+export type ActorContext = Omit<components["schemas"]["Actor"], "id"> & {
+  id: string;
   display_name?: string;
   account_state?: "ACTIVE" | "DISABLED" | "LOCKED";
   site_capabilities?: string[];
   session_expires_at?: string;
 };
 
-export type ClassAccessSummary = components["schemas"]["Class"] & {
+export type ClassAccessSummary = Omit<components["schemas"]["Class"], "id" | "name" | "state" | "version"> & {
+  id: string;
+  name: string;
+  state: "DRAFT" | "PUBLISHED" | "CLOSED" | "ARCHIVED";
+  version: number;
   contextual_roles?: Array<"teacher" | "student" | "facilitator" | "mentor">;
   capabilities?: string[];
   enrollment_state?: "ACTIVE" | "SUSPENDED" | "ENDED";

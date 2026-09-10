@@ -2,7 +2,9 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function expectSecureKeyboardOrder(page: Page) {
   const visitedIds: string[] = [];
+  const visitedText: string[] = [];
   const loginButton = page.getByRole("button", { name: "Lanjutkan ke Login Aman" });
+  const serviceStatus = page.getByRole("link", { name: "Cek Status Layanan LMS" });
 
   await page.locator("body").click({ position: { x: 1, y: 1 } });
   for (let step = 0; step < 6; step += 1) {
@@ -12,12 +14,15 @@ async function expectSecureKeyboardOrder(page: Page) {
       return { id: element?.id ?? "", text: element?.textContent?.trim() ?? "" };
     });
     visitedIds.push(focused.id);
-    if (focused.text.includes("Lanjutkan ke Login Aman")) break;
+    visitedText.push(focused.text);
+    if (focused.text.includes("Cek Status Layanan LMS")) break;
   }
 
-  await expect(loginButton).toBeFocused();
+  await expect(serviceStatus).toBeFocused();
   expect(visitedIds).not.toContain("email");
   expect(visitedIds).not.toContain("password");
+  expect(visitedText.some((text) => text.includes("Lanjutkan ke Login Aman"))).toBe(false);
+  await expect(loginButton).toBeDisabled();
 }
 
 test.describe("restored secure login", () => {
@@ -31,6 +36,12 @@ test.describe("restored secure login", () => {
     await expect(page.getByRole("heading", { name: /Kelola kelas/ })).toBeVisible();
     await expect(page.getByLabel("Email")).toBeDisabled();
     await expect(page.getByLabel("Password")).toBeDisabled();
+    await expect(page.getByText("Login sedang menunggu integrasi identity owner")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Lanjutkan ke Login Aman" })).toBeDisabled();
+    await expect(page.getByRole("button", { name: "Lanjutkan ke Login Aman" })).toHaveAttribute(
+      "aria-describedby",
+      "login-integration-note",
+    );
     await expectSecureKeyboardOrder(page);
     await expect(page).toHaveScreenshot("login-desktop.png", { fullPage: true, animations: "disabled" });
   });
@@ -44,6 +55,8 @@ test.describe("restored secure login", () => {
     await expect(page.getByRole("link", { name: "Kembali" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Masuk ke LMS" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Lanjutkan ke Login Aman" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Lanjutkan ke Login Aman" })).toBeDisabled();
+    await expect(page.getByText("Login sedang menunggu integrasi identity owner")).toBeVisible();
     await expectSecureKeyboardOrder(page);
     await expect(page).toHaveScreenshot("login-mobile-360.png", { fullPage: true, animations: "disabled" });
   });

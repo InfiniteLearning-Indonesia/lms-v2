@@ -5,8 +5,8 @@ export function LoadingState({ label = "Memuat…" }: { label?: string }) {
   return <div role="status" aria-live="polite" className="flex min-h-32 items-center justify-center gap-3 rounded-xl border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground"><span className="size-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />{label}</div>;
 }
 
-export function EmptyState({ title = "Belum ada data", description }: { title?: string; description?: string }) {
-  return <div className="rounded-xl border border-dashed bg-muted/20 p-8 text-center"><CheckCircle2 className="mx-auto mb-3 size-6 text-muted-foreground" /><h2 className="font-heading text-base font-semibold">{title}</h2>{description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}</div>;
+export function EmptyState({ title = "Belum ada data", description, action }: { title?: string; description?: string; action?: React.ReactNode }) {
+  return <div className="rounded-xl border border-dashed bg-muted/20 p-8 text-center"><CheckCircle2 className="mx-auto mb-3 size-6 text-muted-foreground" /><h2 className="font-heading text-base font-semibold">{title}</h2>{description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}{action && <div className="mt-4 flex justify-center">{action}</div>}</div>;
 }
 
 export function ErrorState({ title = "Terjadi kendala", description = "Coba lagi beberapa saat lagi.", onRetry }: { title?: string; description?: string; onRetry?: () => void }) {

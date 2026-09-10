@@ -1,6 +1,5 @@
-import Link from "next/link";
-import { ArrowRight, BookOpen, ClipboardCheck, Users } from "lucide-react";
-import { PageHeader } from "@/components/ui-v3/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { demoClasses } from "@/features/workspace/types";
-export default async function ClassOverview({ params }: { params: Promise<{ classId: string }> }) { const { classId } = await params; const current = demoClasses.find((item) => item.id === classId); if (!current) return <p>Class tidak ditemukan.</p>; const cards = [[BookOpen, "Learning", "Materi dan aktivitas", `/app/classes/${classId}/learning`], [Users, "People", "Participant dan relasi", `/app/classes/${classId}/people`], [ClipboardCheck, "Submissions", "Tugas dan receipt", `/app/classes/${classId}/submissions`]] as const; return <div className="space-y-8"><PageHeader eyebrow="Class overview" title={current.name ?? "Class"} description={`${current.program_label ?? ""} · ${current.cohort_label ?? ""}`} /><div className="grid gap-4 md:grid-cols-3">{cards.map(([Icon, title, description, href]) => <Card key={title}><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Icon className="size-4 text-primary" />{title}</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{description}</p><Link href={href} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary">Buka <ArrowRight className="size-4" /></Link></CardContent></Card>)}</div></div>; }
+import { ClassOverviewContent } from "@/features/workspace/components/class-overview";
+
+export default function ClassOverview() {
+  return <ClassOverviewContent />;
+}

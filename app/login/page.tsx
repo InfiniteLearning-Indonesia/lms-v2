@@ -1,68 +1,14 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { type FormEvent, useRef, useState } from "react";
-import { motion } from "framer-motion";
-import { AlertCircle, ArrowLeft, KeyRound, Loader2, Lock, Mail } from "lucide-react";
+import { AlertCircle, ArrowLeft, KeyRound, Lock, Mail } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ErrorState } from "@/components/ui-v3/states";
-import { requestAuthChallenge } from "@/lib/api/auth";
-import { ApiRequestError } from "@/lib/api/errors";
-
-type LoginError = { title: string; description: string };
 
 export default function LoginPage() {
   const t = useTranslations("login");
-  const inFlight = useRef(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<LoginError>();
-  const [integrationPending, setIntegrationPending] = useState(false);
-
-  async function startLogin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (inFlight.current) return;
-
-    inFlight.current = true;
-    setLoading(true);
-    setError(undefined);
-    setIntegrationPending(false);
-
-    try {
-      await requestAuthChallenge();
-      // The v3 contract currently exposes only an opaque nonce. Until FE01
-      // freezes an identity-owner authorization URL, the browser must stop here.
-      setIntegrationPending(true);
-    } catch (caught) {
-      let title = t("genericErrorTitle");
-      let description = t("genericErrorBody");
-
-      if (caught instanceof ApiRequestError) {
-        if (caught.apiError.status === 401) {
-          title = t("unauthorizedTitle");
-          description = t("unauthorizedBody");
-        } else if (caught.apiError.status === 429) {
-          title = t("rateLimitTitle");
-          description = t("rateLimitBody");
-        } else if (caught.apiError.status === 503) {
-          title = t("unavailableTitle");
-          description = t("unavailableBody");
-        }
-
-        if (caught.apiError.request_id) {
-          description = `${description} ${t("requestId", { requestId: caught.apiError.request_id })}`;
-        }
-      }
-
-      setError({ title, description });
-    } finally {
-      inFlight.current = false;
-      setLoading(false);
-    }
-  }
+  const previewEnabled = process.env.NODE_ENV === "development" && process.env.LMS_DEV_PREVIEW === "true";
 
   return (
     <main className="grid min-h-svh font-sans selection:bg-brand-purple/20 selection:text-brand-purple lg:grid-cols-2">
@@ -101,12 +47,12 @@ export default function LoginPage() {
         </div>
 
         <div className="w-full max-w-sm">
-          <Link href="/" className="mb-10 flex items-center gap-2 text-foreground lg:hidden">
+          <Link href="/" className="mb-8 flex items-center gap-2 text-foreground sm:mb-10 lg:hidden">
             <ArrowLeft className="size-4" aria-hidden="true" />
             <span className="text-sm font-medium">{t("back")}</span>
           </Link>
 
-          <div className="mb-6">
+          <div className="mb-5 sm:mb-6">
             <div className="mb-6 flex items-center lg:hidden">
               <Image src="/logo-black.png" alt="Infinite Learning" width={180} height={32} className="h-7 w-auto dark:hidden" priority />
               <Image src="/logo-white.png" alt="Infinite Learning" width={180} height={32} className="hidden h-7 w-auto dark:block" priority />
@@ -115,27 +61,19 @@ export default function LoginPage() {
             <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{t("intro")}</p>
           </div>
 
-          <div aria-live="polite">
-            {error ? (
-              <motion.div className="mb-4" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}>
-                <ErrorState title={error.title} description={error.description} />
-              </motion.div>
-            ) : null}
-            {integrationPending ? (
-              <motion.div
-                role="status"
-                className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4"
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <AlertCircle className="mb-2 size-5 text-amber-600" aria-hidden="true" />
-                <h2 className="font-heading text-sm font-semibold">{t("pendingTitle")}</h2>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("pendingBody")}</p>
-              </motion.div>
-            ) : null}
-          </div>
+          <aside
+            id="login-integration-note"
+            aria-labelledby="login-integration-title"
+            className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4"
+          >
+            <AlertCircle className="mb-2 size-5 text-amber-600" aria-hidden="true" />
+            <h2 id="login-integration-title" className="font-heading text-sm font-semibold">
+              {t("integrationTitle")}
+            </h2>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{t("integrationBody")}</p>
+          </aside>
 
-          <form onSubmit={startLogin} className="space-y-3">
+          <form className="space-y-3">
             <div className="space-y-1.5">
               <label htmlFor="email" className="text-xs font-semibold text-foreground">{t("email")}</label>
               <div className="relative">
@@ -156,13 +94,23 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              disabled={loading}
+              disabled
+              aria-describedby="login-integration-note"
               className="mt-2 h-10 w-full bg-brand-purple font-heading text-xs font-bold text-white shadow-sm hover:bg-brand-purple-hover"
             >
-              {loading ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <KeyRound className="size-4" aria-hidden="true" />}
-              {loading ? t("loading") : t("continue")}
+              <KeyRound className="size-4" aria-hidden="true" />
+              {t("continue")}
             </Button>
           </form>
+
+          {previewEnabled ? (
+            <div className="mt-3 rounded-xl border border-dashed border-brand-purple/30 p-3 text-center">
+              <p className="text-[11px] leading-relaxed text-muted-foreground">{t("previewWarning")}</p>
+              <Link href="/app" className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-foreground px-4 font-heading text-xs font-bold text-background transition-opacity hover:opacity-85">
+                {t("openPreview")}
+              </Link>
+            </div>
+          ) : null}
 
           <div className="mt-6 flex flex-col items-center gap-2 border-t border-border pt-4 text-center">
             <p className="text-[11px] leading-relaxed text-muted-foreground">{t("registeredHint")}</p>

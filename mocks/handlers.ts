@@ -8,4 +8,7 @@ export const handlers = [
     return value ? HttpResponse.json(value) : HttpResponse.json({ code: "NOT_FOUND", message: "Class tidak ditemukan" }, { status: 404 });
   }),
   http.post("/api/v3/auth/challenge", () => HttpResponse.json({ nonce: "mock-nonce" })),
+  http.post("/api/v3/auth/rotate", () => HttpResponse.json({ csrf_token: "a".repeat(64) })),
+  http.post("/api/v3/auth/logout", () => HttpResponse.json({ status: "revoked" })),
+  http.post("/api/v3/auth/revoke-all", () => HttpResponse.json({ status: "revoked" })),
 ];

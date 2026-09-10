@@ -1,7 +1,5 @@
-import Link from "next/link";
-import { ArrowRight, BookOpenCheck, Clock3, Sparkles } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PageHeader } from "@/components/ui-v3/page-header";
-import { demoClasses } from "@/features/workspace/types";
+import { WorkspaceHomeContent } from "@/features/workspace/components/home";
 
-export default function WorkspaceHome() { const current = demoClasses[0]; return <div className="space-y-8"><PageHeader eyebrow="Workspace kontekstual" title="Selamat datang kembali" description="Pilih next action dari Class yang sedang Anda akses." /><section className="grid gap-4 md:grid-cols-3"><Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><BookOpenCheck className="size-4 text-primary" />Class aktif</CardTitle></CardHeader><CardContent><p className="font-heading font-semibold">{current.name}</p><p className="mt-1 text-sm text-muted-foreground">{current.program_label} · {current.cohort_label}</p><Link href={`/app/classes/${current.id}`} className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary">Buka overview <ArrowRight className="size-4" /></Link></CardContent></Card><Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Sparkles className="size-4 text-primary" />Capability</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">{current.contextual_roles?.join(" · ")}</p><p className="mt-2 text-sm font-semibold">{current.capabilities?.length} capability aktif</p></CardContent></Card><Card><CardHeader><CardTitle className="flex items-center gap-2 text-base"><Clock3 className="size-4 text-primary" />Next action</CardTitle></CardHeader><CardContent><p className="text-sm text-muted-foreground">Belum ada aktivitas yang tertunda.</p></CardContent></Card></section></div>; }
+export default function WorkspaceHome() {
+  return <WorkspaceHomeContent />;
+}

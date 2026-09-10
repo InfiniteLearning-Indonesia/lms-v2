@@ -8,8 +8,18 @@ export function setCsrfToken(token: string | undefined): void {
   csrfToken = token;
 }
 
+export function hasCsrfToken(): boolean {
+  return csrfToken !== undefined;
+}
+
 export function createIdempotencyKey(): string {
-  return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const uuid = globalThis.crypto?.randomUUID?.();
+  if (uuid) return uuid.replaceAll("-", "");
+
+  if (!globalThis.crypto?.getRandomValues) throw new Error("Secure random source is unavailable");
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+  return Array.from(bytes, (value) => value.toString(16).padStart(2, "0")).join("");
 }
 
 export function isUnsafeMethod(method: string): method is UnsafeMethod {

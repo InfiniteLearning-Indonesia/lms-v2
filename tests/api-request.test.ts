@@ -12,7 +12,8 @@ describe("same-origin API request boundary", () => {
     await apiRequest<{ ok: boolean }>("/test", { method: "POST", body: "{}" });
     expect(request?.credentials).toBe("include");
     expect(request?.headers.get("X-CSRF-Token")).toBe("csrf-test");
-    expect(request?.headers.get("Idempotency-Key")).toBeTruthy();
+    expect(request?.headers.get("Idempotency-Key")).toMatch(/^[a-f0-9]{32}$/);
+    expect(request?.headers.get("Idempotency-Key")).toMatch(/^[a-f0-9]{32}$/);
     expect(request?.headers.get("Authorization")).toBeNull();
   });
 

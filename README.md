@@ -1,36 +1,34 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Infinite Learning LMS v3 frontend
 
-## Getting Started
+## Development
 
-First, run the development server:
+Run the normal frontend against the configured backend:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:7000](http://localhost:7000) with your browser to see the result.
+Until the identity-owner browser bridge is available, use the explicit read-only UI preview:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev:preview
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Open [http://localhost:3000/login](http://localhost:3000/login) and choose **Buka Dashboard Preview**, or open [http://localhost:3000/app](http://localhost:3000/app) directly. The default preview actor is `student`.
 
-## Learn More
+To preview another actor:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+LMS_DEV_PREVIEW_ACTOR=teacher npm run dev:preview
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Allowed values are `student`, `teacher`, `teacherStudent`, `facilitator`, and `siteAdmin`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Preview mode is accepted only when `NODE_ENV=development` and the server-only `LMS_DEV_PREVIEW=true` flag is present. It injects typed actor/Class fixtures into the existing providers and disables identity and Class network queries. The Student preview also supplies UI-only task and logbook reminder fixtures for the Class overview. Production shows an explicit integration state until the M07/M08/M12 read models are available; preview never creates a session, enables mutations, or changes the production backend contract.
 
-## Deploy on Vercel
+## Verification
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run check
+npm run test:e2e
+```

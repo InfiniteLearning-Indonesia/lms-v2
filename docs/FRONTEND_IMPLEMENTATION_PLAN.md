@@ -57,7 +57,7 @@ Angka baseline adalah bukti kondisi awal, bukan target untuk diperbaiki satu per
 
 | Route | Fungsi |
 |---|---|
-| `/app` | Ringkasan akun, Class selector, next actions, dan pekerjaan terbaru |
+| `/app` | Ringkasan akun, pencarian Class yang diikuti actor, next actions, dan pekerjaan terbaru |
 | `/app/profile` | Profil, session, dan keamanan akun |
 | `/app/admin/users` | Provisioning dan administrasi identity |
 | `/app/admin/classes` | Daftar, pencarian, dan pembuatan Class |
@@ -83,6 +83,8 @@ Seluruh route berada di bawah `/app/classes/[classId]`. `classId` di URL adalah 
 | `/settings` | Metadata, policy, publish/close/archive commands |
 
 Menu hanya muncul bila capability response mengizinkan. Menghilangkan menu bukan security boundary; backend tetap wajib menolak request tanpa hak.
+
+Keputusan UX 10 September 2026: Ringkasan Class menampilkan konteks contract-backed, informasi partisipasi, satu menu menuju Pembelajaran, serta UI daftar Tugas Mendatang dan Pengingat Logbook; shortcut card Orang/Pengumpulan tidak diduplikasi. Daftar memakai UI-facing adapter dan fixture hanya pada development preview. Production menampilkan dependency state sampai read model M07/M08/M12 tersedia, sehingga frontend tidak mengarang endpoint, deadline, atau status. Progress tidak diekspos di sidebar. Direct route `/progress` tetap berada di policy guard sampai milestone completion menentukan nasib route tersebut, sehingga URL lama tidak menjadi akses tanpa capability.
 
 ## 4. Arsitektur aplikasi
 
@@ -198,11 +200,13 @@ Bangun struktur baru, same-origin API client, generated contract, mock infrastru
 
 ### FE01 — Identity dan workspace
 
-Implement login/challenge/callback, session bootstrap, rotation/logout, actor provider, Class selector, capability-driven navigation, route guards, profile, serta unauthorized/forbidden states. Jangan menghidupkan kembali localStorage token untuk melewati blocker backend.
+Implement login/challenge/callback, session bootstrap, rotation/logout, actor provider, pencarian Class actor-scoped, dashboard Ringkasan dengan UI task/logbook yang integration-ready, capability-driven navigation dengan exact active state, route guards, profile, serta unauthorized/forbidden states. UI task/logbook hanya memakai development fixture sampai kontrak M07/M08/M12 tersedia dan harus menampilkan dependency state pada production. Jangan menghidupkan kembali localStorage token untuk melewati blocker backend.
 
 ### FE02 — Class dan participation
 
 Implement Class list/create nama-first, metadata opsional, edit dengan version conflict, publish/close/reopen/archive, Add Teacher/Student, suspend/reactivate/end, participant history, dan bulk preview setelah kontrak tersedia.
+
+Enrollment v3 tetap assigned-only: Admin menambahkan Teacher atau Student, sedangkan Teacher hanya menambahkan Student bila contextual capability participant management mengizinkan. Student tidak self-enroll; tidak ada katalog Class global, enroll key, atau aksi join di frontend. Pencarian pada Workspace hanya memfilter Class actor-scoped dari `/me/classes` dan tidak mengubah authorization maupun logic identity owner.
 
 ### FE03 — Content dan file
 
@@ -239,6 +243,16 @@ Rombak landing/status, selesaikan responsive/accessibility/performance/security 
 7. Mock success, merge, dan UI demo bukan bukti integrasi backend atau release readiness.
 8. Jangan mengubah `api-lms-v2` dari pekerjaan frontend. Contract gap dicatat sebagai backend dependency yang eksplisit.
 
+### 7.1 Brief testing wajib untuk development berikutnya
+
+Testing adalah bagian mandatory dari implementasi, bukan pekerjaan opsional setelah UI selesai:
+
+1. Setiap logic, state, adapter, policy, atau interaction baru wajib disertai unit/component test pada checkpoint yang sama. Perubahan tanpa test yang proporsional belum layak dianggap selesai atau dikomit sebagai checkpoint final sebuah FE.
+2. Untuk UI yang dibuat sebelum backend tersedia, test minimum mencakup fixture valid, successful empty state, loading/dependency state, error atau capability denial, navigasi/keyboard, dan formatting domain seperti timezone bila relevan. Fixture hanya membuktikan presentasi frontend.
+3. Setiap FE wajib mempunyai mandatory journey Playwright yang menguji alur pengguna lintas halaman pada production build. Setelah backend contract tersedia, journey yang menyentuh data atau session wajib dijalankan terhadap backend/identity owner nyata melalui HTTPS.
+4. Unit/component test dan mock E2E tidak dapat menggantikan mandatory journey terintegrasi. Checkpoint boleh dikomit dengan status `BLOCKED_BACKEND` bila seluruh gate lokal lulus dan blocker dicatat, tetapi milestone tidak boleh `COMPLETED` sampai journey nyata tersebut lulus.
+5. Saat backend tersedia, tambahkan contract/integration test tanpa menghapus test fixture, empty, negative, capability, dan regression yang sudah ada.
+
 ## 8. Quality gate dan acceptance akhir
 
 Setiap FE wajib menjalankan gate yang relevan:
@@ -267,4 +281,3 @@ Journey release wajib:
 7. Old/stale tab saat fence menerima read-only/`CLASS_MOVED` dan safe retry, bukan silent data loss.
 
 Frontend baru siap cutover hanya bila mock production-disabled, tidak ada panggilan legacy, browser identity bridge lulus, seluruh selected Class workflow terintegrasi dengan Go, dan M17 readiness mempunyai evidence nyata.
-

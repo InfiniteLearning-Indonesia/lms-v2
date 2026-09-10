@@ -5,7 +5,7 @@ const statusCodes = new Set([401, 403, 404, 409, 413, 422, 429, 503]);
 export function normalizeApiError(value: unknown, status = 0, requestId?: string): ApiError {
   if (typeof value === "object" && value !== null) {
     const body = value as Record<string, unknown>;
-    const code = typeof body.code === "string" ? body.code : statusCodes.has(status) ? `HTTP_${status}` : "UNKNOWN_ERROR";
+    const code = typeof body.code === "string" ? body.code : typeof body.error === "string" ? body.error : statusCodes.has(status) ? `HTTP_${status}` : "UNKNOWN_ERROR";
     return {
       code,
       message: typeof body.message === "string" ? body.message : "Terjadi kendala. Coba lagi.",
