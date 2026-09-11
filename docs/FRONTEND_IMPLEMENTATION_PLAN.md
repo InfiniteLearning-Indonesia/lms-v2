@@ -206,6 +206,8 @@ Implement login/challenge/callback, session bootstrap, rotation/logout, actor pr
 
 Implement Class list/create nama-first, metadata opsional, edit dengan version conflict, publish/close/reopen/archive, Add Teacher/Student, suspend/reactivate/end, participant history, dan bulk preview setelah kontrak tersedia.
 
+UI-first implementation dan backend dependency yang dibekukan dicatat pada [checkpoint FE02](checkpoints/FE02.md). Fixture hanya digunakan dalam development preview; production menampilkan dependency state dan final mutation tetap disabled sampai integration gate tersedia.
+
 Enrollment v3 tetap assigned-only: Admin menambahkan Teacher atau Student, sedangkan Teacher hanya menambahkan Student bila contextual capability participant management mengizinkan. Student tidak self-enroll; tidak ada katalog Class global, enroll key, atau aksi join di frontend. Pencarian pada Workspace hanya memfilter Class actor-scoped dari `/me/classes` dan tidak mengubah authorization maupun logic identity owner.
 
 ### FE03 — Content dan file

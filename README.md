@@ -24,7 +24,15 @@ LMS_DEV_PREVIEW_ACTOR=teacher npm run dev:preview
 
 Allowed values are `student`, `teacher`, `teacherStudent`, `facilitator`, and `siteAdmin`.
 
-Preview mode is accepted only when `NODE_ENV=development` and the server-only `LMS_DEV_PREVIEW=true` flag is present. It injects typed actor/Class fixtures into the existing providers and disables identity and Class network queries. The Student preview also supplies UI-only task and logbook reminder fixtures for the Class overview. Production shows an explicit integration state until the M07/M08/M12 read models are available; preview never creates a session, enables mutations, or changes the production backend contract.
+For the FE02 Class administration preview, run:
+
+```bash
+LMS_DEV_PREVIEW_ACTOR=siteAdmin npm run dev:preview
+```
+
+Then open [http://localhost:3000/app/admin/classes](http://localhost:3000/app/admin/classes). Class links expose the Settings and People UI according to their preview capability.
+
+Preview mode is accepted only when `NODE_ENV=development` and the server-only `LMS_DEV_PREVIEW=true` flag is present. It injects typed actor/Class fixtures into the existing providers and disables identity and Class network queries. The Student preview supplies UI-only task and logbook reminder fixtures for the Class overview; the Site Admin preview supplies UI-only Class/participant/identity directories for FE02. Production shows explicit integration states until the required read models are available. Preview never creates a session, enables mutations, or changes the production backend contract.
 
 ## Verification
 

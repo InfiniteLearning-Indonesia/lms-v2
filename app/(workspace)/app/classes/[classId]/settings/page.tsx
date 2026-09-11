@@ -1,2 +1,5 @@
-import { WorkspacePlaceholder } from "@/features/workspace/components/placeholder";
-export default function ClassSettingsPage() { return <WorkspacePlaceholder title="Class settings" description="Metadata, policy, publish, close, archive, dan lifecycle command." />; }
+import { ClassSettingsContent } from "@/features/classes/components/class-settings-content";
+
+export default function ClassSettingsPage() {
+  return <ClassSettingsContent />;
+}

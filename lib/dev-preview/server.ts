@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { ClassParticipantViewModel, IdentityCandidateViewModel } from "@/features/classes/model";
 import type { ActorContext, ClassAccessSummary } from "@/lib/api/types";
 import type { ClassOverviewViewModel } from "@/features/workspace/overview";
 
@@ -7,6 +8,9 @@ export interface DevelopmentPreview {
   actor: ActorContext;
   classes: ClassAccessSummary[];
   classOverviews: Record<string, ClassOverviewViewModel>;
+  adminClasses?: ClassAccessSummary[];
+  classParticipants: Record<string, ClassParticipantViewModel[]>;
+  identityCandidates?: IdentityCandidateViewModel[];
 }
 
 const actorNames = ["student", "teacher", "teacherStudent", "facilitator", "siteAdmin"] as const;
@@ -20,12 +24,29 @@ export async function getDevelopmentPreview(): Promise<DevelopmentPreview | unde
     throw new Error(`LMS_DEV_PREVIEW_ACTOR harus salah satu dari: ${actorNames.join(", ")}`);
   }
 
-  const { actors, classes, classOverviews } = await import("@/mocks/fixtures");
+  const { actors, classes, classOverviews, classParticipants, identityCandidates } = await import("@/mocks/fixtures");
+  const scopedClasses = classesForActor(requestedActor, classes);
   return {
     actor: actors[requestedActor],
-    classes: classesForActor(requestedActor, classes),
+    classes: scopedClasses,
     classOverviews: overviewForActor(requestedActor, classOverviews),
+    adminClasses: requestedActor === "siteAdmin" ? scopedClasses : undefined,
+    classParticipants: participantsForClasses(scopedClasses, classParticipants),
+    identityCandidates: canPreviewIdentityDirectory(requestedActor) ? identityCandidates : undefined,
   };
+}
+
+function canPreviewIdentityDirectory(actorName: PreviewActorName): boolean {
+  return actorName === "siteAdmin" || actorName === "teacher" || actorName === "teacherStudent";
+}
+
+function participantsForClasses(
+  scopedClasses: ClassAccessSummary[],
+  participants: Record<string, ClassParticipantViewModel[]>,
+): Record<string, ClassParticipantViewModel[]> {
+  return Object.fromEntries(
+    scopedClasses.map((item) => [item.id, participants[item.id] ?? []]),
+  );
 }
 
 function overviewForActor(
@@ -53,6 +74,20 @@ function classesForActor(
       capabilities: ["class.read", "participants.read", "progress.read", "attendance.read"],
       next_actions: ["Tinjau progres cohort"],
     }];
+  }
+  if (actorName === "siteAdmin") {
+    return Object.values(classes).map((item) => ({
+      ...item,
+      contextual_roles: [],
+      enrollment_state: "ACTIVE",
+      capabilities: Array.from(new Set([
+        ...(item.capabilities ?? []),
+        "class.read",
+        "class.manage",
+        "participants.read",
+        "participants.manage",
+      ])),
+    }));
   }
   return Object.values(classes);
 }

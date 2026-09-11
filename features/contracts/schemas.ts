@@ -21,6 +21,26 @@ export const classOverviewFixtureSchema = z.object({
     activityType: z.string().optional(),
   })),
 });
+export const classParticipantFixtureSchema = z.object({
+  enrollmentId: z.string().min(1),
+  userId: z.string().regex(/^[a-f0-9]{32}$/),
+  displayName: z.string().min(1),
+  email: z.string().email().optional(),
+  roles: z.array(z.enum(["teacher", "student"])).min(1),
+  state: z.enum(["ACTIVE", "SUSPENDED", "ENDED"]),
+  joinedAt: z.string().datetime({ offset: true }),
+  history: z.array(z.object({
+    id: z.string().min(1),
+    action: z.enum(["ADDED", "SUSPENDED", "REACTIVATED", "ENDED"]),
+    occurredAt: z.string().datetime({ offset: true }),
+    actorLabel: z.string().min(1),
+  })),
+});
+export const identityCandidateFixtureSchema = z.object({
+  userId: z.string().regex(/^[a-f0-9]{32}$/),
+  displayName: z.string().min(1),
+  email: z.string().email(),
+});
 
 export const actorContextSchema = z.object({
   id: z.string().min(1),

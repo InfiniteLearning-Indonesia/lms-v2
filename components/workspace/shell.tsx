@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Beaker, BookOpen, CalendarCheck, ClipboardCheck, FileBadge, GraduationCap, Home, Menu, NotebookPen, Search, Settings, Users, X } from "lucide-react";
+import { ArrowLeft, Beaker, BookOpen, CalendarCheck, ClipboardCheck, FileBadge, GraduationCap, Home, Menu, NotebookPen, School, Search, Settings, Users, X } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -28,11 +28,18 @@ const icons: Record<ClassNavKey, typeof Home> = {
 function Navigation({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const t = useTranslations("nav");
+  const { actor } = useActorSession();
   const { activeClass, classId } = useClassContext();
   const classItems = activeClass
     ? allowedClassNavigation(activeClass.capabilities).map((item) => ({ href: `/app/classes/${activeClass.id}${item.suffix}`, label: t(item.key), icon: icons[item.key], exact: item.suffix === "" }))
     : [];
-  const items = classId ? classItems : [{ href: "/app", label: t("workspace"), icon: Home, exact: true }];
+  const siteAdmin = Boolean(actor.site_capabilities?.includes("site.admin"));
+  const items = classId
+    ? classItems
+    : [
+        { href: "/app", label: t("workspace"), icon: Home, exact: true },
+        ...(siteAdmin ? [{ href: "/app/admin/classes", label: t("adminClasses"), icon: School, exact: true }] : []),
+      ];
 
   return (
     <nav aria-label="Navigasi workspace" className="grid gap-1">
@@ -95,6 +102,8 @@ function Brand() {
 
 function WorkspaceContextControl({ id, onNavigate }: { id: string; onNavigate?: () => void }) {
   const t = useTranslations("workspace");
+  const adminT = useTranslations("adminClasses");
+  const pathname = usePathname();
   const { availableClasses, classId, classSearch, directoryAvailable, filteredClasses, setClassSearch } = useClassContext();
 
   if (classId) {
@@ -103,6 +112,15 @@ function WorkspaceContextControl({ id, onNavigate }: { id: string; onNavigate?: 
         <ArrowLeft className="size-4" aria-hidden="true" />
         {t("backToWorkspace")}
       </Link>
+    );
+  }
+
+  if (pathname.startsWith("/app/admin")) {
+    return (
+      <section className="my-8 rounded-xl border border-primary/20 bg-primary/5 p-4" aria-labelledby={`${id}-label`}>
+        <p id={`${id}-label`} className="text-[11px] font-semibold uppercase tracking-wider text-primary">{adminT("adminContextTitle")}</p>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{adminT("adminContextBody")}</p>
+      </section>
     );
   }
 

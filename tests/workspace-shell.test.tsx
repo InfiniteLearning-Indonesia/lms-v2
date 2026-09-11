@@ -7,6 +7,7 @@ import { WorkspaceShell } from "@/components/workspace/shell";
 import { WorkspaceHomeContent } from "@/features/workspace/components/home";
 import { ClassContextProvider } from "@/features/workspace/context";
 import { ActorSessionProvider } from "@/lib/auth/provider";
+import type { ActorContext, ClassAccessSummary } from "@/lib/api/types";
 import { actors, classes } from "@/mocks/fixtures";
 import messages from "@/messages/id.json";
 
@@ -20,13 +21,13 @@ afterEach(() => {
   navigation.push.mockReset();
 });
 
-function renderWorkspace(pathname = "/app", initialClasses = [classes.published, classes.archived]) {
+function renderWorkspace(pathname = "/app", initialClasses: ClassAccessSummary[] = [classes.published, classes.archived], actor: ActorContext = actors.student) {
   navigation.pathname = pathname;
   const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Number.POSITIVE_INFINITY } } });
   return render(
     <NextIntlClientProvider locale="id" messages={messages}>
       <QueryClientProvider client={client}>
-        <ActorSessionProvider initialActor={actors.student} previewMode>
+        <ActorSessionProvider initialActor={actor} previewMode>
           <ClassContextProvider initialClasses={initialClasses} previewMode>
             <WorkspaceShell>
               {pathname === "/app" ? <WorkspaceHomeContent /> : <p>Class content</p>}
@@ -88,5 +89,13 @@ describe("workspace Class discovery", () => {
 
     expect(screen.getByRole("link", { name: "Ringkasan" })).not.toHaveAttribute("aria-current");
     expect(screen.getByRole("link", { name: "Pembelajaran" })).toHaveAttribute("aria-current", "page");
+  });
+
+  it("shows a dedicated Class administration context only to Site Admin", () => {
+    renderWorkspace("/app/admin/classes", Object.values(classes), actors.siteAdmin);
+
+    expect(screen.getByRole("link", { name: "Kelola Class" })).toHaveAttribute("aria-current", "page");
+    expect(screen.getAllByText("Administrasi Class").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("searchbox", { name: "Cari di Kelas Saya" })).not.toBeInTheDocument();
   });
 });
