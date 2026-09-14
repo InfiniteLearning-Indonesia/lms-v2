@@ -162,6 +162,7 @@ export function LearningContent({ initialLearning }: { initialLearning?: ClassLe
                 mode={mode}
                 timeZone={initialLearning.timeZone}
                 editHref={policy.canEditActivity ? `/app/classes/${activeClass.id}/learning/activities/${encodeURIComponent(selectedActivity.id)}/edit` : undefined}
+                submissionHref={mode === "learn" && selectedActivity.type.toLocaleUpperCase("en-US") === "ASSIGNMENT" && selectedActivity.availability.state === "AVAILABLE" ? `/app/classes/${activeClass.id}/submissions` : undefined}
               />
             ) : (
               <EmptyState
@@ -562,11 +563,13 @@ function ActivityDetail({
   mode,
   timeZone,
   editHref,
+  submissionHref,
 }: {
   activity: LearningActivityViewModel;
   mode: LearningMode;
   timeZone: string;
   editHref?: string;
+  submissionHref?: string;
 }) {
   const t = useTranslations("learning");
   const blocked = mode === "learn" && activity.availability.state !== "AVAILABLE";
@@ -592,6 +595,11 @@ function ActivityDetail({
           {activity.dueAt ? <span className="inline-flex items-center gap-1.5"><CalendarClock className="size-4" aria-hidden="true" />{t("due", { date: formatLearningDate(activity.dueAt, timeZone) })}</span> : null}
           {activity.cutoffAt ? <span className="inline-flex items-center gap-1.5"><LockKeyhole className="size-4" aria-hidden="true" />{t("cutoff", { date: formatLearningDate(activity.cutoffAt, timeZone) })}</span> : null}
         </div>
+        {submissionHref ? (
+          <Link href={submissionHref} className={buttonVariants({ className: "mt-5 min-h-11" })}>
+            <Send className="size-4" aria-hidden="true" />{t("openSubmission")}
+          </Link>
+        ) : null}
       </header>
 
       {blocked ? (

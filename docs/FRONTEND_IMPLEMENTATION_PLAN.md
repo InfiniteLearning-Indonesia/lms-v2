@@ -220,6 +220,8 @@ Scope, UX state, contract handoff, mandatory test, stop condition, dan hasil UI-
 
 Implement assignment detail, server draft, submit/resubmit, immutable timeline, durable receipt, due/cutoff timezone, teacher inbox, rubric grading, draft/final/released states, AI suggestion approval/override, dan grade import preview/commit.
 
+UI-first FE04 sedang dikerjakan berdasarkan [checkpoint FE04](checkpoints/FE04.md). Development fixture actor-scoped tidak aktif pada production; seluruh final command tetap disabled sampai kontrak M08–M09–M13, CSRF, capability, version, idempotency, dan receipt tersedia.
+
 ### FE05 — Completion dan credential
 
 Implement activity/Class progress, policy explanation, waived evidence, transcript snapshot, certificate eligibility/download/verification, revoke, supersede, serta correction state.

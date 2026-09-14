@@ -83,6 +83,7 @@ describe("FE03 learning UI", () => {
     expect(screen.queryByText("legacy-demo.html")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Simpan draft" })).not.toBeInTheDocument();
     await user.click(screen.getByText("Project Brief: Learning Dashboard").closest("button")!);
+    expect(screen.getByRole("link", { name: "Buka Pengumpulan" })).toHaveAttribute("href", `/app/classes/${classes.published.id}/submissions`);
     expect(screen.getByText(/Tenggat 18 Sep 2026, 23.59 WIB/)).toBeInTheDocument();
     expect(screen.getByText(/Batas akhir 20 Sep 2026, 23.59 WIB/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Usability review dan handoff/ }));

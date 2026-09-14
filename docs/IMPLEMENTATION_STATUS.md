@@ -2,11 +2,11 @@
 
 **Diperbarui:** 14 September 2026
 **Branch:** `fe-v3`  
-**Frontend baseline sebelum brief FE03:** `dc964f55c85b`
+**Frontend baseline sebelum brief FE04:** `0fe7521`
 **Backend commit saat inspeksi:** `52cbc88`  
-**Status keseluruhan:** `FE03_BLOCKED_BACKEND / FE02_BLOCKED_BACKEND / FE01_BLOCKED_BACKEND`
+**Status keseluruhan:** `FE04_BLOCKED_BACKEND / FE03_BLOCKED_BACKEND / FE02_BLOCKED_BACKEND / FE01_BLOCKED_BACKEND`
 
-[Master plan](FRONTEND_IMPLEMENTATION_PLAN.md) · [Checkpoint aktif FE03](checkpoints/FE03.md) · [FE02](checkpoints/FE02.md) · [FE01](checkpoints/FE01.md) · [Backend status](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md)
+[Master plan](FRONTEND_IMPLEMENTATION_PLAN.md) · [Checkpoint aktif FE04](checkpoints/FE04.md) · [FE03](checkpoints/FE03.md) · [FE02](checkpoints/FE02.md) · [FE01](checkpoints/FE01.md) · [Backend status](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md)
 
 ## 1. Ringkasan
 
@@ -16,7 +16,9 @@ FE02 UI-first slice juga sudah siap: Site Admin memperoleh direktori Class, crea
 
 FE03 UI-first shell sudah siap: focused learning workspace tanpa sidebar menampilkan **Preview Student Mode** hanya kepada author, sedangkan Student tidak diberi label mode. Setiap Activity memenuhi lebar outline dan memiliki CTA Edit contextual; policy UI memisahkan manage structure, reorder, edit Activity, lifecycle, dan upload walaupun fixture sementara masih menurunkan tiga izin authoring pertama dari `content.manage`. Seluruh payload Learning harus cocok dengan Class aktif atau ditolak tanpa menampilkan data. Dialog create/edit/delete Section dan per-Section Tambah Activity tetap disabled pada final command. Ordering dipusatkan pada mode **Edit Urutan** di header Susunan pembelajaran; editor Activity hanya menangani form, lifecycle, structured editor, serta attachment/private file. Perubahan lokal dilindungi native unload dan link-navigation warning. Development fixture hanya masuk melalui server preview; production menampilkan dependency state dan tidak mengirim content/file request yang belum ada di OpenAPI. Private file lifecycle masih `PARTIAL_FRONTEND`: progress nyata, intent expiry, retry/cancel, dan attach/detach menunggu M06.
 
-Current next action: lengkapi FE03-D07 dan integrasikan FE03 setelah canonical M06–M07 OpenAPI, capability/version/error, CSRF, file intent/transfer/scan/access tersedia; lalu jalankan FE03-T14 terhadap backend nyata melalui HTTPS. Integrasi FE01/FE02 tetap menunggu backend masing-masing; tidak ada perubahan backend dari FE03 UI-first.
+FE04 UI-first slice sudah siap `6/8`: Student submission workspace, Teacher inbox, rubric grade editor, import preview, dan AI suggestion review memakai typed actor-scoped fixture development. Assignment Learning mempunyai entry point Pengumpulan; deadline hanya dipresentasikan dari server state/timezone, receipt/revision tetap immutable, released grade hanya baca, dan AI hanya dapat diterapkan ke draft lokal oleh Teacher. Production fail closed serta tidak mengirim request submission/gradebook karena M08, M09, dan M13 belum tersedia; seluruh save/submit/regrade/release/import command masih disabled. D07 tetap partial dan real HTTPS journey D08 masih diblokir backend.
+
+Current next action: integrasikan FE04 setelah canonical M08–M09–M13 OpenAPI, capability/version/error, CSRF, receipt/deadline/grade/import/job semantics tersedia; lalu jalankan FE04-T14 terhadap backend nyata melalui HTTPS. FE01–FE03 tetap menunggu backend masing-masing dan tidak ada perubahan backend dari FE04 UI-first.
 
 **Brief testing development berikutnya:** setiap logic/state baru wajib membawa unit/component test pada checkpoint yang sama. Setiap FE juga wajib memiliki mandatory journey Playwright; unit test dan mock E2E tidak menggantikan journey HTTPS terhadap backend nyata. FE01-T13 adalah integration journey yang masih diblokir backend, bukan unit test yang belum ditulis.
 
@@ -28,7 +30,7 @@ Current next action: lengkapi FE03-D07 dan integrasikan FE03 setelah canonical M
 | FE01 | Identity/contextual workspace | `BLOCKED_BACKEND` (frontend slice ready) | `PARTIAL_QA` — check + 43 Vitest + 8 Chromium PASS | `PARTIAL_LOCAL` | T13 menunggu opaque-code bridge, CSRF refresh, actor profile, `/me/classes` + capability |
 | FE02 | Class/participation | `BLOCKED_BACKEND` (frontend slice ready) | `PARTIAL_QA` — check + 60 Vitest + 11 Chromium PASS | `PARTIAL_LOCAL` | T12 menunggu listing/capability/participant reads, identity search, bulk preview, CSRF, dan real HTTPS M05 journey |
 | FE03 | Content/private file | `BLOCKED_BACKEND` (frontend shell ready; D07 partial) | `PARTIAL_QA` — check + 82 Vitest + 13 Chromium PASS | `NOT_AVAILABLE` | D07 dan T14 menunggu canonical M06–M07 OpenAPI, CSRF, real transfer/scan/access, dan HTTPS journey |
-| FE04 | Submission/gradebook | `NOT_STARTED` | `NOT_RUN` | `NOT_AVAILABLE` | Menunggu M08–M09 dan job contracts |
+| FE04 | Submission/gradebook | `BLOCKED_BACKEND` (frontend slice ready; D07 partial) | `PARTIAL_QA` — check + 99 Vitest + 15 Chromium PASS | `NOT_AVAILABLE` | D07/T14 menunggu M08–M09/M13 contract, CSRF, durable receipt, deadline, grade/import/job journey |
 | FE05 | Completion/credential | `NOT_STARTED` | `NOT_RUN` | `NOT_AVAILABLE` | Menunggu M10 contracts |
 | FE06 | Attendance/logbook/mentoring | `NOT_STARTED` | `NOT_RUN` | `NOT_AVAILABLE` | Menunggu M11–M12 contracts |
 | FE07 | Admin/reporting/jobs/cutover | `NOT_STARTED` | `NOT_RUN` | `NOT_AVAILABLE` | Menunggu M13–M18 read models/contracts |
@@ -60,7 +62,7 @@ Jumlah deliverable hanya dinaikkan setelah evidence QA dicatat pada checkpoint t
 | FE01 | 7 | 6 | `6/7`; D01 contract + D02–D06 mock/frontend PASS; D07 integration blocked |
 | FE02 | 7 | 6 | `6/7`; D01–D06 frontend/mock PASS; D07 integration blocked |
 | FE03 | 8 | 6 | `6/8`; D01–D06 frontend/mock PASS; D07 private file lifecycle partial; D08 real integration blocked |
-| FE04 | Belum dibekukan | 0 | `N/A` |
+| FE04 | 8 | 6 | `6/8`; D01–D06 frontend/mock PASS; D07 import/AI partial; D08 real integration blocked |
 | FE05 | Belum dibekukan | 0 | `N/A` |
 | FE06 | Belum dibekukan | 0 | `N/A` |
 | FE07 | Belum dibekukan | 0 | `N/A` |
@@ -87,16 +89,16 @@ Denominator FE01–FE08 dibekukan saat checkpoint masing-masing dibuat. Jangan m
 
 ## 6. Evidence ledger
 
-Run FE00 dan partial QA FE01–FE03 telah dicatat; belum ada deployment atau integrasi identity/backend production.
+Run FE00 dan partial QA FE01–FE04 telah dicatat; belum ada deployment atau integrasi identity/backend production.
 
 | Field | Nilai |
 |---|---|
-| Latest FE checkpoint | FE03 `BLOCKED_BACKEND` (`6/8` frontend/mock verified; D07 partial) |
+| Latest FE checkpoint | FE04 `BLOCKED_BACKEND` (`6/8` frontend/mock verified; D07 partial) |
 | Latest lint | PASS — `npm run lint` |
 | Latest typecheck | PASS — `npm run typecheck` |
 | Latest build | PASS — `npm run build` |
-| Latest unit/component test | PASS — 82 tests |
-| Latest E2E/contract test | PASS — contract check + 13 Chromium journeys; FE01-T13, FE02-T12, dan FE03-T14 real journey blocked |
+| Latest unit/component test | PASS — 99 tests |
+| Latest E2E/contract test | PASS — contract check + 15 Chromium journeys; FE01-T13, FE02-T12, FE03-T14, dan FE04-T14 real journey blocked |
 | Latest locked install/assets | PASS — `npm ci`; 4 font/license checksums; `next-intl@4.13.4` |
 | Deployment | `NOT_DEPLOYED` |
 | Migration/cutover | `NOT_EXECUTED`; legacy source dipindahkan ke `legacy/` dan tidak menjadi route v3 |
@@ -193,6 +195,18 @@ Run FE00 dan partial QA FE01–FE03 telah dicatat; belum ada deployment atau int
 | 14 Sep 15:44 | centralized ordering UX + `npm run check` | PASS — 81/81 Vitest | FE03 working tree; contract tetap `00b66b2ee0ed…` | Editor Activity tanpa posisi; mode Edit Urutan pada outline menyembunyikan action authoring, mendukung keyboard focus handoff dan cancel/reset; lint, typecheck, build, bundle scan PASS |
 | 14 Sep 15:44 | final production regression | PASS — 13/13 Chromium | FE03 working tree; production server port 3100 | Tidak ada invented content request/mutation; seluruh regression FE00–FE03 tetap PASS; visual fixture refinement `NOT_RUN_TOOLING` |
 | 14 Sep 16:44 | alignment hardening + final gates | PASS — 82/82 Vitest + 13/13 Chromium | FE03 working tree; contract tetap `00b66b2ee0ed…` | Foreign Class fail closed, policy seam, unsaved warning, route/status/D07 evidence reconciliation, lint, typecheck, production build, bundle scan, dan seluruh browser regression PASS |
+
+### FE04 partial QA history — 14 September 2026
+
+| Timestamp (WIB) | Command | Result | Source/contract evidence | Artifact/blocker |
+|---|---|---|---|---|
+| 17:18 | targeted FE04 tests | PASS — 38/38 | FE04 typed model, fixture, components, Learning handoff, route policy | Student/Teacher projection, foreign Class, dirty state, receipt/revision, rubric/import/AI states PASS |
+| 17:19 | `npm run check` | PASS — 99/99 Vitest | FE04 working tree; contract `00b66b2ee0ed…` | assets, lint, typecheck, production build, dan 11-pattern bundle scan PASS |
+| 17:20 | first `npm run test:e2e` | 14/15 PASS | production server port 3100 | Satu test salah mencari link sidebar sebelum membuka mobile drawer; bukan UI failure dan assertion dikoreksi |
+| 17:21 | final `npm run test:e2e` | PASS — 15/15 Chromium | final FE04 source tree; production server port 3100 | FE04 dependency/no invented request or mutation, 360 px/no overflow, dan seluruh FE00–FE03 regression PASS |
+| 17:22 | development visual inspection | `NOT_RUN_TOOLING` | browser interaktif tidak tersedia setelah discovery | Screenshot baseline tidak dibuat/diubah; fixture visual perlu ditinjau saat browser tersedia |
+| 17:23–17:24 | final source gates | PASS — 99/99 Vitest + 15/15 Chromium | final FE04 source tree; contract tetap `00b66b2ee0ed…` | Dead import control dikunci; lint, typecheck, build, bundle, production safety, responsive, dan seluruh regression PASS |
+| Setelah handoff | UX flow review oleh pengguna | PASS | FE04 development preview | Flow Student submission, Teacher inbox, dan gradebook diterima; backend integration status tetap blocked |
 
 ## 7. Cara memperbarui status
 

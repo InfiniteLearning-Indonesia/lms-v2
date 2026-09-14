@@ -2,6 +2,8 @@ import type { ActorContext, ClassAccessSummary } from "@/lib/api/types";
 import type { ClassOverviewViewModel } from "@/features/workspace/overview";
 import type { ClassParticipantViewModel, IdentityCandidateViewModel } from "@/features/classes/model";
 import type { ClassLearningViewModel } from "@/features/learning/model";
+import type { ClassSubmissionViewModel } from "@/features/submission/model";
+import type { ClassGradebookViewModel } from "@/features/gradebook/model";
 
 export const actors = {
   siteAdmin: { id: "actor-admin", display_name: "Site Admin", site_admin: true, account_state: "ACTIVE", site_capabilities: ["site.admin"] },
@@ -13,7 +15,7 @@ export const actors = {
 } satisfies Record<string, ActorContext>;
 
 export const classes = {
-  draft: { id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", name: "Class Draft", state: "DRAFT", version: 1, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "content.manage", "content.publish", "files.upload", "participants.read", "participants.manage"] },
+  draft: { id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", name: "Class Draft", state: "DRAFT", version: 1, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "content.manage", "content.publish", "files.upload", "participants.read", "participants.manage", "submission.read", "gradebook.read"] },
   published: { id: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", name: "Product Engineering 2026", program_label: "Software Engineering", cohort_label: "Batch 01", state: "PUBLISHED", version: 3, contextual_roles: ["student"], enrollment_state: "ACTIVE", capabilities: ["class.read", "content.read", "participants.read", "submission.read", "progress.read", "attendance.read", "logbook.read", "credentials.read"], next_actions: ["Lanjutkan materi berikutnya"] },
   closed: { id: "cccccccccccccccccccccccccccccccc", name: "Class Closed", state: "CLOSED", version: 7, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "participants.read", "participants.manage", "gradebook.read", "progress.read"] },
   archived: { id: "dddddddddddddddddddddddddddddddd", name: "Class Archived", state: "ARCHIVED", version: 9, contextual_roles: ["student"], enrollment_state: "ENDED", capabilities: ["class.read"] },
@@ -218,6 +220,202 @@ export const classLearning = {
     ],
   },
 } satisfies Record<string, ClassLearningViewModel>;
+
+export const classSubmissions = {
+  student: {
+    [classes.published.id]: {
+      classId: classes.published.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-14T09:15:00+07:00",
+      learnerAssignments: [
+        {
+          assignmentId: "assignment-learning-dashboard",
+          activityId: "activity-student-assignment",
+          title: "Project Brief: Learning Dashboard",
+          summary: "Susun rancangan dashboard pembelajaran yang informatif dan fokus untuk Student.",
+          dueAt: "2026-09-18T23:59:00+07:00",
+          cutoffAt: "2026-09-20T23:59:00+07:00",
+          deadlineState: "DUE_SOON",
+          state: "DRAFT",
+          currentRevision: 0,
+          draftText: "Saya akan memulai dari hierarchy informasi, lalu memvalidasi alur tugas utama pada tampilan mobile.",
+          savedAt: "2026-09-14T09:15:00+07:00",
+          attachments: [],
+          timeline: [{ id: "timeline-draft-1", type: "DRAFT_SAVED", occurredAt: "2026-09-14T09:15:00+07:00", label: "Draft server terakhir" }],
+        },
+        {
+          assignmentId: "assignment-information-architecture",
+          activityId: "activity-information-architecture",
+          title: "UI/UX Design: Information Architecture",
+          summary: "Dokumentasikan struktur navigasi dan alasan hierarchy yang dipilih.",
+          dueAt: "2026-09-24T23:59:00+07:00",
+          cutoffAt: "2026-09-26T23:59:00+07:00",
+          deadlineState: "UPCOMING",
+          state: "RETURNED",
+          currentRevision: 1,
+          draftText: "Revisi akan memperjelas pemisahan antara navigasi Class dan ruang kerja Activity.",
+          savedAt: "2026-09-13T20:05:00+07:00",
+          teacherFeedback: "Tambahkan alasan mengapa aksi utama ditempatkan dekat konteks tugas, lalu sertakan alur keyboard.",
+          receipt: {
+            code: "RCPT-PE26-IA-0001",
+            submittedAt: "2026-09-12T15:20:00+07:00",
+            serverRecordedAt: "2026-09-12T15:20:03+07:00",
+          },
+          attachments: [{ id: "submission-ia-v1", name: "information-architecture-v1.pdf", sizeBytes: 2_340_000, state: "READY" }],
+          timeline: [
+            { id: "timeline-ia-draft", type: "DRAFT_SAVED", occurredAt: "2026-09-12T14:10:00+07:00" },
+            { id: "timeline-ia-submit", type: "SUBMITTED", occurredAt: "2026-09-12T15:20:03+07:00", label: "Revision 1" },
+            { id: "timeline-ia-return", type: "RETURNED", occurredAt: "2026-09-13T16:30:00+07:00", label: "Perlu revisi" },
+          ],
+        },
+      ],
+    },
+  },
+  teacher: {
+    [classes.draft.id]: {
+      classId: classes.draft.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-14T10:45:00+07:00",
+      teacherInbox: [
+        {
+          submissionId: "submission-nabila-dashboard",
+          assignmentId: "assignment-dashboard-draft-class",
+          assignmentTitle: "Project Brief: Learning Dashboard",
+          studentId: "66666666666666666666666666666666",
+          studentName: "Nabila Sari",
+          studentEmail: "nabila@example.test",
+          state: "SUBMITTED",
+          deadlineState: "UPCOMING",
+          currentRevision: 2,
+          submittedAt: "2026-09-14T10:30:00+07:00",
+          excerpt: "Rancangan memprioritaskan konteks Class, pekerjaan terdekat, dan satu CTA utama menuju pembelajaran.",
+          receipt: { code: "RCPT-DRAFT-NABILA-0002", submittedAt: "2026-09-14T10:30:00+07:00", serverRecordedAt: "2026-09-14T10:30:02+07:00" },
+          attachments: [{ id: "nabila-dashboard-v2", name: "learning-dashboard-v2.pdf", sizeBytes: 4_120_000, state: "READY" }],
+          timeline: [
+            { id: "nabila-v1", type: "SUBMITTED", occurredAt: "2026-09-12T18:00:00+07:00", label: "Revision 1" },
+            { id: "nabila-returned", type: "RETURNED", occurredAt: "2026-09-13T09:00:00+07:00" },
+            { id: "nabila-v2", type: "RESUBMITTED", occurredAt: "2026-09-14T10:30:02+07:00", label: "Revision 2" },
+          ],
+        },
+        {
+          submissionId: "submission-arya-dashboard",
+          assignmentId: "assignment-dashboard-draft-class",
+          assignmentTitle: "Project Brief: Learning Dashboard",
+          studentId: "student-arya",
+          studentName: "Arya Wijaya",
+          studentEmail: "arya@example.test",
+          state: "RETURNED",
+          deadlineState: "DUE_SOON",
+          currentRevision: 1,
+          submittedAt: "2026-09-13T17:45:00+07:00",
+          excerpt: "Dashboard membagi informasi menjadi ringkasan, aktivitas, dan progres.",
+          receipt: { code: "RCPT-DRAFT-ARYA-0001", submittedAt: "2026-09-13T17:45:00+07:00", serverRecordedAt: "2026-09-13T17:45:04+07:00" },
+          attachments: [],
+          timeline: [
+            { id: "arya-submit", type: "SUBMITTED", occurredAt: "2026-09-13T17:45:04+07:00", label: "Revision 1" },
+            { id: "arya-return", type: "RETURNED", occurredAt: "2026-09-14T08:20:00+07:00", label: "Hierarchy perlu diperjelas" },
+          ],
+        },
+        {
+          submissionId: "submission-salsa-dashboard",
+          assignmentId: "assignment-dashboard-draft-class",
+          assignmentTitle: "Project Brief: Learning Dashboard",
+          studentId: "student-salsa",
+          studentName: "Salsa Ramadhani",
+          studentEmail: "salsa@example.test",
+          state: "GRADED",
+          deadlineState: "UPCOMING",
+          currentRevision: 1,
+          submittedAt: "2026-09-12T12:00:00+07:00",
+          excerpt: "Solusi menggunakan hierarchy berbasis kebutuhan Student dan progressive disclosure.",
+          receipt: { code: "RCPT-DRAFT-SALSA-0001", submittedAt: "2026-09-12T12:00:00+07:00", serverRecordedAt: "2026-09-12T12:00:02+07:00" },
+          attachments: [{ id: "salsa-dashboard-v1", name: "dashboard-salsa.pdf", sizeBytes: 3_800_000, state: "READY" }],
+          timeline: [
+            { id: "salsa-submit", type: "SUBMITTED", occurredAt: "2026-09-12T12:00:02+07:00" },
+            { id: "salsa-graded", type: "GRADED", occurredAt: "2026-09-13T14:00:00+07:00", label: "Nilai masih draft" },
+          ],
+        },
+      ],
+    },
+  },
+} satisfies Record<"student" | "teacher", Record<string, ClassSubmissionViewModel>>;
+
+export const classGradebooks = {
+  teacher: {
+    [classes.draft.id]: {
+      classId: classes.draft.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-14T11:00:00+07:00",
+      assignments: [
+        {
+          assignmentId: "assignment-dashboard-draft-class",
+          title: "Project Brief: Learning Dashboard",
+          rubricVersion: 2,
+          maxPoints: 100,
+          criteria: [
+            { id: "criterion-hierarchy", title: "Hierarchy informasi", description: "Prioritas konteks dan aksi utama mudah dipahami.", maxPoints: 35 },
+            { id: "criterion-flow", title: "Alur penggunaan", description: "Alur Student konsisten pada desktop, mobile, dan keyboard.", maxPoints: 35 },
+            { id: "criterion-evidence", title: "Argumentasi desain", description: "Keputusan disertai alasan dan evidence yang dapat ditinjau.", maxPoints: 30 },
+          ],
+          entries: [
+            {
+              submissionId: "submission-nabila-dashboard",
+              assignmentId: "assignment-dashboard-draft-class",
+              studentId: "66666666666666666666666666666666",
+              studentName: "Nabila Sari",
+              submissionRevision: 2,
+              gradeVersion: 0,
+              state: "UNGRADED",
+              criterionScores: { "criterion-hierarchy": 0, "criterion-flow": 0, "criterion-evidence": 0 },
+              aiSuggestion: {
+                state: "READY",
+                summary: "Saran menilai hierarchy sudah kuat, tetapi evidence pengujian keyboard masih perlu diperjelas.",
+                criterionScores: { "criterion-hierarchy": 30, "criterion-flow": 27, "criterion-evidence": 22 },
+                modelLabel: "Assessment assistant preview",
+                generatedAt: "2026-09-14T10:40:00+07:00",
+                provenanceLabel: "Rubric v2 · Submission revision 2",
+              },
+            },
+            {
+              submissionId: "submission-arya-dashboard",
+              assignmentId: "assignment-dashboard-draft-class",
+              studentId: "student-arya",
+              studentName: "Arya Wijaya",
+              submissionRevision: 1,
+              gradeVersion: 1,
+              state: "DRAFT",
+              criterionScores: { "criterion-hierarchy": 24, "criterion-flow": 25, "criterion-evidence": 20 },
+              feedback: "Perjelas hubungan antara status pekerjaan dan tindakan berikutnya.",
+              aiSuggestion: { state: "FAILED", failureReason: "Provider tidak tersedia. Tidak ada nilai fallback yang dibuat." },
+            },
+            {
+              submissionId: "submission-salsa-dashboard",
+              assignmentId: "assignment-dashboard-draft-class",
+              studentId: "student-salsa",
+              studentName: "Salsa Ramadhani",
+              submissionRevision: 1,
+              gradeVersion: 2,
+              state: "RELEASED",
+              criterionScores: { "criterion-hierarchy": 32, "criterion-flow": 31, "criterion-evidence": 27 },
+              feedback: "Hierarchy jelas dan keputusan desain dijelaskan dengan baik.",
+              releasedAt: "2026-09-14T09:00:00+07:00",
+            },
+          ],
+        },
+      ],
+      importPreview: {
+        previewId: "grade-import-preview-01",
+        fileName: "nilai-learning-dashboard.csv",
+        policyVersion: 2,
+        expiresAt: "2026-09-14T12:00:00+07:00",
+        validRows: 18,
+        invalidRows: 2,
+        unchangedRows: 4,
+        issues: ["Baris 7: score melebihi batas criterion.", "Baris 14: Student tidak ditemukan pada Class ini."],
+      },
+    },
+  },
+} satisfies Record<"teacher", Record<string, ClassGradebookViewModel>>;
 
 export const classParticipants = {
   [classes.published.id]: [
