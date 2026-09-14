@@ -10,7 +10,7 @@ describe("FE01 contextual workspace policy", () => {
   });
 
   it("maps only known capabilities to Class navigation", () => {
-    expect(allowedClassNavigation(["class.read", "content.read", "gradebook.read"]).map((item) => item.key)).toEqual(["overview", "learning", "gradebook"]);
+    expect(allowedClassNavigation(["class.read", "content.read", "gradebook.read"]).map((item) => item.key)).toEqual(["overview", "gradebook"]);
     expect(allowedClassNavigation(["progress.read"])).toEqual([]);
   });
 
@@ -18,6 +18,7 @@ describe("FE01 contextual workspace policy", () => {
     const classId = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
     expect(classIdFromPath(`/app/classes/${classId}/learning`)).toBe(classId);
     expect(requiredCapability(`/app/classes/${classId}/learning`, classId)).toBe("content.read");
+    expect(requiredCapability(`/app/classes/${classId}/learning/activities/activity-a/edit`, classId)).toBe("content.manage");
     expect(requiredCapability(`/app/classes/${classId}/progress`, classId)).toBe("progress.read");
     expect(classIdFromPath("/app/profile")).toBeUndefined();
   });

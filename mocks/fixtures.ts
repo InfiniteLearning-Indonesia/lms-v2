@@ -1,6 +1,7 @@
 import type { ActorContext, ClassAccessSummary } from "@/lib/api/types";
 import type { ClassOverviewViewModel } from "@/features/workspace/overview";
 import type { ClassParticipantViewModel, IdentityCandidateViewModel } from "@/features/classes/model";
+import type { ClassLearningViewModel } from "@/features/learning/model";
 
 export const actors = {
   siteAdmin: { id: "actor-admin", display_name: "Site Admin", site_admin: true, account_state: "ACTIVE", site_capabilities: ["site.admin"] },
@@ -12,9 +13,9 @@ export const actors = {
 } satisfies Record<string, ActorContext>;
 
 export const classes = {
-  draft: { id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", name: "Class Draft", state: "DRAFT", version: 1, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "participants.read", "participants.manage"] },
+  draft: { id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", name: "Class Draft", state: "DRAFT", version: 1, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "content.manage", "content.publish", "files.upload", "participants.read", "participants.manage"] },
   published: { id: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", name: "Product Engineering 2026", program_label: "Software Engineering", cohort_label: "Batch 01", state: "PUBLISHED", version: 3, contextual_roles: ["student"], enrollment_state: "ACTIVE", capabilities: ["class.read", "content.read", "participants.read", "submission.read", "progress.read", "attendance.read", "logbook.read", "credentials.read"], next_actions: ["Lanjutkan materi berikutnya"] },
-  closed: { id: "cccccccccccccccccccccccccccccccc", name: "Class Closed", state: "CLOSED", version: 7, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "participants.read", "participants.manage", "gradebook.read", "progress.read"] },
+  closed: { id: "cccccccccccccccccccccccccccccccc", name: "Class Closed", state: "CLOSED", version: 7, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "participants.read", "participants.manage", "gradebook.read", "progress.read"] },
   archived: { id: "dddddddddddddddddddddddddddddddd", name: "Class Archived", state: "ARCHIVED", version: 9, contextual_roles: ["student"], enrollment_state: "ENDED", capabilities: ["class.read"] },
 } satisfies Record<string, ClassAccessSummary>;
 
@@ -50,6 +51,173 @@ export const classOverviews = {
     ],
   },
 } satisfies Record<string, ClassOverviewViewModel>;
+
+export const classLearning = {
+  [classes.draft.id]: {
+    classId: classes.draft.id,
+    timeZone: "Asia/Jakarta",
+    updatedAt: "2026-09-11T14:30:00+07:00",
+    filePolicy: {
+      maxBytes: 10_000_000,
+      allowedMimeTypes: ["application/pdf", "image/png", "image/jpeg"],
+      allowedExtensions: [".pdf", ".png", ".jpg", ".jpeg"],
+    },
+    sections: [
+      {
+        id: "section-orientation",
+        title: "Orientasi dan fondasi",
+        description: "Konteks Class, cara bekerja, dan fondasi project.",
+        version: 3,
+        activities: [
+          {
+            id: "activity-welcome",
+            type: "MATERIAL",
+            title: "Selamat datang di Product Engineering",
+            summary: "Panduan singkat sebelum memulai rangkaian pembelajaran.",
+            lifecycle: "PUBLISHED",
+            revision: 2,
+            availability: { state: "AVAILABLE" },
+            durationMinutes: 8,
+            content: [
+              { type: "heading", level: 2, text: "Cara menggunakan ruang belajar" },
+              { type: "paragraph", text: "Mulai dari aktivitas pertama, baca tujuan setiap sesi, lalu gunakan materi pendamping yang telah dinyatakan siap." },
+              { type: "list", items: ["Ikuti urutan aktivitas pada setiap Section.", "Perhatikan status dan jadwal yang ditetapkan Pengajar.", "Gunakan hanya attachment yang berstatus siap."] },
+            ],
+            attachments: [{ id: "asset-program-brief", name: "program-brief.pdf", sizeBytes: 2_480_000, mimeType: "application/pdf", state: "READY" }],
+          },
+          {
+            id: "activity-design-system",
+            type: "MATERIAL",
+            title: "Menyusun fondasi design system",
+            summary: "Draft materi tentang token, komponen, dan pola aksesibel.",
+            lifecycle: "DRAFT",
+            revision: 4,
+            syncState: "STALE",
+            latestRevision: 5,
+            availability: { state: "UNAVAILABLE", reason: "Belum dipublikasikan untuk Student." },
+            durationMinutes: 25,
+            content: [
+              { type: "heading", level: 2, text: "Fondasi sebelum komponen" },
+              { type: "paragraph", text: "Tetapkan keputusan typography, color, spacing, dan interaction state sebelum memperbanyak variasi komponen." },
+              { type: "callout", tone: "info", title: "Catatan Pengajar", text: "Konten ini masih berupa draft dan belum boleh dianggap sebagai revision final." },
+              { type: "link", label: "Baca referensi accessibility", url: "https://www.w3.org/WAI/standards-guidelines/wcag/" },
+            ],
+            attachments: [
+              { id: "asset-wireframe", name: "wireframe-reference.pdf", sizeBytes: 4_820_000, mimeType: "application/pdf", state: "SCANNING", statusReason: "File sedang dipindai sebelum dapat dilampirkan." },
+              { id: "asset-legacy-demo", name: "legacy-demo.html", sizeBytes: 820_000, mimeType: "text/html", state: "QUARANTINED", statusReason: "Active content tidak dapat dipublikasikan." },
+              { id: "asset-rejected-script", name: "interactive-reference.svg", sizeBytes: 320_000, mimeType: "image/svg+xml", state: "REJECTED", statusReason: "File ditolak oleh policy active content." },
+            ],
+          },
+          {
+            id: "activity-project-brief",
+            type: "ASSIGNMENT",
+            title: "Project Brief: Learning Dashboard",
+            summary: "Definisi tugas untuk menyusun pengalaman dashboard pembelajaran.",
+            lifecycle: "DRAFT",
+            revision: 1,
+            availability: { state: "SCHEDULED", availableAt: "2026-09-15T08:00:00+07:00", reason: "Akan tersedia sesuai jadwal server." },
+            dueAt: "2026-09-22T23:59:00+07:00",
+            cutoffAt: "2026-09-24T23:59:00+07:00",
+            content: [
+              { type: "paragraph", text: "Susun satu learning dashboard yang membantu Student menemukan aktivitas dan memahami langkah berikutnya." },
+            ],
+            attachments: [],
+          },
+        ],
+      },
+      {
+        id: "section-discovery",
+        title: "Discovery dan information architecture",
+        description: "Rangkaian aktivitas berikutnya sedang disiapkan.",
+        version: 1,
+        activities: [],
+      },
+    ],
+  },
+  [classes.published.id]: {
+    classId: classes.published.id,
+    timeZone: "Asia/Jakarta",
+    updatedAt: "2026-09-11T15:00:00+07:00",
+    sections: [
+      {
+        id: "section-getting-started",
+        title: "Mulai di sini",
+        description: "Orientasi dan fondasi cara belajar di Class.",
+        version: 2,
+        activities: [
+          {
+            id: "activity-student-welcome",
+            type: "MATERIAL",
+            title: "Selamat datang di Product Engineering",
+            summary: "Kenali alur belajar, status aktivitas, dan material pendamping.",
+            lifecycle: "PUBLISHED",
+            revision: 2,
+            availability: { state: "AVAILABLE" },
+            durationMinutes: 8,
+            content: [
+              { type: "heading", level: 2, text: "Mulai dengan konteks yang jelas" },
+              { type: "paragraph", text: "Setiap Section menyusun aktivitas dalam urutan yang telah ditetapkan Pengajar. Buka aktivitas untuk membaca materi atau melihat ketentuan tugas." },
+              { type: "callout", tone: "info", title: "Gunakan file yang siap", text: "Attachment hanya dapat dibuka setelah pemeriksaan backend menyatakan file siap dan akses Anda diizinkan." },
+            ],
+            attachments: [{ id: "asset-student-guide", name: "student-learning-guide.pdf", sizeBytes: 1_240_000, mimeType: "application/pdf", state: "READY" }],
+          },
+          {
+            id: "activity-student-foundation",
+            type: "MATERIAL",
+            title: "Fondasi design system",
+            summary: "Pelajari token dan pola UI sebelum masuk ke layout.",
+            lifecycle: "PUBLISHED",
+            revision: 3,
+            availability: { state: "AVAILABLE" },
+            durationMinutes: 25,
+            content: [
+              { type: "paragraph", text: "Design system membantu keputusan visual dan interaction tetap konsisten saat produk berkembang." },
+              { type: "list", items: ["Mulai dari semantic token.", "Dokumentasikan state interaktif.", "Uji keyboard dan responsive sejak awal."] },
+            ],
+            attachments: [],
+          },
+        ],
+      },
+      {
+        id: "section-practice",
+        title: "Latihan terarah",
+        description: "Terapkan fondasi pada studi kasus LMS.",
+        version: 4,
+        activities: [
+          {
+            id: "activity-student-assignment",
+            type: "ASSIGNMENT",
+            title: "Project Brief: Learning Dashboard",
+            summary: "Bangun rancangan dashboard pembelajaran yang informatif dan fokus.",
+            lifecycle: "PUBLISHED",
+            revision: 4,
+            availability: { state: "AVAILABLE" },
+            dueAt: "2026-09-18T23:59:00+07:00",
+            cutoffAt: "2026-09-20T23:59:00+07:00",
+            content: [
+              { type: "heading", level: 2, text: "Tujuan tugas" },
+              { type: "paragraph", text: "Rancang hierarchy informasi yang membantu Student memahami Class, aktivitas berikutnya, dan status pekerjaan tanpa menampilkan progress palsu." },
+              { type: "link", label: "Buka referensi brief eksternal", url: "https://example.com/learning-brief" },
+            ],
+            attachments: [{ id: "asset-project-template", name: "project-template.pdf", sizeBytes: 3_100_000, mimeType: "application/pdf", state: "EXPIRED", statusReason: "Akses sebelumnya kedaluwarsa dan harus diminta kembali." }],
+          },
+          {
+            id: "activity-student-locked",
+            type: "MATERIAL",
+            title: "Usability review dan handoff",
+            summary: "Review hasil setelah tugas utama diselesaikan.",
+            lifecycle: "PUBLISHED",
+            revision: 1,
+            availability: { state: "LOCKED", prerequisiteLabel: "Project Brief: Learning Dashboard", reason: "Selesaikan prerequisite sebelum membuka materi ini." },
+            durationMinutes: 18,
+            content: [{ type: "paragraph", text: "Konten terkunci dan tidak boleh ditampilkan sebelum availability backend mengizinkan." }],
+            attachments: [],
+          },
+        ],
+      },
+    ],
+  },
+} satisfies Record<string, ClassLearningViewModel>;
 
 export const classParticipants = {
   [classes.published.id]: [

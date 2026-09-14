@@ -1,6 +1,5 @@
 export type ClassNavKey =
   | "overview"
-  | "learning"
   | "people"
   | "submissions"
   | "gradebook"
@@ -9,7 +8,7 @@ export type ClassNavKey =
   | "credentials"
   | "settings";
 
-type ClassRouteKey = ClassNavKey | "progress";
+type ClassRouteKey = ClassNavKey | "learning" | "progress";
 
 export interface ClassNavigationItem {
   key: ClassNavKey;
@@ -25,7 +24,6 @@ interface ClassRoutePolicy {
 
 export const classNavigation: ClassNavigationItem[] = [
   { key: "overview", suffix: "", capability: "class.read" },
-  { key: "learning", suffix: "/learning", capability: "content.read" },
   { key: "people", suffix: "/people", capability: "participants.read" },
   { key: "submissions", suffix: "/submissions", capability: "submission.read" },
   { key: "gradebook", suffix: "/gradebook", capability: "gradebook.read" },
@@ -37,6 +35,7 @@ export const classNavigation: ClassNavigationItem[] = [
 
 const classRoutePolicies: ClassRoutePolicy[] = [
   ...classNavigation,
+  { key: "learning", suffix: "/learning", capability: "content.read" },
   { key: "progress", suffix: "/progress", capability: "progress.read" },
 ];
 
@@ -48,5 +47,6 @@ export function allowedClassNavigation(capabilities: readonly string[] | undefin
 
 export function requiredCapability(pathname: string, classId: string): string | undefined {
   const base = `/app/classes/${classId}`;
+  if (/^\/learning\/activities\/[^/]+\/edit$/.test(pathname.slice(base.length))) return "content.manage";
   return classRoutePolicies.find(({ suffix }) => pathname === `${base}${suffix}`)?.capability;
 }

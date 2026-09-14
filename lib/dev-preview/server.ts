@@ -3,11 +3,13 @@ import "server-only";
 import type { ClassParticipantViewModel, IdentityCandidateViewModel } from "@/features/classes/model";
 import type { ActorContext, ClassAccessSummary } from "@/lib/api/types";
 import type { ClassOverviewViewModel } from "@/features/workspace/overview";
+import type { ClassLearningViewModel } from "@/features/learning/model";
 
 export interface DevelopmentPreview {
   actor: ActorContext;
   classes: ClassAccessSummary[];
   classOverviews: Record<string, ClassOverviewViewModel>;
+  classLearning: Record<string, ClassLearningViewModel>;
   adminClasses?: ClassAccessSummary[];
   classParticipants: Record<string, ClassParticipantViewModel[]>;
   identityCandidates?: IdentityCandidateViewModel[];
@@ -24,16 +26,26 @@ export async function getDevelopmentPreview(): Promise<DevelopmentPreview | unde
     throw new Error(`LMS_DEV_PREVIEW_ACTOR harus salah satu dari: ${actorNames.join(", ")}`);
   }
 
-  const { actors, classes, classOverviews, classParticipants, identityCandidates } = await import("@/mocks/fixtures");
+  const { actors, classes, classOverviews, classLearning, classParticipants, identityCandidates } = await import("@/mocks/fixtures");
   const scopedClasses = classesForActor(requestedActor, classes);
   return {
     actor: actors[requestedActor],
     classes: scopedClasses,
     classOverviews: overviewForActor(requestedActor, classOverviews),
+    classLearning: learningForClasses(scopedClasses, classLearning),
     adminClasses: requestedActor === "siteAdmin" ? scopedClasses : undefined,
     classParticipants: participantsForClasses(scopedClasses, classParticipants),
     identityCandidates: canPreviewIdentityDirectory(requestedActor) ? identityCandidates : undefined,
   };
+}
+
+function learningForClasses(
+  scopedClasses: ClassAccessSummary[],
+  learning: Record<string, ClassLearningViewModel>,
+): Record<string, ClassLearningViewModel> {
+  return Object.fromEntries(
+    scopedClasses.flatMap((item) => learning[item.id] ? [[item.id, learning[item.id]]] : []),
+  );
 }
 
 function canPreviewIdentityDirectory(actorName: PreviewActorName): boolean {

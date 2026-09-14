@@ -80,15 +80,25 @@ describe("workspace Class discovery", () => {
     expect(screen.queryByRole("searchbox", { name: "Cari di Kelas Saya" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Back to Workspace" })).toHaveAttribute("href", "/app");
     expect(screen.queryByRole("link", { name: "Workspace" })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Pembelajaran" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Pembelajaran" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Progress" })).not.toBeInTheDocument();
   });
 
-  it("marks only the current Class navigation item as active", () => {
+  it("replaces all sidebar navigation with a focused Learning header", () => {
     renderWorkspace(`/app/classes/${classes.published.id}/learning`);
 
-    expect(screen.getByRole("link", { name: "Ringkasan" })).not.toHaveAttribute("aria-current");
-    expect(screen.getByRole("link", { name: "Pembelajaran" })).toHaveAttribute("aria-current", "page");
+    expect(screen.queryByRole("navigation", { name: "Navigasi workspace" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Buka navigasi" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Pembelajaran" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Kembali ke Ringkasan Class/ })).toHaveAttribute("href", `/app/classes/${classes.published.id}`);
+    expect(screen.getByText("Product Engineering 2026")).toBeInTheDocument();
+  });
+
+  it("returns from a focused Activity editor to the Student preview", () => {
+    renderWorkspace(`/app/classes/${classes.draft.id}/learning/activities/activity-welcome/edit`, [classes.draft], actors.teacher);
+
+    expect(screen.queryByRole("navigation", { name: "Navigasi workspace" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Kembali ke Preview Student/ })).toHaveAttribute("href", `/app/classes/${classes.draft.id}/learning`);
   });
 
   it("shows a dedicated Class administration context only to Site Admin", () => {

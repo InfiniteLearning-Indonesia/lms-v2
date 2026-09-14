@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Beaker, BookOpen, CalendarCheck, ClipboardCheck, FileBadge, GraduationCap, Home, Menu, NotebookPen, School, Search, Settings, Users, X } from "lucide-react";
+import { ArrowLeft, Beaker, CalendarCheck, ClipboardCheck, FileBadge, GraduationCap, Home, Menu, NotebookPen, School, Search, Settings, Users, X } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ import { useActorSession } from "@/lib/auth/provider";
 
 const icons: Record<ClassNavKey, typeof Home> = {
   overview: Home,
-  learning: BookOpen,
   people: Users,
   submissions: ClipboardCheck,
   gradebook: GraduationCap,
@@ -57,31 +56,39 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
 
 export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
   const t = useTranslations("workspace");
   const { actor, previewMode } = useActorSession();
+  const { activeClass, classId } = useClassContext();
   const displayName = actor.display_name ?? t("actorFallback");
   const initials = displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase();
+  const focusedLearning = isFocusedLearningPath(pathname, classId);
+  const learningEditor = isLearningEditorPath(pathname, classId);
 
   return (
     <div className="min-h-screen bg-muted/20">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r bg-background p-5 lg:block"><Brand /><WorkspaceContextControl id="class-search-desktop" /><Navigation /></aside>
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-background/90 px-4 backdrop-blur sm:px-6">
-          <div className="flex items-center gap-3">
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger render={<Button variant="outline" size="icon" className="size-11 lg:hidden" aria-label={t("openNavigation")} />}><Menu className="size-4" /></SheetTrigger>
-              <SheetContent side="left" className="w-72 p-5"><div className="mb-6"><Brand /></div><WorkspaceContextControl id="class-search-mobile" onNavigate={() => setOpen(false)} /><Navigation onNavigate={() => setOpen(false)} /></SheetContent>
-            </Sheet>
-            <div className="hidden text-sm text-muted-foreground sm:block">{t("contextual")}</div>
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <ThemeToggle />
-            <Link href="/app/profile" className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-muted" aria-label={t("openProfile", { name: displayName })}>
-              <span className="hidden max-w-44 truncate text-sm text-muted-foreground sm:block">{displayName}</span>
-              <span className="grid size-9 place-items-center rounded-full bg-primary font-heading text-sm font-semibold text-primary-foreground">{initials || "IL"}</span>
-            </Link>
-          </div>
-        </header>
+      {!focusedLearning ? <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r bg-background p-5 lg:block"><Brand /><WorkspaceContextControl id="class-search-desktop" /><Navigation /></aside> : null}
+      <div className={focusedLearning ? undefined : "lg:pl-64"}>
+        {focusedLearning && classId ? (
+          <FocusedLearningHeader classId={classId} className={activeClass?.name} editor={learningEditor} />
+        ) : (
+          <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b bg-background/90 px-4 backdrop-blur sm:px-6">
+            <div className="flex items-center gap-3">
+              <Sheet open={open} onOpenChange={setOpen}>
+                <SheetTrigger render={<Button variant="outline" size="icon" className="size-11 lg:hidden" aria-label={t("openNavigation")} />}><Menu className="size-4" /></SheetTrigger>
+                <SheetContent side="left" className="w-72 p-5"><div className="mb-6"><Brand /></div><WorkspaceContextControl id="class-search-mobile" onNavigate={() => setOpen(false)} /><Navigation onNavigate={() => setOpen(false)} /></SheetContent>
+              </Sheet>
+              <div className="hidden text-sm text-muted-foreground sm:block">{t("contextual")}</div>
+            </div>
+            <div className="flex items-center gap-2 sm:gap-3">
+              <ThemeToggle />
+              <Link href="/app/profile" className="flex items-center gap-2 rounded-lg p-1.5 hover:bg-muted" aria-label={t("openProfile", { name: displayName })}>
+                <span className="hidden max-w-44 truncate text-sm text-muted-foreground sm:block">{displayName}</span>
+                <span className="grid size-9 place-items-center rounded-full bg-primary font-heading text-sm font-semibold text-primary-foreground">{initials || "IL"}</span>
+              </Link>
+            </div>
+          </header>
+        )}
         {previewMode ? (
           <aside aria-label={t("previewTitle")} className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-amber-950 dark:text-amber-100 sm:px-6">
             <div className="mx-auto flex max-w-7xl items-start gap-2 text-xs leading-relaxed">
@@ -90,10 +97,42 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
             </div>
           </aside>
         ) : null}
-        <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">{children}</main>
+        <main id="main-content" className={`mx-auto p-4 sm:p-6 lg:p-8 ${focusedLearning ? "max-w-[90rem]" : "max-w-7xl"}`}>{children}</main>
       </div>
     </div>
   );
+}
+
+function FocusedLearningHeader({ classId, className, editor }: { classId: string; className?: string; editor: boolean }) {
+  const t = useTranslations("workspace");
+  const backHref = editor ? `/app/classes/${classId}/learning` : `/app/classes/${classId}`;
+
+  return (
+    <header className="sticky top-0 z-20 flex min-h-16 items-center justify-between gap-3 border-b bg-background/95 px-4 py-2 backdrop-blur sm:px-6">
+      <nav aria-label={t("focusedLearningNavigation")} className="min-w-0">
+        <Link href={backHref} className="flex min-h-11 min-w-0 items-center gap-3 rounded-lg px-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+          <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
+          <span className="shrink-0">{editor ? t("backToLearningPreview") : t("backToClassOverview")}</span>
+          {className ? <span aria-hidden="true" className="hidden truncate border-l pl-3 font-normal text-muted-foreground sm:block">{className}</span> : null}
+        </Link>
+      </nav>
+      <ThemeToggle />
+    </header>
+  );
+}
+
+export function isFocusedLearningPath(pathname: string, classId: string | undefined): boolean {
+  if (!classId) return false;
+  const learningPath = `/app/classes/${classId}/learning`;
+  return pathname === learningPath || pathname.startsWith(`${learningPath}/`);
+}
+
+export function isLearningEditorPath(pathname: string, classId: string | undefined): boolean {
+  if (!classId) return false;
+  const prefix = `/app/classes/${classId}/learning/activities/`;
+  if (!pathname.startsWith(prefix) || !pathname.endsWith("/edit")) return false;
+  const activityId = pathname.slice(prefix.length, -"/edit".length);
+  return activityId.length > 0 && !activityId.includes("/");
 }
 
 function Brand() {

@@ -34,7 +34,7 @@ test("workspace follows URL Class context and capability navigation", async ({ p
   await expect(page.getByRole("link", { name: "Back to Workspace" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Workspace", exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Ringkasan" })).toHaveAttribute("aria-current", "page");
-  await expect(page.getByRole("link", { name: "Pembelajaran", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Pembelajaran", exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Pengumpulan" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Nilai" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Progress" })).toHaveCount(0);
@@ -48,8 +48,9 @@ test("workspace follows URL Class context and capability navigation", async ({ p
 
   await page.getByRole("link", { name: "Buka Pembelajaran" }).click();
   await expect(page).toHaveURL(`/app/classes/${classId}/learning`);
-  await expect(page.getByRole("link", { name: "Ringkasan" })).not.toHaveAttribute("aria-current");
-  await expect(page.getByRole("link", { name: "Pembelajaran", exact: true })).toHaveAttribute("aria-current", "page");
+  await expect(page.getByRole("navigation", { name: "Navigasi workspace" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Buka navigasi" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Kembali ke Ringkasan Class" })).toHaveAttribute("href", `/app/classes/${classId}`);
 });
 
 test("mobile Class navigation returns to Workspace without a Class search", async ({ page }) => {
@@ -62,7 +63,7 @@ test("mobile Class navigation returns to Workspace without a Class search", asyn
   await expect(page.getByRole("link", { name: "Back to Workspace" })).toBeVisible();
   await expect(page.getByRole("searchbox", { name: "Cari di Kelas Saya" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Workspace", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Pembelajaran", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Pembelajaran", exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 

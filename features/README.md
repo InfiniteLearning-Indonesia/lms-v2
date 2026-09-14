@@ -5,5 +5,5 @@ and colocated tests. The FE00 workspace/admin placeholders establish the
 composition boundary; future checkpoints add the domain folders below without
 putting business fetches into pages or `components/ui`:
 
-`auth` · `class` · `content` · `submission` · `gradebook` · `completion` ·
+`identity` · `classes` · `learning` · `submission` · `gradebook` · `completion` ·
 `attendance` · `logbook` · `admin`.
