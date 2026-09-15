@@ -101,6 +101,13 @@ describe("workspace Class discovery", () => {
     expect(screen.getByRole("link", { name: /Kembali ke Preview Student/ })).toHaveAttribute("href", `/app/classes/${classes.draft.id}/learning`);
   });
 
+  it("keeps the create Activity route inside the focused authoring shell", () => {
+    renderWorkspace(`/app/classes/${classes.draft.id}/learning/activities/new`, [classes.draft], actors.teacher);
+
+    expect(screen.queryByRole("navigation", { name: "Navigasi workspace" })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Kembali ke Preview Student/ })).toHaveAttribute("href", `/app/classes/${classes.draft.id}/learning`);
+  });
+
   it("shows a dedicated Class administration context only to Site Admin", () => {
     renderWorkspace("/app/admin/classes", Object.values(classes), actors.siteAdmin);
 

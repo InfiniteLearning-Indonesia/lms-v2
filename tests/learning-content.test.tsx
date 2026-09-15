@@ -3,7 +3,7 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { ActivityEditorContent, LearningContent } from "@/features/learning/components/learning-content";
+import { ActivityCreateContent, ActivityEditorContent, LearningContent } from "@/features/learning/components/learning-content";
 import { StructuredContent } from "@/features/learning/components/structured-content";
 import type { ClassLearningViewModel } from "@/features/learning/model";
 import { ClassContextProvider } from "@/features/workspace/context";
@@ -18,6 +18,7 @@ vi.mock("next/navigation", () => ({ usePathname: () => navigation.pathname, useR
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  navigation.push.mockReset();
 });
 
 function renderLearning(options: {
@@ -70,6 +71,37 @@ function renderEditor(options: {
   );
 }
 
+function renderCreate(options: {
+  actor?: ActorContext;
+  activeClass?: ClassAccessSummary;
+  learning?: ClassLearningViewModel;
+  sectionId?: string;
+  activityType?: "MATERIAL" | "ASSIGNMENT";
+  missingLearning?: boolean;
+} = {}) {
+  const actor = options.actor ?? actors.teacher;
+  const activeClass = options.activeClass ?? classes.draft;
+  const learning = options.learning ?? classLearning[activeClass.id as keyof typeof classLearning];
+  const sectionId = options.sectionId ?? learning?.sections[0]?.id;
+  navigation.pathname = `/app/classes/${activeClass.id}/learning/activities/new`;
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false, staleTime: Number.POSITIVE_INFINITY } } });
+  return render(
+    <NextIntlClientProvider locale="id" messages={messages}>
+      <QueryClientProvider client={client}>
+        <ActorSessionProvider initialActor={actor} previewMode>
+          <ClassContextProvider initialClasses={[activeClass]} previewMode>
+            <ActivityCreateContent
+              initialLearning={options.missingLearning ? undefined : learning}
+              sectionId={sectionId}
+              activityType={options.activityType ?? "MATERIAL"}
+            />
+          </ClassContextProvider>
+        </ActorSessionProvider>
+      </QueryClientProvider>
+    </NextIntlClientProvider>,
+  );
+}
+
 describe("FE03 learning UI", () => {
   it("shows only published learner content and explains a locked prerequisite", async () => {
     const user = userEvent.setup();
@@ -106,7 +138,7 @@ describe("FE03 learning UI", () => {
     expect(screen.getByRole("button", { name: "Hapus Section Orientasi dan fondasi" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tambah Activity ke Orientasi dan fondasi" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tambah Activity ke Discovery dan information architecture" })).toBeInTheDocument();
-    expect(screen.queryByText("Belum ada Activity di Section ini.")).not.toBeInTheDocument();
+    expect(screen.getByText("Tidak Ada Activity")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tambah Section" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Edit Selamat datang di Product Engineering" })).toHaveAttribute("href", `/app/classes/${classes.draft.id}/learning/activities/activity-welcome/edit`);
     await user.click(screen.getByText("Menyusun fondasi design system").closest("button")!);
@@ -114,7 +146,7 @@ describe("FE03 learning UI", () => {
     expect(screen.getAllByText("Draft").length).toBeGreaterThan(0);
   });
 
-  it("opens a Section-scoped Activity draft dialog without inventing its write contract", async () => {
+  it("selects a Section-scoped Activity type before opening the dedicated create route", async () => {
     const user = userEvent.setup();
     renderLearning({ actor: actors.teacher, activeClass: classes.draft, learning: classLearning[classes.draft.id] });
 
@@ -122,11 +154,11 @@ describe("FE03 learning UI", () => {
     const dialog = screen.getByRole("dialog");
     expect(within(dialog).getByRole("heading", { name: "Tambah Activity" })).toBeInTheDocument();
     expect(within(dialog).getByText(/Section Discovery dan information architecture/)).toBeInTheDocument();
-    expect(within(dialog).getByText(/Jenis Activity, posisi, lifecycle awal, version/)).toBeInTheDocument();
-    const title = within(dialog).getByLabelText("Judul Activity");
-    await user.type(title, "Riset kebutuhan pengguna");
-    expect(within(dialog).getByText("Perubahan lokal belum tersimpan.")).toBeInTheDocument();
-    expect(within(dialog).getByRole("button", { name: "Buat Activity" })).toBeDisabled();
+    expect(within(dialog).getByText("Pilih jenis Activity")).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText("Judul Activity")).not.toBeInTheDocument();
+    const typeSelect = within(dialog).getByRole("combobox", { name: "Jenis Activity" });
+    await user.selectOptions(typeSelect, "MATERIAL");
+    expect(navigation.push).toHaveBeenCalledWith(`/app/classes/${classes.draft.id}/learning/activities/new?sectionId=section-discovery&type=MATERIAL`);
   });
 
   it("exposes honest Section authoring dialogs without sending a command", async () => {
@@ -137,7 +169,9 @@ describe("FE03 learning UI", () => {
     const editDialog = screen.getByRole("dialog");
     expect(within(editDialog).getByRole("heading", { name: "Edit Section" })).toBeInTheDocument();
     const title = within(editDialog).getByLabelText("Nama Section");
+    const description = within(editDialog).getByLabelText(/Deskripsi Section/);
     expect(title).toHaveValue("Orientasi dan fondasi");
+    expect(description).toHaveValue("Konteks Class, cara bekerja, dan fondasi project.");
     await user.clear(title);
     await user.type(title, "Fondasi produk");
     expect(within(editDialog).getByText("Perubahan lokal belum tersimpan.")).toBeInTheDocument();
@@ -154,7 +188,35 @@ describe("FE03 learning UI", () => {
     const createDialog = screen.getByRole("dialog");
     expect(within(createDialog).getByRole("heading", { name: "Tambah Section" })).toBeInTheDocument();
     expect(within(createDialog).getByLabelText("Nama Section")).toHaveValue("");
+    expect(within(createDialog).getByLabelText(/Deskripsi Section/)).toHaveValue("");
     expect(within(createDialog).getByRole("button", { name: "Simpan Section" })).toBeDisabled();
+  });
+
+  it("opens a capability-gated create Activity form with structured content only", () => {
+    renderCreate({ sectionId: "section-orientation", activityType: "MATERIAL" });
+
+    expect(screen.getByRole("heading", { level: 1, name: "Buat Activity" })).toBeInTheDocument();
+    expect(screen.getByText(/Section Orientasi dan fondasi/)).toBeInTheDocument();
+    expect(screen.getByText("Materi")).toBeInTheDocument();
+    expect(screen.getByLabelText("Judul Activity")).toHaveValue("");
+    expect(screen.getByLabelText("Deskripsi Activity (opsional)")).toHaveValue("");
+    expect(screen.getByRole("button", { name: "Simpan draft" })).toBeDisabled();
+    expect(screen.getByRole("heading", { name: "Konten terstruktur" })).toBeInTheDocument();
+    expect(screen.queryByRole("textbox", { name: /HTML/i })).not.toBeInTheDocument();
+  });
+
+  it("fails closed when create Activity context is invalid", () => {
+    renderCreate({ sectionId: "section-missing", activityType: "ASSIGNMENT" });
+
+    expect(screen.getByRole("heading", { name: "Konteks Activity tidak valid" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Judul Activity")).not.toBeInTheDocument();
+  });
+
+  it("fails closed when a Student opens the create Activity route directly", () => {
+    renderCreate({ actor: actors.student, activeClass: classes.published, learning: classLearning[classes.published.id] });
+
+    expect(screen.getByRole("heading", { name: "Akses tidak tersedia" })).toBeInTheDocument();
+    expect(screen.queryByLabelText("Judul Activity")).not.toBeInTheDocument();
   });
 
   it("centralizes keyboard-accessible ordering on the Learning outline", async () => {

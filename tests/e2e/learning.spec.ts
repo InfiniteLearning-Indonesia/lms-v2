@@ -78,6 +78,12 @@ test("production author capability still cannot fabricate learning mutations", a
   await expect(page.getByRole("heading", { level: 1, name: "Detail Activity" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Konten pembelajaran menunggu backend" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Simpan draft" })).toHaveCount(0);
+
+  await page.goto(`/app/classes/${classId}/learning/activities/new?sectionId=section-contract-placeholder&type=MATERIAL`);
+  await expect(page.getByRole("link", { name: "Kembali ke Preview Student" })).toHaveAttribute("href", `/app/classes/${classId}/learning`);
+  await expect(page.getByRole("heading", { level: 1, name: "Buat Activity" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Konten pembelajaran menunggu backend" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Simpan draft" })).toHaveCount(0);
   await page.keyboard.press("Enter");
   expect(mutationCount).toBe(0);
 });

@@ -47,6 +47,7 @@ export function allowedClassNavigation(capabilities: readonly string[] | undefin
 
 export function requiredCapability(pathname: string, classId: string): string | undefined {
   const base = `/app/classes/${classId}`;
+  if (pathname === `${base}/learning/activities/new`) return "content.manage";
   if (/^\/learning\/activities\/[^/]+\/edit$/.test(pathname.slice(base.length))) return "content.manage";
   return classRoutePolicies.find(({ suffix }) => pathname === `${base}${suffix}` || (suffix !== "" && pathname.startsWith(`${base}${suffix}/`)))?.capability;
 }

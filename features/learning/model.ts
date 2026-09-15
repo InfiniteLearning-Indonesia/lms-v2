@@ -22,6 +22,8 @@ export const contentBlockSchema = z.discriminatedUnion("type", [
 ]);
 
 export type ContentBlock = z.infer<typeof contentBlockSchema>;
+export const creatableActivityTypeSchema = z.enum(["MATERIAL", "ASSIGNMENT"]);
+export type CreatableActivityType = z.infer<typeof creatableActivityTypeSchema>;
 export type ActivityLifecycle = "DRAFT" | "PUBLISHED" | "WITHDRAWN";
 export type AvailabilityState = "AVAILABLE" | "LOCKED" | "SCHEDULED" | "UNAVAILABLE";
 export type FileAssetState = "READY" | "SCANNING" | "QUARANTINED" | "REJECTED" | "EXPIRED";

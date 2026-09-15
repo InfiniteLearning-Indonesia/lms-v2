@@ -130,6 +130,7 @@ export function isFocusedLearningPath(pathname: string, classId: string | undefi
 export function isLearningEditorPath(pathname: string, classId: string | undefined): boolean {
   if (!classId) return false;
   const prefix = `/app/classes/${classId}/learning/activities/`;
+  if (pathname === `${prefix}new`) return true;
   if (!pathname.startsWith(prefix) || !pathname.endsWith("/edit")) return false;
   const activityId = pathname.slice(prefix.length, -"/edit".length);
   return activityId.length > 0 && !activityId.includes("/");

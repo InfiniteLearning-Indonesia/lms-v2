@@ -4,6 +4,7 @@ import {
   ArrowDown,
   ArrowUp,
   BookOpen,
+  ChartNoAxesColumnIncreasing,
   CalendarClock,
   CheckCircle2,
   CircleAlert,
@@ -26,6 +27,7 @@ import {
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { PageHeader } from "@/components/ui-v3/page-header";
 import { EmptyState } from "@/components/ui-v3/states";
@@ -58,6 +60,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useClassContext } from "@/features/workspace/context";
 import type {
   ClassLearningViewModel,
+  CreatableActivityType,
   FileSelectionPolicyViewModel,
   FileSelectionResult,
   LearningActivityViewModel,
@@ -116,9 +119,11 @@ export function LearningContent({ initialLearning }: { initialLearning?: ClassLe
   if (!activeClass) return null;
   if (!learningMatchesClass) return <EmptyState title={t("contextMismatchTitle")} description={t("contextMismatchBody")} />;
 
-  const headerActions = author ? (
-    <div role="status" className="flex min-h-11 items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 text-sm font-semibold text-primary">
-      <BookOpen className="size-4" aria-hidden="true" />{t("studentPreviewMode")}
+  const progressHref = activeClass?.capabilities?.includes("progress.read") ? `/app/classes/${activeClass.id}/progress` : undefined;
+  const headerActions = author || progressHref ? (
+    <div className="flex flex-wrap gap-2">
+      {author ? <div role="status" className="flex min-h-11 items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 text-sm font-semibold text-primary"><BookOpen className="size-4" aria-hidden="true" />{t("studentPreviewMode")}</div> : null}
+      {progressHref ? <Link href={progressHref} className={buttonVariants({ variant: "outline", className: "min-h-11" })}><ChartNoAxesColumnIncreasing className="size-4" aria-hidden="true" />{t("openProgress")}</Link> : null}
     </div>
   ) : undefined;
 
@@ -203,6 +208,56 @@ export function ActivityEditorContent({ initialLearning, activityId }: { initial
         filePolicy={initialLearning.filePolicy}
         canPublish={policy.canChangeLifecycle}
         canUpload={policy.canUpload}
+      />
+    </div>
+  );
+}
+
+export function ActivityCreateContent({
+  initialLearning,
+  sectionId,
+  activityType,
+}: {
+  initialLearning?: ClassLearningViewModel;
+  sectionId?: string;
+  activityType?: CreatableActivityType;
+}) {
+  const t = useTranslations("learning");
+  const { activeClass } = useClassContext();
+  const policy = learningUiPolicy(activeClass?.capabilities);
+  const learningMatchesClass = !initialLearning || learningBelongsToClass(initialLearning, activeClass?.id);
+  const section = learningMatchesClass ? initialLearning?.sections.find((item) => item.id === sectionId) : undefined;
+
+  if (!activeClass) return null;
+  if (!policy.canEditActivity) return <EmptyState title={t("editorForbiddenTitle")} description={t("editorForbiddenBody")} />;
+  if (!learningMatchesClass) return <EmptyState title={t("contextMismatchTitle")} description={t("contextMismatchBody")} />;
+  if (!initialLearning) {
+    return <div className="mx-auto max-w-5xl space-y-6"><PageHeader eyebrow={t("manageMode")} title={t("createEditorTitle")} description={t("createEditorBodyFallback")} /><DependencyState /></div>;
+  }
+  if (!section || !activityType) return <EmptyState title={t("createContextTitle")} description={t("createContextBody")} />;
+
+  const draftActivity: LearningActivityViewModel = {
+    id: `new-${activityType.toLocaleLowerCase("en-US")}`,
+    type: activityType,
+    title: "",
+    summary: "",
+    lifecycle: "DRAFT",
+    revision: 1,
+    availability: { state: "UNAVAILABLE" },
+    content: [],
+    attachments: [],
+  };
+
+  return (
+    <div className="mx-auto max-w-5xl space-y-6">
+      <AuthoringPanel
+        activity={draftActivity}
+        attachments={[]}
+        filePolicy={initialLearning.filePolicy}
+        canPublish={false}
+        canUpload={policy.canUpload}
+        intent="create"
+        sectionTitle={section.title}
       />
     </div>
   );
@@ -355,7 +410,7 @@ function CourseOutline({
                   </div>
                 ) : null}
               </div>
-              {section.activities.length === 0 && !canManage ? <p className="mt-4 rounded-lg border border-dashed bg-muted/20 p-3 text-sm text-muted-foreground">{t("sectionEmpty")}</p> : section.activities.length > 0 ? (
+              {section.activities.length === 0 ? <p className="mt-4 rounded-lg border border-dashed bg-muted/20 p-3 text-center text-sm font-medium text-muted-foreground">{t("sectionEmpty")}</p> : (
                 <ol className="mt-4 grid gap-2">
                   {section.activities.map((activity, activityIndex) => {
                     const selected = activity.id === selectedActivityId;
@@ -387,7 +442,7 @@ function CourseOutline({
                     );
                   })}
                 </ol>
-              ) : null}
+              )}
               {canManage && !orderMode ? <div className="mt-4"><ActivityDraftDialog section={section} /></div> : null}
             </li>
           ))}
@@ -444,10 +499,14 @@ function OrderButtons({ groupLabel, upLabel, downLabel, canMoveUp, canMoveDown, 
 
 function ActivityDraftDialog({ section }: { section: LearningSectionViewModel }) {
   const t = useTranslations("learning");
+  const router = useRouter();
+  const { activeClass } = useClassContext();
   const fieldId = useId();
-  const pendingId = useId();
-  const [title, setTitle] = useState("");
-  const [dirty, setDirty] = useState(false);
+
+  function openCreatePage(value: string | null) {
+    if (!activeClass || (value !== "MATERIAL" && value !== "ASSIGNMENT")) return;
+    router.push(`/app/classes/${encodeURIComponent(activeClass.id)}/learning/activities/new?sectionId=${encodeURIComponent(section.id)}&type=${value}`);
+  }
 
   return (
     <Dialog>
@@ -462,23 +521,31 @@ function ActivityDraftDialog({ section }: { section: LearningSectionViewModel })
         <DialogClose render={<Button type="button" variant="ghost" size="icon" className="absolute right-2 top-2 size-11" aria-label={t("closeActivityDialog")} />}>
           <X className="size-4" aria-hidden="true" />
         </DialogClose>
-        <form onSubmit={(event) => event.preventDefault()} className="grid gap-4" noValidate>
-          <div id={pendingId} role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+        <div className="grid gap-4">
+          <div role="status" className="rounded-xl border border-primary/20 bg-primary/5 p-4">
             <div className="flex items-start gap-3">
-              <CircleAlert className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-300" aria-hidden="true" />
-              <div><p className="font-heading text-sm font-semibold">{t("activityCommandPendingTitle")}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{t("activityCommandPendingBody")}</p></div>
+              <BookOpen className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+              <div><p className="font-heading text-sm font-semibold">{t("activityTypePromptTitle")}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{t("activityTypePromptBody")}</p></div>
             </div>
           </div>
           <div className="grid gap-2">
-            <label htmlFor={fieldId} className="text-sm font-medium">{t("titleLabel")}</label>
-            <Input id={fieldId} value={title} onChange={(event) => { setTitle(event.target.value); setDirty(true); }} className="h-11" aria-describedby={pendingId} />
+            <label htmlFor={fieldId} className="text-sm font-medium">{t("activityTypeLabel")}</label>
+            <select
+              id={fieldId}
+              defaultValue=""
+              onChange={(event) => openCreatePage(event.target.value)}
+              className="h-11 w-full rounded-lg border border-input bg-background px-3 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <option value="" disabled>{t("activityTypePlaceholder")}</option>
+              <option value="MATERIAL">{t("types.MATERIAL")}</option>
+              <option value="ASSIGNMENT">{t("types.ASSIGNMENT")}</option>
+            </select>
+            <p className="text-xs leading-5 text-muted-foreground">{t("activityTypeHelp")}</p>
           </div>
-          {dirty ? <p role="status" className="text-sm font-semibold text-primary">{t("localChanges")}</p> : null}
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="outline" className="min-h-11" />}>{t("cancel")}</DialogClose>
-            <Button type="submit" className="min-h-11" disabled aria-describedby={pendingId}><Plus className="size-4" aria-hidden="true" />{t("createActivityAction")}</Button>
           </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
@@ -487,8 +554,10 @@ function ActivityDraftDialog({ section }: { section: LearningSectionViewModel })
 function SectionDraftDialog({ section }: { section?: LearningSectionViewModel }) {
   const t = useTranslations("learning");
   const fieldId = useId();
+  const descriptionId = useId();
   const pendingId = useId();
   const [title, setTitle] = useState(section?.title ?? "");
+  const [description, setDescription] = useState(section?.description ?? "");
   const [dirty, setDirty] = useState(false);
   const editing = Boolean(section);
 
@@ -522,6 +591,11 @@ function SectionDraftDialog({ section }: { section?: LearningSectionViewModel })
           <div className="grid gap-2">
             <label htmlFor={fieldId} className="text-sm font-medium">{t("sectionTitleLabel")}</label>
             <Input id={fieldId} value={title} onChange={(event) => { setTitle(event.target.value); setDirty(true); }} className="h-11" aria-describedby={pendingId} />
+          </div>
+          <div className="grid gap-2">
+            <label htmlFor={descriptionId} className="text-sm font-medium">{t("sectionDescriptionLabel")} <span className="font-normal text-muted-foreground">{t("optionalLabel")}</span></label>
+            <Textarea id={descriptionId} value={description} onChange={(event) => { setDescription(event.target.value); setDirty(true); }} rows={3} aria-describedby={`${descriptionId}-help ${pendingId}`} />
+            <p id={`${descriptionId}-help`} className="text-xs leading-5 text-muted-foreground">{t("sectionDescriptionHelp")}</p>
           </div>
           {dirty ? <p role="status" className="text-sm font-semibold text-primary">{t("localChanges")}</p> : null}
           <DialogFooter>
@@ -659,7 +733,7 @@ function AttachmentList({ attachments, mode }: { attachments: LearningAttachment
   );
 }
 
-function AuthoringPanel({ activity, attachments, filePolicy, canPublish, canUpload }: { activity: LearningActivityViewModel; attachments: LearningAttachmentViewModel[]; filePolicy?: FileSelectionPolicyViewModel; canPublish: boolean; canUpload: boolean }) {
+function AuthoringPanel({ activity, attachments, filePolicy, canPublish, canUpload, intent = "edit", sectionTitle }: { activity: LearningActivityViewModel; attachments: LearningAttachmentViewModel[]; filePolicy?: FileSelectionPolicyViewModel; canPublish: boolean; canUpload: boolean; intent?: "create" | "edit"; sectionTitle?: string }) {
   const t = useTranslations("learning");
   const [title, setTitle] = useState(activity.title);
   const [summary, setSummary] = useState(activity.summary ?? "");
@@ -677,8 +751,8 @@ function AuthoringPanel({ activity, attachments, filePolicy, canPublish, canUplo
   return (
     <section className="space-y-6 rounded-xl border bg-card p-5 sm:p-6" aria-labelledby="authoring-panel-title">
       <div className="flex flex-col gap-4 border-b pb-6 sm:flex-row sm:items-start sm:justify-between">
-        <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{t("manageMode")}</p><h1 id="authoring-panel-title" className="mt-1 font-heading text-2xl font-semibold tracking-tight sm:text-3xl">{t("editorTitle")}</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{t("editorBody")}</p></div>
-        <div className="flex shrink-0 flex-wrap gap-2"><Badge variant="outline" className={lifecycleStyles[activity.lifecycle]}>{t(`lifecycle.${activity.lifecycle}`)}</Badge><Badge variant="outline">{t("revision", { revision: activity.revision })}</Badge></div>
+        <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">{t("manageMode")}</p><h1 id="authoring-panel-title" className="mt-1 font-heading text-2xl font-semibold tracking-tight sm:text-3xl">{intent === "create" ? t("createEditorTitle") : t("editorTitle")}</h1><p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">{intent === "create" ? t("createEditorBody", { section: sectionTitle ?? "-" }) : t("editorBody")}</p></div>
+        <div className="flex shrink-0 flex-wrap gap-2"><Badge variant="outline">{activityTypeLabel(activity.type, t)}</Badge><Badge variant="outline" className={lifecycleStyles[activity.lifecycle]}>{t(`lifecycle.${activity.lifecycle}`)}</Badge>{intent === "edit" ? <Badge variant="outline">{t("revision", { revision: activity.revision })}</Badge> : null}</div>
       </div>
       <div id="learning-authoring-pending" role="status" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4"><div className="flex items-start gap-3"><CircleAlert className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-300" aria-hidden="true" /><div><p className="font-heading text-sm font-semibold">{t("commandPendingTitle")}</p><p className="mt-1 text-sm leading-6 text-muted-foreground">{t("commandPendingBody")}</p></div></div></div>
       <form onSubmit={(event) => event.preventDefault()} className="grid gap-4" noValidate>

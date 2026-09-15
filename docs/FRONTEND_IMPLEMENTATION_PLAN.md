@@ -212,7 +212,7 @@ Enrollment v3 tetap assigned-only: Admin menambahkan Teacher atau Student, sedan
 
 ### FE03 — Content dan file
 
-Implement section/activity builder, draft/publish/withdraw, ordering, availability/prerequisite explanation, revision awareness, rich-text editor/renderer, private file upload, upload progress berbasis data nyata, scan/quarantine, serta learner content view. Preview Student dan editor Activity dipisahkan menjadi route fokus agar authoring tidak menumpuk pada reading surface. Label Preview Student hanya ditampilkan kepada actor dengan capability authoring; Student langsung menerima surface belajar tanpa label mode. Control create/edit/delete Section dan per-Section Add Activity diturunkan dari capability; destructive semantics maupun final create command tetap menunggu kontrak backend. Ordering tidak berada di editor Activity: tombol Edit Urutan pada header Susunan pembelajaran membuka mode Naik/Turun untuk Section dan Activity, dengan cancel/reset lokal dan final save fail-closed sampai contract version/receipt tersedia. Upload progress ini bukan menu Progress Class yang sebelumnya dihapus.
+Implement section/activity builder, draft/publish/withdraw, ordering, availability/prerequisite explanation, revision awareness, rich-text editor/renderer, private file upload, upload progress berbasis data nyata, scan/quarantine, serta learner content view. Preview Student dan editor Activity dipisahkan menjadi route fokus agar authoring tidak menumpuk pada reading surface. Label Preview Student hanya ditampilkan kepada actor dengan capability authoring; Student langsung menerima surface belajar tanpa label mode. Control create/edit/delete Section dan per-Section Add Activity diturunkan dari capability; Section description bersifat opsional, empty Section tetap eksplisit, dan pemilihan tipe Materi/Tugas mengarah ke route create khusus. Destructive semantics maupun final create command tetap menunggu kontrak backend. Ordering tidak berada di editor Activity maupun modal Section: tombol Edit Urutan pada header Susunan pembelajaran menjadi satu-satunya mode Naik/Turun untuk Section dan Activity, dengan cancel/reset lokal dan final save fail-closed sampai contract version/receipt tersedia. Rich content tetap structured/allowlisted; embed HTML bebas tidak termasuk kontrak. Upload progress ini bukan menu Progress Class yang sebelumnya dihapus.
 
 Scope, UX state, contract handoff, mandatory test, stop condition, dan hasil UI-first FE03 dicatat pada [checkpoint FE03](checkpoints/FE03.md). Frontend/mock slice terverifikasi `6/8` dengan production fail closed; private file lifecycle masih partial dan status tetap `BLOCKED_BACKEND` sampai M06–M07 OpenAPI serta real HTTPS journey tersedia.
 
@@ -220,11 +220,15 @@ Scope, UX state, contract handoff, mandatory test, stop condition, dan hasil UI-
 
 Implement assignment detail, server draft, submit/resubmit, immutable timeline, durable receipt, due/cutoff timezone, teacher inbox, rubric grading, draft/final/released states, AI suggestion approval/override, dan grade import preview/commit.
 
-UI-first FE04 sedang dikerjakan berdasarkan [checkpoint FE04](checkpoints/FE04.md). Development fixture actor-scoped tidak aktif pada production; seluruh final command tetap disabled sampai kontrak M08–M09–M13, CSRF, capability, version, idempotency, dan receipt tersedia.
+UI-first FE04 sudah siap `6/8` berdasarkan [checkpoint FE04](checkpoints/FE04.md). Development fixture actor-scoped tidak aktif pada production; seluruh final command tetap disabled sampai kontrak M08–M09–M13, CSRF, capability, version, idempotency, dan receipt tersedia.
 
 ### FE05 — Completion dan credential
 
 Implement activity/Class progress, policy explanation, waived evidence, transcript snapshot, certificate eligibility/download/verification, revoke, supersede, serta correction state.
+
+Progress tidak dikembalikan ke sidebar; entry point kontekstual tersedia dari Pembelajaran bila `progress.read` diizinkan. Completion percentage dan outcome hanya dipresentasikan dari projection server: Activity complete, Class complete, pass, transcript release, certificate eligible, dan certificate issued tidak disamakan. Student dan Teacher menerima actor-scoped projection berbeda. Transcript snapshot immutable, regrade/correction tidak menimpa credential lama, serta public verification hanya membawa data minimum.
+
+UI-first implementation, backend dependency, stop condition, dan mandatory test dicatat pada [checkpoint FE05](checkpoints/FE05.md). Slice lokal terverifikasi `6/8`; public lookup/privacy integration masih partial dan status tetap `BLOCKED_BACKEND` sampai M07/M09/M10 OpenAPI serta real HTTPS journey tersedia.
 
 ### FE06 — Operasional pembelajaran
 

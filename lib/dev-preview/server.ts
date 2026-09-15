@@ -6,6 +6,8 @@ import type { ClassOverviewViewModel } from "@/features/workspace/overview";
 import type { ClassLearningViewModel } from "@/features/learning/model";
 import type { ClassSubmissionViewModel } from "@/features/submission/model";
 import type { ClassGradebookViewModel } from "@/features/gradebook/model";
+import type { ClassCompletionViewModel } from "@/features/completion/model";
+import type { ClassCredentialViewModel, PublicCredentialVerificationViewModel } from "@/features/credential/model";
 
 export interface DevelopmentPreview {
   actor: ActorContext;
@@ -14,6 +16,8 @@ export interface DevelopmentPreview {
   classLearning: Record<string, ClassLearningViewModel>;
   classSubmissions: Record<string, ClassSubmissionViewModel>;
   classGradebooks: Record<string, ClassGradebookViewModel>;
+  classCompletions: Record<string, ClassCompletionViewModel>;
+  classCredentials: Record<string, ClassCredentialViewModel>;
   adminClasses?: ClassAccessSummary[];
   classParticipants: Record<string, ClassParticipantViewModel[]>;
   identityCandidates?: IdentityCandidateViewModel[];
@@ -30,7 +34,7 @@ export async function getDevelopmentPreview(): Promise<DevelopmentPreview | unde
     throw new Error(`LMS_DEV_PREVIEW_ACTOR harus salah satu dari: ${actorNames.join(", ")}`);
   }
 
-  const { actors, classes, classOverviews, classLearning, classSubmissions, classGradebooks, classParticipants, identityCandidates } = await import("@/mocks/fixtures");
+  const { actors, classes, classOverviews, classLearning, classSubmissions, classGradebooks, classCompletions, classCredentials, classParticipants, identityCandidates } = await import("@/mocks/fixtures");
   const scopedClasses = classesForActor(requestedActor, classes);
   return {
     actor: actors[requestedActor],
@@ -39,10 +43,19 @@ export async function getDevelopmentPreview(): Promise<DevelopmentPreview | unde
     classLearning: learningForClasses(scopedClasses, classLearning),
     classSubmissions: submissionForActor(requestedActor, scopedClasses, classSubmissions),
     classGradebooks: gradebookForActor(requestedActor, scopedClasses, classGradebooks),
+    classCompletions: completionForActor(requestedActor, scopedClasses, classCompletions),
+    classCredentials: credentialForActor(requestedActor, scopedClasses, classCredentials),
     adminClasses: requestedActor === "siteAdmin" ? scopedClasses : undefined,
     classParticipants: participantsForClasses(scopedClasses, classParticipants),
     identityCandidates: canPreviewIdentityDirectory(requestedActor) ? identityCandidates : undefined,
   };
+}
+
+export async function getDevelopmentCredentialVerification(code: string): Promise<PublicCredentialVerificationViewModel | undefined> {
+  if (process.env.NODE_ENV !== "development" || process.env.LMS_DEV_PREVIEW !== "true") return undefined;
+  const { publicCredentialVerifications } = await import("@/mocks/fixtures");
+  const verifications: Record<string, PublicCredentialVerificationViewModel> = publicCredentialVerifications;
+  return verifications[code];
 }
 
 function submissionForActor(
@@ -64,6 +77,32 @@ function gradebookForActor(
   gradebooks: typeof import("@/mocks/fixtures")["classGradebooks"],
 ): Record<string, ClassGradebookViewModel> {
   const projection = actorName === "teacher" || actorName === "teacherStudent" ? gradebooks.teacher : {};
+  return Object.fromEntries(scopedClasses.flatMap((item) => projection[item.id] ? [[item.id, projection[item.id]]] : []));
+}
+
+function completionForActor(
+  actorName: PreviewActorName,
+  scopedClasses: ClassAccessSummary[],
+  completions: typeof import("@/mocks/fixtures")["classCompletions"],
+): Record<string, ClassCompletionViewModel> {
+  const projection = actorName === "student"
+    ? completions.student
+    : actorName === "teacher" || actorName === "teacherStudent"
+      ? completions.teacher
+      : {};
+  return Object.fromEntries(scopedClasses.flatMap((item) => projection[item.id] ? [[item.id, projection[item.id]]] : []));
+}
+
+function credentialForActor(
+  actorName: PreviewActorName,
+  scopedClasses: ClassAccessSummary[],
+  credentials: typeof import("@/mocks/fixtures")["classCredentials"],
+): Record<string, ClassCredentialViewModel> {
+  const projection = actorName === "student"
+    ? credentials.student
+    : actorName === "teacher" || actorName === "teacherStudent"
+      ? credentials.teacher
+      : {};
   return Object.fromEntries(scopedClasses.flatMap((item) => projection[item.id] ? [[item.id, projection[item.id]]] : []));
 }
 

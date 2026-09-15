@@ -18,6 +18,7 @@ describe("FE01 contextual workspace policy", () => {
     const classId = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
     expect(classIdFromPath(`/app/classes/${classId}/learning`)).toBe(classId);
     expect(requiredCapability(`/app/classes/${classId}/learning`, classId)).toBe("content.read");
+    expect(requiredCapability(`/app/classes/${classId}/learning/activities/new`, classId)).toBe("content.manage");
     expect(requiredCapability(`/app/classes/${classId}/learning/activities/activity-a/edit`, classId)).toBe("content.manage");
     expect(requiredCapability(`/app/classes/${classId}/submissions/submission-a`, classId)).toBe("submission.read");
     expect(requiredCapability(`/app/classes/${classId}/gradebook/assignment-a`, classId)).toBe("gradebook.read");

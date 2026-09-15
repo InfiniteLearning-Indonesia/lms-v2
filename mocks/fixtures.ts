@@ -4,6 +4,8 @@ import type { ClassParticipantViewModel, IdentityCandidateViewModel } from "@/fe
 import type { ClassLearningViewModel } from "@/features/learning/model";
 import type { ClassSubmissionViewModel } from "@/features/submission/model";
 import type { ClassGradebookViewModel } from "@/features/gradebook/model";
+import type { ClassCompletionViewModel } from "@/features/completion/model";
+import type { ClassCredentialViewModel, PublicCredentialVerificationViewModel } from "@/features/credential/model";
 
 export const actors = {
   siteAdmin: { id: "actor-admin", display_name: "Site Admin", site_admin: true, account_state: "ACTIVE", site_capabilities: ["site.admin"] },
@@ -15,7 +17,7 @@ export const actors = {
 } satisfies Record<string, ActorContext>;
 
 export const classes = {
-  draft: { id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", name: "Class Draft", state: "DRAFT", version: 1, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "content.manage", "content.publish", "files.upload", "participants.read", "participants.manage", "submission.read", "gradebook.read"] },
+  draft: { id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", name: "Class Draft", state: "DRAFT", version: 1, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "content.manage", "content.publish", "files.upload", "participants.read", "participants.manage", "submission.read", "gradebook.read", "progress.read", "credentials.read"] },
   published: { id: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", name: "Product Engineering 2026", program_label: "Software Engineering", cohort_label: "Batch 01", state: "PUBLISHED", version: 3, contextual_roles: ["student"], enrollment_state: "ACTIVE", capabilities: ["class.read", "content.read", "participants.read", "submission.read", "progress.read", "attendance.read", "logbook.read", "credentials.read"], next_actions: ["Lanjutkan materi berikutnya"] },
   closed: { id: "cccccccccccccccccccccccccccccccc", name: "Class Closed", state: "CLOSED", version: 7, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "participants.read", "participants.manage", "gradebook.read", "progress.read"] },
   archived: { id: "dddddddddddddddddddddddddddddddd", name: "Class Archived", state: "ARCHIVED", version: 9, contextual_roles: ["student"], enrollment_state: "ENDED", capabilities: ["class.read"] },
@@ -416,6 +418,191 @@ export const classGradebooks = {
     },
   },
 } satisfies Record<"teacher", Record<string, ClassGradebookViewModel>>;
+
+export const classCompletions = {
+  student: {
+    [classes.published.id]: {
+      classId: classes.published.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-14T16:30:00+07:00",
+      learnerProgress: {
+        studentId: actors.student.id,
+        studentName: actors.student.display_name,
+        policyVersion: 3,
+        outcomeVersion: 4,
+        outcome: "IN_PROGRESS",
+        progressPercent: 68,
+        satisfiedEvidence: 3,
+        requiredEvidence: 5,
+        outcomeReason: "Dua evidence wajib masih perlu diselesaikan sebelum outcome Class dapat ditetapkan.",
+        sections: [
+          {
+            sectionId: "section-getting-started",
+            title: "Mulai di sini",
+            activities: [
+              {
+                activityId: "activity-student-welcome",
+                title: "Selamat datang di Product Engineering",
+                state: "COMPLETED",
+                outcome: "COMPLETED",
+                completedAt: "2026-09-05T10:15:00+07:00",
+                evidences: [{ id: "evidence-welcome-view", label: "Materi dibaca", state: "SATISFIED", recordedAt: "2026-09-05T10:15:00+07:00", provenanceLabel: "Activity revision 2" }],
+              },
+              {
+                activityId: "activity-student-foundation",
+                title: "Fondasi design system",
+                state: "WAIVED",
+                outcome: "WAIVED",
+                reason: "Evidence ekuivalen disetujui Teacher tanpa mengubah grade.",
+                completedAt: "2026-09-08T13:00:00+07:00",
+                evidences: [{ id: "evidence-foundation-waiver", label: "Waiver dengan alasan", description: "Portofolio sebelumnya memenuhi evidence materi dasar.", state: "WAIVED", recordedAt: "2026-09-08T13:00:00+07:00", provenanceLabel: "Policy completion v3" }],
+              },
+            ],
+          },
+          {
+            sectionId: "section-practice",
+            title: "Latihan terarah",
+            activities: [
+              {
+                activityId: "activity-student-assignment",
+                title: "Project Brief: Learning Dashboard",
+                state: "IN_PROGRESS",
+                outcome: "IN_PROGRESS",
+                reason: "Submission revision tersedia, tetapi grade final belum dirilis.",
+                evidences: [
+                  { id: "evidence-dashboard-submit", label: "Submission dikumpulkan", state: "SATISFIED", recordedAt: "2026-09-12T15:20:03+07:00", provenanceLabel: "Submission revision 1" },
+                  { id: "evidence-dashboard-grade", label: "Grade final dirilis", state: "MISSING", description: "Nilai tinggi atau draft belum menjadi completion evidence." },
+                ],
+              },
+              {
+                activityId: "activity-student-locked",
+                title: "Usability review dan handoff",
+                state: "NOT_STARTED",
+                outcome: "IN_PROGRESS",
+                reason: "Activity masih menunggu prerequisite dari server.",
+                evidences: [{ id: "evidence-handoff-review", label: "Review selesai", state: "MISSING" }],
+              },
+            ],
+          },
+        ],
+      },
+    },
+  },
+  teacher: {
+    [classes.draft.id]: {
+      classId: classes.draft.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-14T16:45:00+07:00",
+      teacherRoster: [
+        {
+          studentId: "66666666666666666666666666666666",
+          studentName: "Nabila Sari",
+          policyVersion: 3,
+          outcomeVersion: 2,
+          outcome: "PASSED",
+          progressPercent: 100,
+          satisfiedEvidence: 2,
+          requiredEvidence: 2,
+          outcomeReason: "Seluruh evidence wajib terpenuhi pada policy v3.",
+          sections: [{ sectionId: "section-orientation", title: "Orientasi dan fondasi", activities: [{ activityId: "activity-welcome", title: "Selamat datang di Product Engineering", state: "COMPLETED", outcome: "COMPLETED", completedAt: "2026-09-10T10:00:00+07:00", evidences: [{ id: "nabila-evidence-material", label: "Materi dibaca", state: "SATISFIED", recordedAt: "2026-09-10T10:00:00+07:00" }, { id: "nabila-evidence-grade", label: "Grade final dirilis", state: "SATISFIED", recordedAt: "2026-09-14T09:00:00+07:00", provenanceLabel: "Grade revision 2" }] }] }],
+        },
+        {
+          studentId: "student-arya",
+          studentName: "Arya Wijaya",
+          policyVersion: 3,
+          outcomeVersion: 3,
+          outcome: "REOPENED",
+          progressPercent: 75,
+          satisfiedEvidence: 1,
+          requiredEvidence: 2,
+          outcomeReason: "Outcome dibuka kembali setelah correction pada submission revision.",
+          correctedAt: "2026-09-14T14:20:00+07:00",
+          sections: [{ sectionId: "section-orientation", title: "Orientasi dan fondasi", activities: [{ activityId: "activity-project-brief", title: "Project Brief: Learning Dashboard", state: "REOPENED", outcome: "REOPENED", reason: "Revision terbaru memerlukan penilaian ulang; snapshot lama tidak diubah.", evidences: [{ id: "arya-evidence-submit", label: "Revision terbaru dikumpulkan", state: "SATISFIED", recordedAt: "2026-09-14T14:00:00+07:00" }, { id: "arya-evidence-grade", label: "Grade correction dirilis", state: "MISSING" }] }] }],
+        },
+        {
+          studentId: "student-salsa",
+          studentName: "Salsa Ramadhani",
+          policyVersion: 3,
+          outcomeVersion: 1,
+          outcome: "IN_PROGRESS",
+          progressPercent: 50,
+          satisfiedEvidence: 1,
+          requiredEvidence: 2,
+          outcomeReason: "Activity complete belum berarti Class lulus.",
+          sections: [{ sectionId: "section-orientation", title: "Orientasi dan fondasi", activities: [{ activityId: "activity-welcome", title: "Selamat datang di Product Engineering", state: "COMPLETED", outcome: "COMPLETED", completedAt: "2026-09-09T09:00:00+07:00", evidences: [{ id: "salsa-evidence-material", label: "Materi dibaca", state: "SATISFIED", recordedAt: "2026-09-09T09:00:00+07:00" }] }] }],
+        },
+      ],
+    },
+  },
+} satisfies Record<"student" | "teacher", Record<string, ClassCompletionViewModel>>;
+
+export const classCredentials = {
+  student: {
+    [classes.published.id]: {
+      classId: classes.published.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-14T17:00:00+07:00",
+      subjects: [{
+        studentId: actors.student.id,
+        studentName: actors.student.display_name,
+        self: true,
+        transcript: {
+          snapshotId: "transcript-pe26-student-draft-v1",
+          version: 1,
+          state: "DRAFT",
+          policyVersion: 3,
+          provenanceLabel: "Projection sementara · outcome Class belum final",
+          items: [
+            { id: "transcript-material-foundation", title: "Fondasi design system", outcome: "WAIVED" },
+            { id: "transcript-dashboard", title: "Project Brief: Learning Dashboard", outcome: "IN_PROGRESS" },
+          ],
+        },
+        certificate: {
+          state: "NOT_ELIGIBLE",
+          eligible: false,
+          eligibilityReasons: ["Outcome Class masih berjalan.", "Transcript snapshot belum dirilis."],
+          downloadState: "UNAVAILABLE",
+        },
+      }],
+    },
+  },
+  teacher: {
+    [classes.draft.id]: {
+      classId: classes.draft.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-14T17:05:00+07:00",
+      subjects: [
+        {
+          studentId: "66666666666666666666666666666666",
+          studentName: "Nabila Sari",
+          self: false,
+          transcript: { snapshotId: "transcript-nabila-draft-v1", version: 1, state: "RELEASED", policyVersion: 3, provenanceLabel: "Class Draft · Grade release revision 2", releasedAt: "2026-09-14T15:00:00+07:00", items: [{ id: "nabila-dashboard", title: "Project Brief: Learning Dashboard", outcome: "PASSED", gradeDisplay: "90/100", releasedAt: "2026-09-14T15:00:00+07:00" }] },
+          certificate: { state: "ELIGIBLE", eligible: true, eligibilityReasons: ["Transcript snapshot v1 sudah dirilis.", "Seluruh completion evidence terpenuhi."], downloadState: "UNAVAILABLE" },
+        },
+        {
+          studentId: "student-arya",
+          studentName: "Arya Wijaya",
+          self: false,
+          transcript: { snapshotId: "transcript-arya-draft-v2", version: 2, state: "CORRECTED", policyVersion: 3, provenanceLabel: "Snapshot lama dipertahankan · correction pending", releasedAt: "2026-09-13T16:00:00+07:00", correctionReason: "Grade correction membuat snapshot baru; snapshot v1 tidak ditimpa.", items: [{ id: "arya-dashboard", title: "Project Brief: Learning Dashboard", outcome: "REOPENED", gradeDisplay: "Draft correction" }] },
+          certificate: { state: "NOT_ELIGIBLE", eligible: false, eligibilityReasons: ["Completion dibuka kembali dan menunggu grade correction final."], downloadState: "UNAVAILABLE" },
+        },
+        {
+          studentId: "student-salsa",
+          studentName: "Salsa Ramadhani",
+          self: false,
+          transcript: { snapshotId: "transcript-salsa-draft-v2", version: 2, state: "RELEASED", policyVersion: 3, provenanceLabel: "Class Draft · Grade release revision 2", releasedAt: "2026-09-14T15:00:00+07:00", items: [{ id: "salsa-dashboard", title: "Project Brief: Learning Dashboard", outcome: "PASSED", gradeDisplay: "90/100", releasedAt: "2026-09-14T15:00:00+07:00" }] },
+          certificate: { state: "ISSUED", eligible: true, eligibilityReasons: ["Transcript snapshot v2 sudah dirilis.", "Outcome Class dinyatakan lulus pada policy v3."], identifier: "IL-CERT-DRAFT-000012", issuedAt: "2026-09-14T15:30:00+07:00", verificationCode: "IL-PE26-SALSA-0012", downloadState: "READY" },
+        },
+      ],
+    },
+  },
+} satisfies Record<"student" | "teacher", Record<string, ClassCredentialViewModel>>;
+
+export const publicCredentialVerifications = {
+  "IL-PE26-SALSA-0012": { state: "VALID", code: "IL-PE26-SALSA-0012", recipientName: "Salsa Ramadhani", className: "Class Draft", issuedAt: "2026-09-14T15:30:00+07:00" },
+  "IL-PE26-REVOKED-0007": { state: "REVOKED", code: "IL-PE26-REVOKED-0007", recipientName: "Alumni Demo", className: "Product Engineering 2025", issuedAt: "2025-12-20T09:00:00+07:00", revokedAt: "2026-01-15T11:00:00+07:00" },
+  "IL-PE26-SUPERSEDED-0008": { state: "SUPERSEDED", code: "IL-PE26-SUPERSEDED-0008", recipientName: "Alumni Demo", className: "Product Engineering 2025", issuedAt: "2025-12-20T09:00:00+07:00", replacementCode: "IL-PE26-REPLACEMENT-0012" },
+} satisfies Record<string, PublicCredentialVerificationViewModel>;
 
 export const classParticipants = {
   [classes.published.id]: [
