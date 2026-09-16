@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { actors, classes, classCompletions, classCredentials, classGradebooks, classLearning, classOverviews, classParticipants, classSubmissions, identityCandidates, publicCredentialVerifications } from "@/mocks/fixtures";
+import { actors, classes, classAttendances, classCompletions, classCredentials, classGradebooks, classLearning, classLogbooks, classOverviews, classParticipants, classSubmissions, identityCandidates, publicCredentialVerifications } from "@/mocks/fixtures";
 import { actorFixtureSchema, assertFixture, classFixtureSchema, classOverviewFixtureSchema, classParticipantFixtureSchema, identityCandidateFixtureSchema } from "@/features/contracts/schemas";
 import { classLearningViewModelSchema } from "@/features/learning/model";
 import { classSubmissionViewModelSchema } from "@/features/submission/model";
 import { classGradebookViewModelSchema } from "@/features/gradebook/model";
 import { classCompletionViewModelSchema } from "@/features/completion/model";
 import { classCredentialViewModelSchema, publicCredentialVerificationSchema } from "@/features/credential/model";
+import { classAttendanceViewModelSchema } from "@/features/attendance/model";
+import { classLogbookViewModelSchema } from "@/features/logbook/model";
 
 describe("contract fixtures", () => {
   it("accepts valid actor and lifecycle fixtures", () => {
@@ -20,6 +22,8 @@ describe("contract fixtures", () => {
     expect(assertFixture(classCompletionViewModelSchema, classCompletions.student[classes.published.id]).learnerProgress?.sections).toHaveLength(2);
     expect(assertFixture(classCredentialViewModelSchema, classCredentials.student[classes.published.id]).subjects).toHaveLength(1);
     expect(assertFixture(publicCredentialVerificationSchema, publicCredentialVerifications["IL-PE26-SALSA-0012"]).state).toBe("VALID");
+    expect(assertFixture(classAttendanceViewModelSchema, classAttendances.teacher[classes.draft.id]).manager?.rosters).toHaveLength(2);
+    expect(assertFixture(classLogbookViewModelSchema, classLogbooks.student[classes.published.id]).learner?.mentorHistory).toHaveLength(2);
   });
   it("rejects invalid lifecycle state", () => {
     expect(() => assertFixture(classFixtureSchema, { ...classes.draft, state: "REMOVED" })).toThrow();

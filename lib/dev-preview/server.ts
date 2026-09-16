@@ -8,6 +8,8 @@ import type { ClassSubmissionViewModel } from "@/features/submission/model";
 import type { ClassGradebookViewModel } from "@/features/gradebook/model";
 import type { ClassCompletionViewModel } from "@/features/completion/model";
 import type { ClassCredentialViewModel, PublicCredentialVerificationViewModel } from "@/features/credential/model";
+import type { ClassAttendanceViewModel } from "@/features/attendance/model";
+import type { ClassLogbookViewModel } from "@/features/logbook/model";
 
 export interface DevelopmentPreview {
   actor: ActorContext;
@@ -18,6 +20,8 @@ export interface DevelopmentPreview {
   classGradebooks: Record<string, ClassGradebookViewModel>;
   classCompletions: Record<string, ClassCompletionViewModel>;
   classCredentials: Record<string, ClassCredentialViewModel>;
+  classAttendances: Record<string, ClassAttendanceViewModel>;
+  classLogbooks: Record<string, ClassLogbookViewModel>;
   adminClasses?: ClassAccessSummary[];
   classParticipants: Record<string, ClassParticipantViewModel[]>;
   identityCandidates?: IdentityCandidateViewModel[];
@@ -34,7 +38,7 @@ export async function getDevelopmentPreview(): Promise<DevelopmentPreview | unde
     throw new Error(`LMS_DEV_PREVIEW_ACTOR harus salah satu dari: ${actorNames.join(", ")}`);
   }
 
-  const { actors, classes, classOverviews, classLearning, classSubmissions, classGradebooks, classCompletions, classCredentials, classParticipants, identityCandidates } = await import("@/mocks/fixtures");
+  const { actors, classes, classOverviews, classLearning, classSubmissions, classGradebooks, classCompletions, classCredentials, classAttendances, classLogbooks, classParticipants, identityCandidates } = await import("@/mocks/fixtures");
   const scopedClasses = classesForActor(requestedActor, classes);
   return {
     actor: actors[requestedActor],
@@ -45,10 +49,38 @@ export async function getDevelopmentPreview(): Promise<DevelopmentPreview | unde
     classGradebooks: gradebookForActor(requestedActor, scopedClasses, classGradebooks),
     classCompletions: completionForActor(requestedActor, scopedClasses, classCompletions),
     classCredentials: credentialForActor(requestedActor, scopedClasses, classCredentials),
+    classAttendances: attendanceForActor(requestedActor, scopedClasses, classAttendances),
+    classLogbooks: logbookForActor(requestedActor, scopedClasses, classLogbooks),
     adminClasses: requestedActor === "siteAdmin" ? scopedClasses : undefined,
     classParticipants: participantsForClasses(scopedClasses, classParticipants),
     identityCandidates: canPreviewIdentityDirectory(requestedActor) ? identityCandidates : undefined,
   };
+}
+
+function attendanceForActor(
+  actorName: PreviewActorName,
+  scopedClasses: ClassAccessSummary[],
+  attendances: typeof import("@/mocks/fixtures")["classAttendances"],
+): Record<string, ClassAttendanceViewModel> {
+  const projection = actorName === "student"
+    ? attendances.student
+    : actorName === "teacher" || actorName === "teacherStudent"
+      ? attendances.teacher
+      : {};
+  return Object.fromEntries(scopedClasses.flatMap((item) => projection[item.id] ? [[item.id, projection[item.id]]] : []));
+}
+
+function logbookForActor(
+  actorName: PreviewActorName,
+  scopedClasses: ClassAccessSummary[],
+  logbooks: typeof import("@/mocks/fixtures")["classLogbooks"],
+): Record<string, ClassLogbookViewModel> {
+  const projection = actorName === "student"
+    ? logbooks.student
+    : actorName === "teacher" || actorName === "teacherStudent"
+      ? logbooks.teacher
+      : {};
+  return Object.fromEntries(scopedClasses.flatMap((item) => projection[item.id] ? [[item.id, projection[item.id]]] : []));
 }
 
 export async function getDevelopmentCredentialVerification(code: string): Promise<PublicCredentialVerificationViewModel | undefined> {
@@ -155,12 +187,24 @@ function classesForActor(
     }];
   }
   if (actorName === "siteAdmin") {
+    const operationalCapabilities = new Set([
+      "attendance.read",
+      "attendance.manage",
+      "permit.create",
+      "permit.review",
+      "discipline.read",
+      "discipline.manage",
+      "logbook.read",
+      "logbook.write",
+      "logbook.review",
+      "mentoring.read",
+    ]);
     return Object.values(classes).map((item) => ({
       ...item,
       contextual_roles: [],
       enrollment_state: "ACTIVE",
       capabilities: Array.from(new Set([
-        ...(item.capabilities ?? []),
+        ...(item.capabilities ?? []).filter((capability) => !operationalCapabilities.has(capability)),
         "class.read",
         "class.manage",
         "participants.read",

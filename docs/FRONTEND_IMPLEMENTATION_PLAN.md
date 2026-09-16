@@ -234,6 +234,8 @@ UI-first implementation, backend dependency, stop condition, dan mandatory test 
 
 Implement Class meeting calendar, bulk attendance, private permission evidence, approval/rejection, disciplinary case/SP, configurable logbook period, draft/revision/review, group, dan personal mentor history.
 
+UI-first scope, capability boundary, contract handoff, mandatory test, dan stop condition dibekukan pada [checkpoint FE06](checkpoints/FE06.md). Dua route yang sudah ada dipertahankan agar navigasi tidak membengkak: Attendance mengelompokkan meeting/kehadiran/izin/SP, sedangkan Logbook mengelompokkan period/entry/review/mentor-group history. Production tetap fail closed sampai M11–M12 tersedia.
+
 ### FE07 — Admin dan cutover
 
 Implement user/invitation administration, audit, export/report, async job center, migration evidence dashboard, ownership state, maintenance/read-only window, `CLASS_MOVED`, dan safe retry guidance.

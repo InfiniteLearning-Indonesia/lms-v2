@@ -6,6 +6,8 @@ import type { ClassSubmissionViewModel } from "@/features/submission/model";
 import type { ClassGradebookViewModel } from "@/features/gradebook/model";
 import type { ClassCompletionViewModel } from "@/features/completion/model";
 import type { ClassCredentialViewModel, PublicCredentialVerificationViewModel } from "@/features/credential/model";
+import type { ClassAttendanceViewModel } from "@/features/attendance/model";
+import type { ClassLogbookViewModel } from "@/features/logbook/model";
 
 export const actors = {
   siteAdmin: { id: "actor-admin", display_name: "Site Admin", site_admin: true, account_state: "ACTIVE", site_capabilities: ["site.admin"] },
@@ -17,8 +19,8 @@ export const actors = {
 } satisfies Record<string, ActorContext>;
 
 export const classes = {
-  draft: { id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", name: "Class Draft", state: "DRAFT", version: 1, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "content.manage", "content.publish", "files.upload", "participants.read", "participants.manage", "submission.read", "gradebook.read", "progress.read", "credentials.read"] },
-  published: { id: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", name: "Product Engineering 2026", program_label: "Software Engineering", cohort_label: "Batch 01", state: "PUBLISHED", version: 3, contextual_roles: ["student"], enrollment_state: "ACTIVE", capabilities: ["class.read", "content.read", "participants.read", "submission.read", "progress.read", "attendance.read", "logbook.read", "credentials.read"], next_actions: ["Lanjutkan materi berikutnya"] },
+  draft: { id: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", name: "Class Draft", state: "DRAFT", version: 1, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "content.manage", "content.publish", "files.upload", "participants.read", "participants.manage", "submission.read", "gradebook.read", "progress.read", "credentials.read", "attendance.read", "attendance.manage", "permit.review", "discipline.read", "discipline.manage", "logbook.read", "logbook.review", "mentoring.read"] },
+  published: { id: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", name: "Product Engineering 2026", program_label: "Software Engineering", cohort_label: "Batch 01", state: "PUBLISHED", version: 3, contextual_roles: ["student"], enrollment_state: "ACTIVE", capabilities: ["class.read", "content.read", "participants.read", "submission.read", "progress.read", "attendance.read", "permit.create", "discipline.read", "logbook.read", "logbook.write", "mentoring.read", "credentials.read"], next_actions: ["Lanjutkan materi berikutnya"] },
   closed: { id: "cccccccccccccccccccccccccccccccc", name: "Class Closed", state: "CLOSED", version: 7, contextual_roles: ["teacher"], enrollment_state: "ACTIVE", capabilities: ["class.read", "class.manage", "content.read", "participants.read", "participants.manage", "gradebook.read", "progress.read"] },
   archived: { id: "dddddddddddddddddddddddddddddddd", name: "Class Archived", state: "ARCHIVED", version: 9, contextual_roles: ["student"], enrollment_state: "ENDED", capabilities: ["class.read"] },
 } satisfies Record<string, ClassAccessSummary>;
@@ -597,6 +599,125 @@ export const classCredentials = {
     },
   },
 } satisfies Record<"student" | "teacher", Record<string, ClassCredentialViewModel>>;
+
+export const classAttendances = {
+  student: {
+    [classes.published.id]: {
+      classId: classes.published.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-15T09:00:00+07:00",
+      meetings: [
+        { id: "meeting-orientation", title: "Orientasi Class", startsAt: "2026-09-08T09:00:00+07:00", endsAt: "2026-09-08T11:00:00+07:00", state: "COMPLETED", deliveryLabel: "Zoom" },
+        { id: "meeting-design-system", title: "Design System Workshop", startsAt: "2026-09-12T09:00:00+07:00", endsAt: "2026-09-12T12:00:00+07:00", state: "COMPLETED", deliveryLabel: "Lab A" },
+        { id: "meeting-research", title: "User Research Clinic", startsAt: "2026-09-18T13:00:00+07:00", endsAt: "2026-09-18T15:00:00+07:00", state: "SCHEDULED", deliveryLabel: "Zoom" },
+      ],
+      learner: {
+        studentId: actors.student.id,
+        records: [
+          { id: "record-student-orientation", meetingId: "meeting-orientation", state: "PRESENT", revision: 1, recordedAt: "2026-09-08T09:03:00+07:00" },
+          { id: "record-student-workshop", meetingId: "meeting-design-system", state: "LATE", revision: 2, recordedAt: "2026-09-12T09:18:00+07:00", correctedAt: "2026-09-12T12:30:00+07:00", reason: "Keterlambatan telah dikonfirmasi Pengajar." },
+        ],
+        permits: [
+          { id: "permit-student-research", meetingId: "meeting-research", category: "MEDICAL", state: "PENDING", requestedAt: "2026-09-15T08:45:00+07:00", note: "Memerlukan pemeriksaan lanjutan pada jadwal pertemuan.", evidence: { id: "evidence-medical", name: "surat-keterangan.pdf", state: "SCANNING" }, version: 1 },
+        ],
+        disciplineCases: [],
+      },
+    },
+  },
+  teacher: {
+    [classes.draft.id]: {
+      classId: classes.draft.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-15T10:15:00+07:00",
+      meetings: [
+        { id: "meeting-draft-kickoff", title: "Kickoff Project", startsAt: "2026-09-14T09:00:00+07:00", endsAt: "2026-09-14T11:00:00+07:00", state: "COMPLETED", deliveryLabel: "Studio 2" },
+        { id: "meeting-draft-critique", title: "Design Critique", startsAt: "2026-09-17T13:00:00+07:00", endsAt: "2026-09-17T15:00:00+07:00", state: "SCHEDULED", deliveryLabel: "Zoom" },
+      ],
+      manager: {
+        rosters: [
+          { meetingId: "meeting-draft-kickoff", records: [
+            { id: "record-nabila-kickoff", meetingId: "meeting-draft-kickoff", studentId: "66666666666666666666666666666666", studentName: "Nabila Sari", studentEmail: "nabila.sari@example.test", state: "PRESENT", revision: 1, recordedAt: "2026-09-14T09:01:00+07:00" },
+            { id: "record-arya-kickoff", meetingId: "meeting-draft-kickoff", studentId: "student-arya", studentName: "Arya Wijaya", studentEmail: "arya.wijaya@example.test", state: "LATE", revision: 2, recordedAt: "2026-09-14T09:17:00+07:00", correctedAt: "2026-09-14T11:30:00+07:00" },
+            { id: "record-salsa-kickoff", meetingId: "meeting-draft-kickoff", studentId: "student-salsa", studentName: "Salsa Ramadhani", studentEmail: "salsa.ramadhani@example.test", state: "UNKNOWN", revision: 1 },
+          ] },
+          { meetingId: "meeting-draft-critique", records: [] },
+        ],
+        permitInbox: [
+          { id: "permit-nabila", meetingId: "meeting-draft-critique", studentId: "66666666666666666666666666666666", studentName: "Nabila Sari", category: "MEDICAL", state: "PENDING", requestedAt: "2026-09-15T09:30:00+07:00", note: "Kontrol kesehatan terjadwal.", evidence: { id: "evidence-nabila", name: "bukti-kontrol.pdf", state: "READY" }, version: 1 },
+          { id: "permit-arya", meetingId: "meeting-draft-kickoff", studentId: "student-arya", studentName: "Arya Wijaya", category: "PERSONAL", state: "APPROVED", requestedAt: "2026-09-13T18:00:00+07:00", decisionReason: "Kondisi telah dikonfirmasi melalui mentor personal.", decidedAt: "2026-09-13T20:00:00+07:00", version: 2 },
+        ],
+        disciplineCases: [
+          { id: "discipline-arya-sp1", studentId: "student-arya", studentName: "Arya Wijaya", level: "SP1", state: "ACTIVE", issuedAt: "2026-09-10T14:00:00+07:00", reason: "Tidak memenuhi dua checkpoint wajib pada Class ini.", version: 1 },
+          { id: "discipline-salsa-sp1", studentId: "student-salsa", studentName: "Salsa Ramadhani", level: "SP1", state: "CORRECTED", issuedAt: "2026-09-05T14:00:00+07:00", reason: "Data kehadiran awal tidak lengkap.", correctionNote: "Dikoreksi setelah bukti kehadiran terverifikasi.", version: 2 },
+        ],
+        monthlySummary: {
+          month: "2026-09",
+          label: "September 2026",
+          activeMeetingCount: 2,
+          totalRecords: 6,
+          totals: { PRESENT: 1, LATE: 1, EXCUSED: 0, ABSENT: 0, UNKNOWN: 4 },
+          students: [
+            { studentId: "66666666666666666666666666666666", studentName: "Nabila Sari", activeMeetingCount: 2, counts: { PRESENT: 1, LATE: 0, EXCUSED: 0, ABSENT: 0, UNKNOWN: 1 }, attendancePercent: 50 },
+            { studentId: "student-arya", studentName: "Arya Wijaya", activeMeetingCount: 2, counts: { PRESENT: 0, LATE: 1, EXCUSED: 0, ABSENT: 0, UNKNOWN: 1 }, attendancePercent: 50, disciplineLevel: "SP1" },
+            { studentId: "student-salsa", studentName: "Salsa Ramadhani", activeMeetingCount: 2, counts: { PRESENT: 0, LATE: 0, EXCUSED: 0, ABSENT: 0, UNKNOWN: 2 }, attendancePercent: 0 },
+          ],
+        },
+      },
+    },
+  },
+} satisfies Record<"student" | "teacher", Record<string, ClassAttendanceViewModel>>;
+
+export const classLogbooks = {
+  student: {
+    [classes.published.id]: {
+      classId: classes.published.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-15T11:00:00+07:00",
+      periods: [
+        { id: "period-orientation", label: "Sprint Orientasi", startsAt: "2026-09-01T00:00:00+07:00", dueAt: "2026-09-07T23:59:00+07:00", state: "CLOSED" },
+        { id: "period-discovery", label: "Fase Discovery", startsAt: "2026-09-08T00:00:00+07:00", dueAt: "2026-09-18T23:59:00+07:00", state: "OPEN" },
+        { id: "period-validation", label: "Validasi Solusi", startsAt: "2026-09-19T00:00:00+07:00", dueAt: "2026-09-30T23:59:00+07:00", state: "UPCOMING" },
+      ],
+      learner: {
+        studentId: actors.student.id,
+        entries: [
+          { id: "entry-orientation", periodId: "period-orientation", state: "ACCEPTED", revision: 1, activitySummary: "Mengenal alur Class dan menyepakati cara kerja tim.", reflection: "Saya perlu lebih disiplin mencatat keputusan harian.", submittedAt: "2026-09-07T20:00:00+07:00", reviewedAt: "2026-09-08T10:00:00+07:00", feedback: "Refleksi sudah spesifik dan dapat ditindaklanjuti." },
+          { id: "entry-discovery", periodId: "period-discovery", state: "REVISION_REQUIRED", revision: 2, activitySummary: "Wawancara pengguna dan menyusun temuan awal.", reflection: "Hipotesis utama masih perlu divalidasi dengan dua responden tambahan.", savedAt: "2026-09-14T21:00:00+07:00", submittedAt: "2026-09-14T20:00:00+07:00", reviewedAt: "2026-09-15T08:00:00+07:00", feedback: "Tambahkan keputusan yang berubah setelah wawancara kedua." },
+        ],
+        mentorHistory: [
+          { id: "mentor-history-old", mentorId: "mentor-dimas", mentorName: "Dimas Prakoso", startsAt: "2026-08-01T09:00:00+07:00", endsAt: "2026-09-01T08:59:00+07:00", reason: "Reassignment karena perubahan cohort." },
+          { id: "mentor-history-current", mentorId: "mentor-peja", mentorName: "Hafara Putri (Peja)", startsAt: "2026-09-01T09:00:00+07:00" },
+        ],
+        group: { id: "group-alpha", name: "Kelompok Alpha", memberCount: 5 },
+      },
+    },
+  },
+  teacher: {
+    [classes.draft.id]: {
+      classId: classes.draft.id,
+      timeZone: "Asia/Jakarta",
+      updatedAt: "2026-09-15T11:30:00+07:00",
+      periods: [
+        { id: "period-draft-discovery", label: "Discovery Checkpoint", startsAt: "2026-09-08T00:00:00+07:00", dueAt: "2026-09-18T23:59:00+07:00", state: "OPEN" },
+        { id: "period-draft-prototype", label: "Prototype Sprint", startsAt: "2026-09-19T00:00:00+07:00", dueAt: "2026-10-02T23:59:00+07:00", state: "UPCOMING" },
+      ],
+      reviewer: {
+        reviewInbox: [
+          { id: "review-nabila", periodId: "period-draft-discovery", studentId: "66666666666666666666666666666666", studentName: "Nabila Sari", mentorName: "Pengajar Demo", state: "SUBMITTED", revision: 2, activitySummary: "Menyusun interview guide dan melakukan tiga wawancara.", reflection: "Pertanyaan terbuka menghasilkan insight yang lebih kaya.", submittedAt: "2026-09-15T08:30:00+07:00" },
+          { id: "review-arya", periodId: "period-draft-discovery", studentId: "student-arya", studentName: "Arya Wijaya", mentorName: "Pengajar Demo", state: "REVISION_REQUIRED", revision: 3, activitySummary: "Memetakan user journey dari hasil wawancara.", reflection: "Masih ada gap pada fase handoff.", feedback: "Hubungkan setiap pain point dengan evidence wawancara.", reviewedAt: "2026-09-14T15:00:00+07:00" },
+          { id: "review-salsa", periodId: "period-draft-discovery", studentId: "student-salsa", studentName: "Salsa Ramadhani", mentorName: "Mentor Raka", state: "ACCEPTED", revision: 1, activitySummary: "Mengelompokkan insight dengan affinity mapping.", reflection: "Prioritas menjadi lebih jelas setelah penyelarasan tim.", reviewedAt: "2026-09-14T13:00:00+07:00" },
+        ],
+        mentorHistory: [
+          { id: "reviewer-history", mentorId: actors.teacher.id, mentorName: "Pengajar Demo", startsAt: "2026-09-01T09:00:00+07:00" },
+        ],
+        groups: [
+          { id: "group-alpha", name: "Kelompok Alpha", memberCount: 5 },
+          { id: "group-beta", name: "Kelompok Beta", memberCount: 4 },
+        ],
+      },
+    },
+  },
+} satisfies Record<"student" | "teacher", Record<string, ClassLogbookViewModel>>;
 
 export const publicCredentialVerifications = {
   "IL-PE26-SALSA-0012": { state: "VALID", code: "IL-PE26-SALSA-0012", recipientName: "Salsa Ramadhani", className: "Class Draft", issuedAt: "2026-09-14T15:30:00+07:00" },
