@@ -16,6 +16,18 @@ export const participantFormSchema = z.object({
 });
 
 export type ClassDetailsFormValues = z.infer<typeof classDetailsFormSchema>;
+export type ClassDetailsFormField = keyof ClassDetailsFormValues;
+export type ParticipantFormValues = z.infer<typeof participantFormSchema>;
+
+export function validateClassDetailsField(field: ClassDetailsFormField, value: string): true | string {
+  const result = classDetailsFormSchema.shape[field].safeParse(value);
+  return result.success ? true : result.error.issues[0]?.message ?? "Nilai tidak valid.";
+}
+
+export function validateParticipantField(field: keyof ParticipantFormValues, value: string): true | string {
+  const result = participantFormSchema.shape[field].safeParse(value);
+  return result.success ? true : result.error.issues[0]?.message ?? "Nilai tidak valid.";
+}
 
 export function toCreateClassInput(values: ClassDetailsFormValues): components["schemas"]["CreateClass"] {
   const parsed = classDetailsFormSchema.parse(values);

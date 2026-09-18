@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Eye, Pencil, Plus, Search, X } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/ui-v3/page-header";
 import { EmptyState } from "@/components/ui-v3/states";
@@ -20,12 +21,10 @@ import {
 import { Input } from "@/components/ui/input";
 import type { ClassAccessSummary } from "@/lib/api/types";
 import { matchesManagedClass } from "../model";
-import { classDetailsFormSchema, type ClassDetailsFormValues } from "../schemas";
+import { type ClassDetailsFormValues, validateClassDetailsField } from "../schemas";
 import { ClassStateBadge, FieldMessage, IntegrationNotice } from "./shared";
 
 type ClassStateFilter = ClassAccessSummary["state"] | "ALL";
-type ClassField = keyof ClassDetailsFormValues;
-
 const initialValues: ClassDetailsFormValues = { name: "", programLabel: "", cohortLabel: "" };
 
 export function AdminClassDirectory({ initialClasses }: { initialClasses?: ClassAccessSummary[] }) {
@@ -33,24 +32,12 @@ export function AdminClassDirectory({ initialClasses }: { initialClasses?: Class
   const commonT = useTranslations("common");
   const [query, setQuery] = useState("");
   const [state, setState] = useState<ClassStateFilter>("ALL");
-  const [values, setValues] = useState(initialValues);
-  const [errors, setErrors] = useState<Partial<Record<ClassField, string>>>({});
+  const { register, handleSubmit, formState: { errors } } = useForm<ClassDetailsFormValues>({ defaultValues: initialValues, mode: "onBlur" });
   const filtered = useMemo(
     () => initialClasses?.filter((item) => matchesManagedClass(item, query, state)) ?? [],
     [initialClasses, query, state],
   );
   const filtersActive = Boolean(query || state !== "ALL");
-
-  function updateField(field: ClassField, value: string) {
-    setValues((current) => ({ ...current, [field]: value }));
-    if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
-  }
-
-  function validateField(field: ClassField) {
-    const result = classDetailsFormSchema.safeParse(values);
-    const issue = result.success ? undefined : result.error.issues.find((item) => item.path[0] === field);
-    setErrors((current) => ({ ...current, [field]: issue?.message }));
-  }
 
   const createDialog = (
     <Dialog>
@@ -66,20 +53,18 @@ export function AdminClassDirectory({ initialClasses }: { initialClasses?: Class
         <DialogClose render={<Button variant="ghost" size="icon" className="absolute right-2 top-2 size-11" aria-label={t("closeDialog")} />}>
           <X className="size-4" aria-hidden="true" />
         </DialogClose>
-        <form onSubmit={(event) => event.preventDefault()} className="grid gap-5" noValidate>
+        <form onSubmit={handleSubmit(() => undefined)} className="grid gap-5" noValidate>
           <div className="grid gap-2">
             <label htmlFor="create-class-name" className="text-sm font-medium">{t("nameLabel")}</label>
             <Input
               id="create-class-name"
               className="h-11"
-              value={values.name}
-              onChange={(event) => updateField("name", event.target.value)}
-              onBlur={() => validateField("name")}
+              {...register("name", { validate: (value) => validateClassDetailsField("name", value) })}
               placeholder={t("namePlaceholder")}
               aria-invalid={Boolean(errors.name)}
               aria-describedby="create-class-name-help"
             />
-            <FieldMessage id="create-class-name-help" error={errors.name} help={t("nameHelp")} />
+            <FieldMessage id="create-class-name-help" error={errors.name?.message} help={t("nameHelp")} />
           </div>
           <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
             <div className="grid content-start gap-2">
@@ -87,28 +72,24 @@ export function AdminClassDirectory({ initialClasses }: { initialClasses?: Class
               <Input
                 id="create-class-program"
                 className="h-11"
-                value={values.programLabel}
-                onChange={(event) => updateField("programLabel", event.target.value)}
-                onBlur={() => validateField("programLabel")}
+                {...register("programLabel", { validate: (value) => validateClassDetailsField("programLabel", value) })}
                 placeholder={t("programPlaceholder")}
                 aria-invalid={Boolean(errors.programLabel)}
                 aria-describedby="create-class-program-help"
               />
-              <FieldMessage id="create-class-program-help" error={errors.programLabel} help={t("optionalHelp")} />
+                <FieldMessage id="create-class-program-help" error={errors.programLabel?.message} help={t("optionalHelp")} />
             </div>
             <div className="grid content-start gap-2">
               <label htmlFor="create-class-cohort" className="text-sm font-medium">{t("cohortLabel")}</label>
               <Input
                 id="create-class-cohort"
                 className="h-11"
-                value={values.cohortLabel}
-                onChange={(event) => updateField("cohortLabel", event.target.value)}
-                onBlur={() => validateField("cohortLabel")}
+                {...register("cohortLabel", { validate: (value) => validateClassDetailsField("cohortLabel", value) })}
                 placeholder={t("cohortPlaceholder")}
                 aria-invalid={Boolean(errors.cohortLabel)}
                 aria-describedby="create-class-cohort-help"
               />
-              <FieldMessage id="create-class-cohort-help" error={errors.cohortLabel} help={t("optionalHelp")} />
+                <FieldMessage id="create-class-cohort-help" error={errors.cohortLabel?.message} help={t("optionalHelp")} />
             </div>
           </div>
           <IntegrationNotice id="create-class-integration-note" title={t("createDisabledTitle")} description={t("createDisabledBody")} />

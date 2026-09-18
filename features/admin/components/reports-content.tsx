@@ -1,0 +1,33 @@
+"use client";
+
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { Download, FileBarChart2, X } from "lucide-react";
+import { PageHeader } from "@/components/ui-v3/page-header";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import type { AdminReportsViewModel } from "../model";
+import { DependencyNotice, formatAdminDate, JobStatusList, StatusBadge } from "./operations-shared";
+
+export function AdminReportsContent({ initialData }: { initialData?: AdminReportsViewModel }) {
+  const t = useTranslations("adminOperations");
+  const commonT = useTranslations("common");
+  const [selectedId, setSelectedId] = useState(initialData?.reports[0]?.id ?? "");
+  const selected = initialData?.reports.find((report) => report.id === selectedId) ?? initialData?.reports[0];
+  const stateLabels = { queued: t("states.queued"), running: t("states.running"), succeeded: t("states.succeeded"), partial: t("states.partial"), failed: t("states.failed") };
+
+  const exportDialog = (
+    <Dialog>
+      <DialogTrigger render={<Button className="h-11" disabled={!selected} />}><Download className="size-4" aria-hidden="true" />{t("reports.requestExport")}</DialogTrigger>
+      <DialogContent showCloseButton={false} className="sm:max-w-lg"><DialogHeader className="pr-12"><DialogTitle>{t("reports.exportTitle")}</DialogTitle><DialogDescription>{t("reports.exportDescription")}</DialogDescription></DialogHeader><DialogClose render={<Button variant="ghost" size="icon" className="absolute right-2 top-2 size-11" aria-label={commonT("close")} />}><X className="size-4" /></DialogClose><div className="rounded-xl border bg-muted/30 p-4"><p className="text-xs text-muted-foreground">{t("reports.selectedReport")}</p><p className="mt-1 font-heading text-sm font-semibold">{selected?.title}</p></div><DependencyNotice id="report-export-dependency" title={t("commandPendingTitle")} description={t("reports.exportPending")} /><DialogFooter><DialogClose render={<Button variant="outline" className="h-11" />}>{commonT("cancel")}</DialogClose><Button className="h-11" disabled aria-describedby="report-export-dependency">{t("reports.requestPrivateExport")}</Button></DialogFooter></DialogContent>
+    </Dialog>
+  );
+
+  return <div className="space-y-6"><PageHeader eyebrow={t("eyebrow")} title={t("reports.title")} description={t("reports.description")} actions={exportDialog} />{initialData === undefined ? <DependencyContent t={t} /> : <><DependencyNotice id="report-authority" title={t("reports.authorityTitle")} description={t("reports.authorityBody")} /><div className="grid gap-6 lg:grid-cols-[18rem_minmax(0,1fr)]"><aside className="rounded-xl border bg-card p-3" aria-label={t("reports.catalog")}><p className="px-2 pb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("reports.catalog")}</p><div className="grid gap-1">{initialData.reports.map((report) => <button key={report.id} type="button" onClick={() => setSelectedId(report.id)} aria-pressed={selected?.id === report.id} className={`min-h-11 rounded-lg px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${selected?.id === report.id ? "bg-primary/10 text-primary" : "hover:bg-muted"}`}><span className="block font-heading text-sm font-semibold">{report.title}</span><span className="mt-1 block text-xs text-muted-foreground">{report.scopeLabel}</span></button>)}</div></aside>{selected ? <ReportProjection report={selected} t={t} /> : null}</div><JobStatusList jobs={initialData.jobs} title={t("jobs.title")} description={t("jobs.description")} stateLabels={stateLabels} /><p className="text-xs text-muted-foreground">{t("updatedAt", { date: formatAdminDate(initialData.updatedAt) })}</p></>}</div>;
+}
+
+function ReportProjection({ report, t }: { report: AdminReportsViewModel["reports"][number]; t: ReturnType<typeof useTranslations<"adminOperations">> }) {
+  return <section className="min-w-0 rounded-xl border bg-card" aria-labelledby="selected-report-title"><div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-start sm:justify-between sm:p-5"><div><div className="flex items-center gap-2"><FileBarChart2 className="size-5 text-primary" aria-hidden="true" /><h2 id="selected-report-title" className="font-heading text-lg font-semibold">{report.title}</h2></div><p className="mt-2 max-w-2xl text-sm text-muted-foreground">{report.description}</p></div><StatusBadge state={report.freshness} label={t(`states.${report.freshness}`)} /></div><dl className="grid gap-3 border-b bg-muted/20 p-4 text-sm sm:grid-cols-2"><div><dt className="text-xs text-muted-foreground">{t("reports.scope")}</dt><dd className="mt-1 font-medium">{report.scopeLabel}</dd></div><div><dt className="text-xs text-muted-foreground">{t("reports.watermark")}</dt><dd className="mt-1 font-medium tabular-nums">{report.watermark}</dd></div></dl><div className="divide-y sm:hidden">{report.rows.map((row, index) => <dl key={`${report.id}-card-${index}`} className="grid gap-3 p-4">{report.columns.map((column) => <div key={column.key} className="flex items-start justify-between gap-4"><dt className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{column.label}</dt><dd className="text-right text-sm font-medium tabular-nums">{row[column.key] ?? "—"}</dd></div>)}</dl>)}</div><table className="hidden w-full sm:table"><thead className="border-b bg-muted/30"><tr>{report.columns.map((column) => <th key={column.key} scope="col" className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">{column.label}</th>)}</tr></thead><tbody className="divide-y">{report.rows.map((row, index) => <tr key={`${report.id}-${index}`}>{report.columns.map((column) => <td key={column.key} className="px-4 py-3 text-sm tabular-nums">{row[column.key] ?? "—"}</td>)}</tr>)}</tbody></table><p className="border-t px-4 py-3 text-xs text-muted-foreground">{t("reports.pageSummary", { count: report.rows.length })}</p></section>;
+}
+
+function DependencyContent({ t }: { t: ReturnType<typeof useTranslations<"adminOperations">> }) { return <section className="space-y-4"><DependencyNotice id="reports-dependency" title={t("dependencyTitle")} description={t("dependencyBody")} /><div className="rounded-xl border border-dashed bg-muted/20 p-5" aria-hidden="true"><div className="h-12 rounded-lg bg-muted" /><div className="mt-4 h-52 rounded-lg bg-muted/60" /></div></section>; }

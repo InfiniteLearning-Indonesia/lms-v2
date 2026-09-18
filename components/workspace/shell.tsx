@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { ArrowLeft, Beaker, CalendarCheck, ClipboardCheck, FileBadge, GraduationCap, Home, Menu, NotebookPen, School, Search, Settings, Users, X } from "lucide-react";
+import { ArrowLeft, Beaker, CalendarCheck, ChartNoAxesCombined, ClipboardCheck, DatabaseZap, FileBadge, GraduationCap, Home, Menu, NotebookPen, School, ScrollText, Search, Settings, UserRoundCog, Users, X } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -37,7 +37,13 @@ function Navigation({ onNavigate }: { onNavigate?: () => void }) {
     ? classItems
     : [
         { href: "/app", label: t("workspace"), icon: Home, exact: true },
-        ...(siteAdmin ? [{ href: "/app/admin/classes", label: t("adminClasses"), icon: School, exact: true }] : []),
+        ...(siteAdmin ? [
+          { href: "/app/admin/classes", label: t("adminClasses"), icon: School, exact: true },
+          { href: "/app/admin/users", label: t("adminUsers"), icon: UserRoundCog, exact: true },
+          { href: "/app/admin/reports", label: t("adminReports"), icon: ChartNoAxesCombined, exact: true },
+          { href: "/app/admin/audit", label: t("adminAudit"), icon: ScrollText, exact: true },
+          { href: "/app/admin/migrations", label: t("adminMigrations"), icon: DatabaseZap, exact: true },
+        ] : []),
       ];
 
   return (

@@ -1,4 +1,4 @@
-import type { ActorContext, ClassAccessSummary } from "@/lib/api/types";
+import type { ClassAccessSummary } from "@/lib/api/types";
 
 export type ParticipantRole = "teacher" | "student";
 export type ParticipationState = "ACTIVE" | "SUSPENDED" | "ENDED";
@@ -29,6 +29,12 @@ export interface IdentityCandidateViewModel {
   userId: string;
   displayName: string;
   email: string;
+}
+
+// Actor-scoped backend projection. Role labels and the legacy site_admin boolean
+// are deliberately not used to infer which assignments are authorized.
+export interface ParticipantAssignmentPolicyViewModel {
+  assignableRoles: ParticipantRole[];
 }
 
 export const PARTICIPANT_MANAGE_CAPABILITY = "participants.manage";
@@ -68,11 +74,12 @@ export function canManageParticipants(activeClass: ClassAccessSummary): boolean 
   return Boolean(activeClass.capabilities?.includes(PARTICIPANT_MANAGE_CAPABILITY));
 }
 
-export function assignableParticipantRoles(actor: ActorContext, activeClass: ClassAccessSummary): ParticipantRole[] {
+export function assignableParticipantRoles(
+  activeClass: ClassAccessSummary,
+  policy?: ParticipantAssignmentPolicyViewModel,
+): ParticipantRole[] {
   if (!canManageParticipants(activeClass)) return [];
-  if (actor.site_admin) return ["teacher", "student"];
-  if (activeClass.contextual_roles?.includes("teacher")) return ["student"];
-  return [];
+  return policy?.assignableRoles ?? [];
 }
 
 export function participationActionsFor(state: ParticipationState): ParticipationAction[] {

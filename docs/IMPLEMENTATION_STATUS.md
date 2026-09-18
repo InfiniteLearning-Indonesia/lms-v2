@@ -1,18 +1,18 @@
 # LMS v3 Frontend — Implementation Status
 
-**Diperbarui:** 15 September 2026
+**Diperbarui:** 18 September 2026
 **Branch:** `fe-v3`  
-**Frontend baseline sebelum brief FE06:** `391eb35`
+**Frontend baseline sebelum brief FE07:** `42b97a9`
 **Backend commit saat inspeksi:** `52cbc88`  
-**Status keseluruhan:** `FE06_BLOCKED_BACKEND / FE05_BLOCKED_BACKEND / FE04_BLOCKED_BACKEND / FE03_BLOCKED_BACKEND / FE02_BLOCKED_BACKEND / FE01_BLOCKED_BACKEND`
+**Status keseluruhan:** `FE07_BLOCKED_BACKEND / FE06_BLOCKED_BACKEND / FE05_BLOCKED_BACKEND / FE04_BLOCKED_BACKEND / FE03_BLOCKED_BACKEND / FE02_BLOCKED_BACKEND / FE01_BLOCKED_BACKEND`
 
-[Master plan](FRONTEND_IMPLEMENTATION_PLAN.md) · [Checkpoint aktif FE06](checkpoints/FE06.md) · [FE05](checkpoints/FE05.md) · [FE04](checkpoints/FE04.md) · [FE03](checkpoints/FE03.md) · [FE02](checkpoints/FE02.md) · [FE01](checkpoints/FE01.md) · [Backend status](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md)
+[Master plan](FRONTEND_IMPLEMENTATION_PLAN.md) · [Brief aktif FE07](checkpoints/FE07.md) · [FE06](checkpoints/FE06.md) · [FE05](checkpoints/FE05.md) · [FE04](checkpoints/FE04.md) · [FE03](checkpoints/FE03.md) · [FE02](checkpoints/FE02.md) · [FE01](checkpoints/FE01.md) · [Backend status](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md)
 
 ## 1. Ringkasan
 
 Fondasi FE00 sudah selesai. Frontend slice FE01 untuk actor/session, Class context dari URL, pencarian Class actor-scoped, dashboard Ringkasan, capability-driven navigation, guards, profil, dan session commands sudah dibuat serta lulus mock/browser QA. Enrollment diputuskan assigned-only: Student tidak self-enroll dan frontend tidak menyediakan katalog Class global atau enroll key. Ringkasan menyediakan satu CTA Pembelajaran serta UI daftar Tugas Mendatang dan Pengingat Logbook; data daftar hanya berasal dari typed development fixture, sedangkan production menampilkan dependency state sampai read model M07/M08/M12 tersedia. Sidebar memakai exact active state dan Progress tidak diekspos sebagai menu. UI login sementara menampilkan kontrol disabled dan tidak lagi meminta challenge yang belum dapat menyelesaikan login. Preview development server-only tersedia untuk pengembangan UI tanpa memalsukan session atau kontrak production. FE01 tetap `BLOCKED_BACKEND`: login production, refresh/new-tab session control, dan daftar Class nyata belum dapat diintegrasikan sebelum kontrak backend tersedia.
 
-FE02 UI-first slice juga sudah siap: Site Admin memperoleh direktori Class, create form, metadata/version/lifecycle settings, participant directory, identity picker, state action, history, dan bulk dependency state. Teacher/Student controls diturunkan dari capability dan contextual role; role label tidak dipakai sebagai security boundary. Typed command transport mempertahankan kontrak M05 yang ada, tetapi production tidak mengarang endpoint read/search dan tidak mengaktifkan mutation sebelum CSRF/capability/read model siap.
+FE02 UI-first slice juga sudah siap: Site Admin memperoleh direktori Class, create form, metadata/version/lifecycle settings, participant directory, identity picker, state action, history, dan bulk dependency state. Participant management digerakkan capability dan assignable-role projection actor-scoped; role label maupun boolean global admin tidak dipakai untuk menurunkan pilihan assignment. Form Class/participant memakai React Hook Form + Zod. Typed command transport mempertahankan kontrak M05 yang ada, tetapi production tidak mengarang endpoint read/search dan tidak mengaktifkan mutation sebelum CSRF/capability/read model siap.
 
 FE03 UI-first shell sudah siap: focused learning workspace tanpa sidebar menampilkan **Preview Student Mode** hanya kepada author, sedangkan Student tidak diberi label mode. Setiap Activity memenuhi lebar outline dan memiliki CTA Edit contextual; policy UI memisahkan manage structure, reorder, edit Activity, lifecycle, dan upload walaupun fixture sementara masih menurunkan tiga izin authoring pertama dari `content.manage`. Seluruh payload Learning harus cocok dengan Class aktif atau ditolak tanpa menampilkan data. Dialog Section mendukung nama dan deskripsi opsional; Section kosong menampilkan **Tidak Ada Activity**. Per-Section Tambah Activity meminta tipe Materi/Tugas lalu membuka route create khusus, tetapi seluruh final command tetap disabled. Ordering dipusatkan pada mode **Edit Urutan** di header Susunan pembelajaran dan tidak diduplikasi di modal/editor. Editor create/edit hanya memakai structured allowlist; HTML bebas tetap dilarang. Perubahan lokal dilindungi native unload dan link-navigation warning. Development fixture hanya masuk melalui server preview; production menampilkan dependency state dan tidak mengirim content/file request yang belum ada di OpenAPI. Private file lifecycle masih `PARTIAL_FRONTEND`: progress nyata, intent expiry, retry/cancel, dan attach/detach menunggu M06.
 
@@ -22,7 +22,9 @@ FE05 UI-first slice sudah siap `6/8`: Progress Student/Teacher, evidence dan pol
 
 FE06 UI-first slice sudah siap `6/8`: Mentee mendapat halaman kalender kehadiran read-only tanpa rekap, izin, SP, atau kontrol input. Teacher mendapat mode Input & Kalender serta Rekap Bulanan berisi proporsi, status cards, dan detail per Mentee dari typed projection; review izin dan SP Class-local tetap khusus surface Teacher. Halaman Logbook memisahkan periode fleksibel, revision entry, scoped review, serta histori mentor/group. Seluruh authorization berasal dari capability Class, record hilang tetap `UNKNOWN`, izin pending tidak dianggap approved, dan persentase authoritative tidak dihitung ulang dari card browser. Semua command tetap disabled serta production tidak meminta endpoint M11–M12 yang belum ada.
 
-Current next action: integrasikan FE06 setelah M06/M11/M12 menyediakan private proof access, canonical capability, actor-scoped reads, CSRF, optimistic version/idempotency/receipt, attendance correction, permit/SP lifecycle, period/entry/review, dan mentor assignment history; lalu jalankan FE06-T14 melalui HTTPS. FE01–FE05 tetap menunggu backend masing-masing dan tidak ada perubahan backend dari FE06 UI-first.
+FE07 UI-first slice sudah siap `6/8`: Admin Users, Reports/private export shell, immutable Audit, contextual durable Jobs, serta Migration/Cutover evidence memakai typed server-only development fixture. Admin navigation exact-active; production menampilkan dependency state tanpa menebak endpoint atau memicu command. Code/data/ownership, writer/fence/owner epoch, dan seluruh gate preflight sampai approval dipisahkan; `CLASS_MOVED` serta read-only state eksplisit dan browser tidak memiliki migration control plane. Invitation shell memakai React Hook Form + Zod. D06/D08 tetap diblokir M04/M13–M18 dan real HTTPS/ops journey.
+
+Current next action: review hasil [checkpoint FE07](checkpoints/FE07.md), lalu commit checkpoint bila disetujui. Setelah itu FE08 dapat dibekukan tanpa menganggap FE01–FE07 integrated; seluruh real backend/HTTPS journey masih menunggu dependency masing-masing.
 
 **Brief testing development berikutnya:** setiap logic/state baru wajib membawa unit/component test pada checkpoint yang sama. Setiap FE juga wajib memiliki mandatory journey Playwright; unit test dan mock E2E tidak menggantikan journey HTTPS terhadap backend nyata. FE01-T13 adalah integration journey yang masih diblokir backend, bukan unit test yang belum ditulis.
 
@@ -36,8 +38,8 @@ Current next action: integrasikan FE06 setelah M06/M11/M12 menyediakan private p
 | FE03 | Content/private file | `BLOCKED_BACKEND` (frontend shell ready; D07 partial) | `PARTIAL_QA` — current regression 120 Vitest + 18 Chromium PASS | `NOT_AVAILABLE` | D07 dan T14 menunggu canonical M06–M07 OpenAPI, CSRF, real transfer/scan/access, dan HTTPS journey |
 | FE04 | Submission/gradebook | `BLOCKED_BACKEND` (frontend slice ready; D07 partial) | `PARTIAL_QA` — check + 99 Vitest + 15 Chromium PASS | `NOT_AVAILABLE` | D07/T14 menunggu M08–M09/M13 contract, CSRF, durable receipt, deadline, grade/import/job journey |
 | FE05 | Completion/credential | `BLOCKED_BACKEND` (frontend slice ready; D06 partial) | `PARTIAL_QA` — current regression 120 Vitest + 18 Chromium PASS | `NOT_AVAILABLE` | D06/T14 menunggu M07/M09/M10 contract, CSRF, completion/transcript/credential/public verification journey |
-| FE06 | Attendance/logbook/mentoring | `BLOCKED_BACKEND` (frontend slice ready; D06 partial) | `PARTIAL_QA` — check + 133 Vitest + 20 Chromium PASS | `NOT_AVAILABLE` | D06/T14 menunggu M06/M11/M12 private proof dan real HTTPS journey |
-| FE07 | Admin/reporting/jobs/cutover | `NOT_STARTED` | `NOT_RUN` | `NOT_AVAILABLE` | Menunggu M13–M18 read models/contracts |
+| FE06 | Attendance/logbook/mentoring | `BLOCKED_BACKEND` (frontend slice ready; D06 partial) | `PARTIAL_QA` — check + 134 Vitest + 20 Chromium PASS | `NOT_AVAILABLE` | D06/T14 menunggu M06/M11/M12 private proof dan real HTTPS journey |
+| FE07 | Admin/reporting/jobs/cutover | `BLOCKED_BACKEND` (frontend slice ready; D06 partial) | `PARTIAL_QA` — check + 148 Vitest + 24 Chromium PASS | `NOT_AVAILABLE` | D06/T14 menunggu M04/M13–M18 contract, real private export/job/audit/migration evidence, dan HTTPS/ops journey |
 | FE08 | Public UI/polish/release cleanup | `NOT_STARTED` | `NOT_RUN` | `BLOCKED_BY_PRIOR_FE` | Menunggu seluruh selected slice |
 
 Status `PARTIAL_LOCAL` berarti backend mempunyai slice lab yang diuji secara lokal; status tersebut bukan browser integration atau deployment readiness.
@@ -69,7 +71,7 @@ Jumlah deliverable hanya dinaikkan setelah evidence QA dicatat pada checkpoint t
 | FE04 | 8 | 6 | `6/8`; D01–D06 frontend/mock PASS; D07 import/AI partial; D08 real integration blocked |
 | FE05 | 8 | 6 | `6/8`; D01–D05 + D07 frontend/mock PASS; D06 public integration partial; D08 real integration blocked |
 | FE06 | 8 | 6 | `6/8`; D01–D05 + D07 frontend/mock PASS; D06 private integration partial; D08 real integration blocked |
-| FE07 | Belum dibekukan | 0 | `N/A` |
+| FE07 | 8 | 6 | `6/8`; D01–D05 + D07 frontend/mock PASS; D06 operational integration partial; D08 real journey blocked |
 | FE08 | Belum dibekukan | 0 | `N/A` |
 
 Denominator FE01–FE08 dibekukan saat checkpoint masing-masing dibuat. Jangan menggunakan perkiraan persentase effort sebagai completion.
@@ -79,9 +81,10 @@ Denominator FE01–FE08 dibekukan saat checkpoint masing-masing dibuat. Jangan m
 | Dependency | Status | Frontend yang terdampak | Acceptance yang diperlukan |
 |---|---|---|---|
 | Cookie-only session lab | Tersedia lokal | FE01 | E2E melalui same-origin HTTPS proxy |
-| Real identity owner bridge | Belum tersedia | FE01 | One-time callback code, replay/expiry/issuer tests |
+| Real identity owner bridge | Belum tersedia | FE01, FE07 | One-time callback code, replay/expiry/issuer tests |
 | CSRF after refresh/new tab | Contract gap | FE01 dan seluruh mutation | Browser-safe bootstrap/refresh contract |
-| Actor display/profile | Contract gap | FE01 | Typed actor/profile response |
+| Actor display/profile | Contract gap | FE01, FE07 | Typed actor/profile response |
+| Identity/invitation administration | Contract gap | FE07 | Actor-scoped directory/detail, invite purpose/expiry, account state, last-admin guard, version dan receipt |
 | `/me/classes` + capability | Contract gap | FE01–FE02 | Scoped list, roles, capabilities, next actions |
 | Class lifecycle commands | Tersedia sebagian lokal | FE02 | Generated contract + browser contract tests |
 | Class version/conflict response | Partial contract | FE02 | `Class.version` required dan typed `409 current_version` response |
@@ -94,16 +97,16 @@ Denominator FE01–FE08 dibekukan saat checkpoint masing-masing dibuat. Jangan m
 
 ## 6. Evidence ledger
 
-Run FE00 dan partial QA FE01–FE06 telah dicatat; belum ada deployment atau integrasi identity/backend production.
+Run FE00 dan partial QA FE01–FE07 telah dicatat; belum ada deployment atau integrasi identity/backend production.
 
 | Field | Nilai |
 |---|---|
-| Latest FE checkpoint | FE06 `BLOCKED_BACKEND` (`6/8` frontend/mock verified; D06 partial) |
+| Latest FE checkpoint | FE07 `BLOCKED_BACKEND 6/8` (working tree; commit pending) |
 | Latest lint | PASS — `npm run lint` |
 | Latest typecheck | PASS — `npm run typecheck` |
 | Latest build | PASS — `npm run build` |
-| Latest unit/component test | PASS — 133 tests |
-| Latest E2E/contract test | PASS — contract check + 20 Chromium journeys; FE01-T13, FE02-T12, FE03-T14, FE04-T14, FE05-T14, dan FE06-T14 real journey blocked |
+| Latest unit/component test | PASS — 148 tests |
+| Latest E2E/contract test | PASS — contract check + 24 Chromium journeys termasuk axe serious/critical scan; FE01-T13, FE02-T12, FE03-T14, FE04-T14, FE05-T14, FE06-T14, dan FE07-T14 real journey blocked |
 | Latest locked install/assets | PASS — `npm ci`; 4 font/license checksums; `next-intl@4.13.4` |
 | Deployment | `NOT_DEPLOYED` |
 | Migration/cutover | `NOT_EXECUTED`; legacy source dipindahkan ke `legacy/` dan tidak menjadi route v3 |
@@ -239,6 +242,17 @@ Run FE00 dan partial QA FE01–FE06 telah dicatat; belum ada deployment atau int
 | 19:36 | final `npm run check` | PASS — 133/133 Vitest | final FE06 working tree; contract tetap `00b66b2ee0ed…` | Site Admin capability inheritance di-hardening; lint, typecheck, production build, bundle scan, dan seluruh unit/component regression PASS |
 | 19:41–20:00 | Attendance reference UX revision | PASS targeted + visual | FE06 working tree; contract tetap tidak diubah | Teacher calendar/input + monthly recap 1440/375 px; Mentee calendar-only 375 px; typed summary projection, semantic tabs, card fallback, dan empty-day selection bug diperiksa |
 | 20:03–20:04 | final Attendance revision gates | PASS — 133/133 Vitest + 20/20 Chromium | final FE06 revision tree; contract tetap `00b66b2ee0ed…` | assets, lint, typecheck, build, bundle scan, production fail-closed/no-request, serta seluruh frontend regression PASS |
+
+### FE07 partial QA history — 18 September 2026
+
+| Timestamp (WIB) | Command | Result | Source/contract evidence | Artifact/blocker |
+|---|---|---|---|---|
+| 10:38 | targeted FE07 tests | PASS — 21/21 termasuk regression shell | typed admin schema, server-only fixture, Users/Reports/Audit/Migrations components | Capability seam, disabled invitation/export, immutable Audit, separate readiness, dan dependency state PASS |
+| 11:34–11:35 | final `npm run check` | PASS — 147/147 Vitest | final FE07 working tree; contract `00b66b2ee0ed…` | assets, contract, lint, typecheck, production build, dan 11-pattern bundle scan PASS |
+| 11:35–11:36 | final `npm run test:e2e` | PASS — 22/22 Chromium | final FE07 working tree; production port 3100 | Empat route production dependency-only, no guessed business request/mutation, responsive/dark/reduced-motion, dan seluruh regression PASS |
+| 11:29–11:31 | development visual + UI/UX validation | PASS | fixture Site Admin; Users/Reports/Migrations 1440 px, Audit 375 px | Exact-active nav, status text+color, card fallback, no global overflow; screenshot sementara bukan baseline |
+| 11:30 | report mobile-card refinement | PASS targeted + lint/typecheck | FE07 final working tree | Tabel report desktop berubah menjadi card list pada mobile; M04/M13–M18 dan FE07-T14 tetap blocked |
+| 14:09–14:12 | alignment remediation | PASS targeted + visual | FE07 working tree; contract tetap `00b66b2ee0ed…` | D05 typed evidence lengkap, assignable-role projection fail-closed, RHF+Zod pada form domain utama, token contrast diperbaiki, serta axe Chromium ditambahkan |
 
 ## 7. Cara memperbarui status
 

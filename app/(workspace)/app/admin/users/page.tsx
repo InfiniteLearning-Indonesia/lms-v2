@@ -1,2 +1,7 @@
-import { AdminPlaceholder } from "@/features/admin/components/placeholder";
-export default function AdminUsersPage() { return <AdminPlaceholder title="Users" description="Provisioning, invitation, dan administrasi identity." />; }
+import { AdminUsersContent } from "@/features/admin/components/users-content";
+import { getDevelopmentPreview } from "@/lib/dev-preview/server";
+
+export default async function AdminUsersPage() {
+  const preview = await getDevelopmentPreview();
+  return <AdminUsersContent initialData={preview?.adminUsers} />;
+}

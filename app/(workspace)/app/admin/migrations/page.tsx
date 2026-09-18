@@ -1,2 +1,7 @@
-import { AdminPlaceholder } from "@/features/admin/components/placeholder";
-export default function AdminMigrationsPage() { return <AdminPlaceholder title="Migrations" description="Evidence code/data/ownership dan cutover read-only." />; }
+import { AdminMigrationsContent } from "@/features/admin/components/migrations-content";
+import { getDevelopmentPreview } from "@/lib/dev-preview/server";
+
+export default async function AdminMigrationsPage() {
+  const preview = await getDevelopmentPreview();
+  return <AdminMigrationsContent initialData={preview?.adminMigrations} />;
+}

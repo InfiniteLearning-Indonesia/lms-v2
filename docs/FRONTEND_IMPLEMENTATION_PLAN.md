@@ -4,7 +4,7 @@
 **Tanggal:** 9 September 2026  
 **Repository:** `lms-v2`  
 **Branch implementasi:** `fe-v3`  
-**Status:** `PLANNED`  
+**Status:** `IN_PROGRESS` — FE00 selesai; FE01–FE07 mempunyai slice UI-first dan tetap diblokir dependency backend masing-masing
 **Backend target:** `api-lms-v2`, branch `be-v3`
 
 Dokumen ini adalah rencana canonical implementasi frontend LMS v3. Keputusan domain dan keamanan tetap mengikuti [ImplementationPlan.MD](../../ImplementationPlan.MD), sedangkan kesiapan backend aktual mengikuti [dashboard backend](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md). Status pekerjaan frontend dicatat di [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md).
@@ -119,7 +119,7 @@ Tidak boleh ada pemanggilan API bisnis langsung dari page atau visual component.
 - Gunakan TanStack Query untuk remote/server state dan React state untuk state visual lokal.
 - Query key selalu memuat actor scope dan `classId` bila datanya Class-owned.
 - Pergantian Class membatalkan request in-flight serta membersihkan cache data sensitif dari Class sebelumnya.
-- Gunakan React Hook Form + Zod untuk form dan mapping structured `field_errors`.
+- Gunakan React Hook Form + Zod untuk form mutation/domain dan mapping structured `field_errors`. Filter tampilan serta draft editor lokal yang bukan authoritative command boleh memakai React state, tetapi tetap harus mempunyai schema/adapter sebelum dihubungkan ke backend.
 - Authoritative mutation tidak menampilkan sukses secara optimistis. UI menunggu `CommandReceipt` atau status job.
 - Idempotency key dibuat sekali per user intent dan dipakai kembali saat retry request yang hasil commit-nya belum diketahui.
 - Version/ETag selalu dikirim kembali pada edit, publish, role assignment, grade, dan policy mutation.
@@ -176,7 +176,7 @@ Copy error diterjemahkan dari `code`; response backend tidak boleh menjadi raw H
 | FE04 | Submission draft/revision/receipt, grading/rubric/release, import preview/commit, AI jobs |
 | FE05 | Completion evidence/policy, transcript snapshot, credential issue/revoke/verify |
 | FE06 | Meeting/attendance, permission evidence/review, SP case, logbook revision/review, mentor/group history |
-| FE07 | Paginated reports/audit, jobs, migration code/data/ownership status, Class moved/read-only semantics |
+| FE07 | Identity/invitation admin, paginated reports/audit, jobs, migration code/data/ownership status, Class moved/read-only semantics |
 
 Snapshot OpenAPI di repo frontend wajib menyimpan backend commit dan checksum. Generated type harus reproducible. Fixture dan MSW handler divalidasi terhadap snapshot yang sama. Status `MOCK_ONLY` tidak boleh dipromosikan menjadi `INTEGRATED` tanpa contract test ke binary Go yang sebenarnya.
 
@@ -191,7 +191,7 @@ Snapshot OpenAPI di repo frontend wajib menyimpan backend commit dan checksum. G
 | FE04 | Submission dan gradebook | M08–M09 + M13 jobs | Submit→revision→grade→release lulus |
 | FE05 | Completion dan credential | M10 | Completion→transcript→certificate lulus |
 | FE06 | Attendance, izin, SP, logbook, mentoring | M11–M12 | LMS-specific workflows lulus per Class |
-| FE07 | Admin, reporting, jobs, migration/cutover | M13–M18 | Operational/pilot states terlihat dan aman |
+| FE07 | Admin, reporting, jobs, migration/cutover | M04 + M13–M18 | Operational/pilot states terlihat dan aman |
 | FE08 | Landing/status, polish, cleanup, release gate | Semua slice terpilih | Full build tanpa legacy runtime dependency |
 
 ### FE00 — Fondasi
@@ -240,6 +240,8 @@ UI-first scope, capability boundary, contract handoff, mandatory test, dan stop 
 
 Implement user/invitation administration, audit, export/report, async job center, migration evidence dashboard, ownership state, maintenance/read-only window, `CLASS_MOVED`, dan safe retry guidance.
 
+Scope UI-first, baseline flow, contract handoff, capability boundary, mandatory test, hasil implementasi, dan stop condition dicatat pada [checkpoint FE07](checkpoints/FE07.md). Empat route Admin yang sudah ada dipertahankan; job status tampil kontekstual pada Reports/Migrations. Slice UI-first terverifikasi `6/8`, sementara production tetap fail closed dan status `BLOCKED_BACKEND` sampai M04/M13–M18 serta real HTTPS/ops journey tersedia.
+
 ### FE08 — Penyelesaian
 
 Rombak landing/status, selesaikan responsive/accessibility/performance/security headers, jalankan production smoke, hapus komponen dan konfigurasi API legacy dari branch `fe-v3`, lalu buat release evidence.
@@ -280,6 +282,7 @@ Setiap FE wajib menjalankan gate yang relevan:
 - Mutation resilience: double-click, timeout retry, idempotency replay, `409`, `413`, `422`, `429`, job partial/failure, serta backend unavailable.
 - XSS/unsafe URL/embed, private file/MIME/size/scan, dan no-secret-in-log/storage tests.
 - WCAG 2.2 AA automated checks ditambah keyboard dan screen-reader smoke.
+- Gate lokal saat ini memakai axe pada journey Chromium terpilih; perluas screen-reader smoke dan browser matrix pada FE08/release gate, bukan menganggap semantic query saja sebagai bukti penuh WCAG.
 - Responsive checks pada mobile 360 px, tablet, dan desktop.
 
 Journey release wajib:

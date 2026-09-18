@@ -73,7 +73,7 @@ test("Class settings exposes versioned lifecycle UI without sending commands", a
   expect(mutationCount).toBe(0);
 });
 
-test("Class People keeps production reads and identity search as explicit dependencies", async ({ page }) => {
+test("Class People keeps production reads and assignable roles as explicit dependencies", async ({ page }) => {
   await mockAdminSession(page);
   let participantMutationCount = 0;
   page.on("request", (request) => {
@@ -84,10 +84,8 @@ test("Class People keeps production reads and identity search as explicit depend
   await expect(page.getByRole("heading", { level: 1, name: "Orang" })).toBeVisible();
   await expect(page.getByText("Daftar participant menunggu backend")).toBeVisible();
   await expect(page.getByText(/Tidak tersedia self-enrollment/)).toBeVisible();
-  await page.getByRole("button", { name: "Tambah participant" }).click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("Identity search menunggu backend")).toBeVisible();
-  await expect(dialog.getByRole("button", { name: "Tambahkan ke Class" })).toBeDisabled();
-  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "Tambah participant" })).toHaveCount(0);
+  await expect(page.getByText("Pilihan peran menunggu backend")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Tambah massal" })).toBeDisabled();
   expect(participantMutationCount).toBe(0);
 });

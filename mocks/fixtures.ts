@@ -8,6 +8,7 @@ import type { ClassCompletionViewModel } from "@/features/completion/model";
 import type { ClassCredentialViewModel, PublicCredentialVerificationViewModel } from "@/features/credential/model";
 import type { ClassAttendanceViewModel } from "@/features/attendance/model";
 import type { ClassLogbookViewModel } from "@/features/logbook/model";
+import type { AdminAuditViewModel, AdminMigrationsViewModel, AdminReportsViewModel, AdminUserDirectoryViewModel } from "@/features/admin/model";
 
 export const actors = {
   siteAdmin: { id: "actor-admin", display_name: "Site Admin", site_admin: true, account_state: "ACTIVE", site_capabilities: ["site.admin"] },
@@ -811,3 +812,135 @@ export const errorFixtures = {
   rateLimit: { code: "RATE_LIMITED", message: "Terlalu banyak permintaan", retry_after_seconds: 10, status: 429 },
   unavailable: { code: "SERVICE_UNAVAILABLE", message: "Layanan belum tersedia", status: 503 },
 };
+
+export const adminUsers = {
+  updatedAt: "2026-09-18T09:15:00+07:00",
+  users: [
+    {
+      id: "admin-site-01",
+      displayName: "Site Admin",
+      email: "site.admin@example.test",
+      accountState: "ACTIVE",
+      identityState: "VERIFIED",
+      classCount: 4,
+      version: 8,
+      immutableSubjectLabel: "Google subject terverifikasi oleh identity owner",
+      lastSeenAt: "2026-09-18T08:45:00+07:00",
+      history: [
+        { id: "admin-history-1", label: "Identity diverifikasi", occurredAt: "2026-08-21T10:00:00+07:00" },
+        { id: "admin-history-2", label: "Capability situs diperbarui", occurredAt: "2026-09-10T11:15:00+07:00" },
+      ],
+    },
+    {
+      id: "teacher-demo-01",
+      displayName: "Pengajar Demo",
+      email: "pengajar@example.test",
+      accountState: "ACTIVE",
+      identityState: "VERIFIED",
+      classCount: 2,
+      version: 5,
+      immutableSubjectLabel: "Google subject terverifikasi oleh identity owner",
+      lastSeenAt: "2026-09-17T16:20:00+07:00",
+      history: [{ id: "teacher-history-1", label: "Identity diverifikasi", occurredAt: "2026-09-01T08:30:00+07:00" }],
+    },
+    {
+      id: "invite-alya-01",
+      displayName: "Alya Rahman",
+      email: "alya@example.test",
+      accountState: "LOCKED",
+      identityState: "INVITED",
+      classCount: 0,
+      version: 2,
+      history: [{ id: "invite-history-1", label: "Invitation dibuat; delivery menunggu provider", occurredAt: "2026-09-18T09:00:00+07:00" }],
+    },
+    {
+      id: "expired-farhan-01",
+      displayName: "Farhan Aditya",
+      email: "farhan@example.test",
+      accountState: "DISABLED",
+      identityState: "INVITATION_EXPIRED",
+      classCount: 0,
+      version: 3,
+      history: [{ id: "expired-history-1", label: "Invitation kedaluwarsa", occurredAt: "2026-09-16T18:00:00+07:00" }],
+    },
+  ],
+} satisfies AdminUserDirectoryViewModel;
+
+export const adminReports = {
+  updatedAt: "2026-09-18T09:20:00+07:00",
+  reports: [
+    {
+      id: "report-class-access",
+      title: "Akses Class aktif",
+      description: "Projection actor-scoped untuk identity dengan akses Class aktif.",
+      scopeLabel: "Seluruh Class yang diizinkan",
+      freshness: "FRESH",
+      watermark: "18 Sep 2026, 09.15 WIB · v18",
+      columns: [{ key: "class", label: "Class" }, { key: "active", label: "Aktif" }, { key: "pending", label: "Menunggu" }],
+      rows: [
+        { class: "Product Engineering 2026", active: 28, pending: 2 },
+        { class: "Class Draft", active: 2, pending: 1 },
+        { class: "Class Closed", active: 21, pending: 0 },
+      ],
+    },
+    {
+      id: "report-account-state",
+      title: "Status akun global",
+      description: "Ringkasan account state tanpa mengekspor provider identity mentah.",
+      scopeLabel: "Situs",
+      freshness: "STALE",
+      watermark: "17 Sep 2026, 23.00 WIB · v12",
+      columns: [{ key: "state", label: "Status" }, { key: "total", label: "Jumlah" }],
+      rows: [{ state: "Aktif", total: 51 }, { state: "Dikunci", total: 3 }, { state: "Dinonaktifkan", total: 1 }],
+    },
+  ],
+  jobs: [
+    { id: "job-export-18", kind: "REPORT_EXPORT", label: "Export akses Class", state: "running", progress: 64, attempts: 1, updatedAt: "2026-09-18T09:19:00+07:00", retryable: false, receiptId: "rcpt-export-18" },
+    { id: "job-export-17", kind: "REPORT_EXPORT", label: "Export status akun", state: "partial", attempts: 2, updatedAt: "2026-09-17T23:08:00+07:00", retryable: true, receiptId: "rcpt-export-17", detail: "Sebagian baris ditahan oleh policy redaction." },
+    { id: "job-export-16", kind: "REPORT_EXPORT", label: "Export akses Class sebelumnya", state: "succeeded", progress: 100, attempts: 1, updatedAt: "2026-09-16T13:30:00+07:00", retryable: false, receiptId: "rcpt-export-16" },
+  ],
+} satisfies AdminReportsViewModel;
+
+export const adminAudit = {
+  updatedAt: "2026-09-18T09:25:00+07:00",
+  nextCursor: "cursor-audit-next-page",
+  events: [
+    { id: "audit-01", occurredAt: "2026-09-18T09:19:00+07:00", actorLabel: "Site Admin", action: "REPORT_EXPORT_REQUESTED", resource: "report/report-class-access", outcome: "SUCCESS", requestId: "req-export-18", correlationId: "corr-export-18", summary: "Permintaan export private diterima sebagai durable job.", redactedFields: 1 },
+    { id: "audit-02", occurredAt: "2026-09-18T08:40:00+07:00", actorLabel: "Pengajar Demo", action: "ACCOUNT_STATE_CHANGED", resource: "identity/admin-site-01", outcome: "DENIED", requestId: "req-denied-11", summary: "Capability situs tidak tersedia untuk actor.", redactedFields: 2 },
+    { id: "audit-03", occurredAt: "2026-09-17T22:15:00+07:00", actorLabel: "Migration operator", action: "RECONCILIATION_CHECKED", resource: "migration/class-batch-01", outcome: "FAILED", requestId: "req-reconcile-07", correlationId: "corr-migration-07", summary: "Evidence mismatch ditemukan; tidak ada ownership switch.", redactedFields: 3 },
+  ],
+} satisfies AdminAuditViewModel;
+
+export const adminMigrations = {
+  updatedAt: "2026-09-18T09:30:00+07:00",
+  maintenance: { state: "READ_ONLY", detail: "Mutation operasional dikunci selama evidence reconciliation ditinjau." },
+  movedClass: { className: "Legacy Web Batch 08", targetLabel: "Workspace v3 / Class 08", detail: "Tab lama tidak authoritative. Buka target canonical dan tinjau ulang perubahan lokal sebelum melanjutkan." },
+  readiness: [
+    { dimension: "CODE", state: "VERIFIED", summary: "Artifact checksum cocok dengan baseline yang direview.", evidenceLabel: "build-evidence-2026-09-18" },
+    { dimension: "DATA", state: "BLOCKED", summary: "Dua reconciliation mismatch belum diselesaikan.", evidenceLabel: "reconciliation-run-07" },
+    { dimension: "OWNERSHIP", state: "EVIDENCE_PENDING", summary: "Fence dan owner epoch belum mendapat approval final.", evidenceLabel: "ownership-approval-pending" },
+  ],
+  ownership: { writer: "LEGACY", fence: "READ_ONLY", ownerEpochLabel: "epoch-legacy-18" },
+  evidence: {
+    preflight: { state: "VERIFIED", summary: "Source inventory dan policy preflight telah diverifikasi.", evidenceLabel: "preflight-run-18" },
+    backup: { state: "VERIFIED", summary: "Backup rehearsal tercatat; lokasi rahasia tidak diekspos ke browser.", evidenceLabel: "backup-evidence-18" },
+    mapping: { state: "EVIDENCE_PENDING", summary: "Identity mapping selesai sebagian dan masih menunggu dua resolusi.", evidenceLabel: "mapping-run-18" },
+    reconciliation: { state: "BLOCKED", summary: "Dua mismatch attendance masih memblokir data readiness.", evidenceLabel: "reconciliation-run-07" },
+    quarantine: { state: "BLOCKED", summary: "Tiga file active content tetap dikarantina.", evidenceLabel: "quarantine-ledger-08" },
+    rehearsal: { state: "VERIFIED", summary: "Rehearsal terakhir memiliki evidence terpisah dan tidak menyatakan rollout siap.", evidenceLabel: "rehearsal-2026-09-17" },
+    recovery: { state: "EVIDENCE_PENDING", summary: "Restore timing masih menunggu validasi eksternal.", evidenceLabel: "recovery-review-pending" },
+    fence: { state: "VERIFIED", summary: "Read-only fence aktif untuk writer legacy selama review.", evidenceLabel: "fence-read-only-18" },
+    pilot: { state: "UNKNOWN", summary: "Pilot belum dijalankan dan tidak dapat disimpulkan dari fixture.", evidenceLabel: "pilot-not-run" },
+    wave: { state: "UNKNOWN", summary: "Wave rollout belum dijadwalkan.", evidenceLabel: "wave-not-scheduled" },
+    approval: { state: "EVIDENCE_PENDING", summary: "Persetujuan ownership eksternal belum diterima.", evidenceLabel: "ownership-approval-pending" },
+  },
+  units: [
+    { id: "migration-unit-01", label: "Product Engineering · Batch 01", stage: "RECONCILIATION", evidence: "Mapping identity selesai; attendance mismatch masih ditinjau.", unresolvedCount: 2 },
+    { id: "migration-unit-02", label: "Legacy Web · Batch 08", stage: "QUARANTINED", evidence: "Tiga file tidak lolos policy active content.", unresolvedCount: 3 },
+    { id: "migration-unit-03", label: "UI/UX · Batch 04", stage: "APPROVAL_PENDING", evidence: "Rehearsal evidence tersedia; approval ownership belum ada.", unresolvedCount: 1 },
+  ],
+  jobs: [
+    { id: "job-migration-07", kind: "MIGRATION_EVIDENCE", label: "Reconciliation Batch 01", state: "failed", attempts: 2, updatedAt: "2026-09-17T22:15:00+07:00", retryable: false, receiptId: "rcpt-migration-07", detail: "Mismatch evidence membutuhkan review operator." },
+    { id: "job-migration-08", kind: "MIGRATION_EVIDENCE", label: "File disposition Batch 08", state: "queued", attempts: 0, updatedAt: "2026-09-18T09:28:00+07:00", retryable: false, receiptId: "rcpt-migration-08" },
+  ],
+} satisfies AdminMigrationsViewModel;

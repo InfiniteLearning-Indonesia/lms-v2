@@ -2,7 +2,7 @@
 
 import { Archive, CheckCircle2, RotateCcw, Save, Send, XCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { PageHeader } from "@/components/ui-v3/page-header";
 import {
   AlertDialog,
@@ -21,10 +21,8 @@ import { Input } from "@/components/ui/input";
 import { useClassContext } from "@/features/workspace/context";
 import type { ClassLifecycleAction } from "../model";
 import { lifecycleActionsFor } from "../model";
-import { classDetailsFormSchema, type ClassDetailsFormValues } from "../schemas";
+import { type ClassDetailsFormValues, validateClassDetailsField } from "../schemas";
 import { ClassStateBadge, FieldMessage, IntegrationNotice } from "./shared";
-
-type ClassField = keyof ClassDetailsFormValues;
 
 const actionIcons: Record<ClassLifecycleAction, typeof Send> = {
   publish: Send,
@@ -37,28 +35,16 @@ export function ClassSettingsContent() {
   const t = useTranslations("classSettings");
   const commonT = useTranslations("common");
   const { activeClass } = useClassContext();
-  const [values, setValues] = useState<ClassDetailsFormValues>(() => ({
+  const { register, handleSubmit, formState: { errors } } = useForm<ClassDetailsFormValues>({ defaultValues: {
     name: activeClass?.name ?? "",
     programLabel: activeClass?.program_label ?? "",
     cohortLabel: activeClass?.cohort_label ?? "",
-  }));
-  const [errors, setErrors] = useState<Partial<Record<ClassField, string>>>({});
+  }, mode: "onBlur" });
 
   if (!activeClass) return null;
 
   const readOnly = activeClass.state === "ARCHIVED";
   const lifecycleActions = lifecycleActionsFor(activeClass.state);
-
-  function updateField(field: ClassField, value: string) {
-    setValues((current) => ({ ...current, [field]: value }));
-    if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
-  }
-
-  function validateField(field: ClassField) {
-    const result = classDetailsFormSchema.safeParse(values);
-    const issue = result.success ? undefined : result.error.issues.find((item) => item.path[0] === field);
-    setErrors((current) => ({ ...current, [field]: issue?.message }));
-  }
 
   return (
     <div className="space-y-6">
@@ -70,22 +56,22 @@ export function ClassSettingsContent() {
             <h2 id="class-metadata-title" className="font-heading text-lg font-semibold">{t("metadataTitle")}</h2>
             <p className="mt-1 text-sm text-muted-foreground">{t("metadataDescription")}</p>
           </div>
-          <form onSubmit={(event) => event.preventDefault()} className="mt-6 grid gap-5" noValidate>
+          <form onSubmit={handleSubmit(() => undefined)} className="mt-6 grid gap-5" noValidate>
             <div className="grid gap-2">
               <label htmlFor="class-settings-name" className="text-sm font-medium">{t("nameLabel")}</label>
-              <Input id="class-settings-name" className="h-11" value={values.name} disabled={readOnly} onChange={(event) => updateField("name", event.target.value)} onBlur={() => validateField("name")} aria-invalid={Boolean(errors.name)} aria-describedby="class-settings-name-help" />
-              <FieldMessage id="class-settings-name-help" error={errors.name} help={t("fieldHelp")} />
+              <Input id="class-settings-name" className="h-11" disabled={readOnly} {...register("name", { validate: (value) => validateClassDetailsField("name", value) })} aria-invalid={Boolean(errors.name)} aria-describedby="class-settings-name-help" />
+              <FieldMessage id="class-settings-name-help" error={errors.name?.message} help={t("fieldHelp")} />
             </div>
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="grid content-start gap-2">
                 <label htmlFor="class-settings-program" className="text-sm font-medium">{t("programLabel")}</label>
-                <Input id="class-settings-program" className="h-11" value={values.programLabel} disabled={readOnly} placeholder={t("optionalPlaceholder")} onChange={(event) => updateField("programLabel", event.target.value)} onBlur={() => validateField("programLabel")} aria-invalid={Boolean(errors.programLabel)} aria-describedby="class-settings-program-help" />
-                <FieldMessage id="class-settings-program-help" error={errors.programLabel} help={t("fieldHelp")} />
+                <Input id="class-settings-program" className="h-11" disabled={readOnly} placeholder={t("optionalPlaceholder")} {...register("programLabel", { validate: (value) => validateClassDetailsField("programLabel", value) })} aria-invalid={Boolean(errors.programLabel)} aria-describedby="class-settings-program-help" />
+                <FieldMessage id="class-settings-program-help" error={errors.programLabel?.message} help={t("fieldHelp")} />
               </div>
               <div className="grid content-start gap-2">
                 <label htmlFor="class-settings-cohort" className="text-sm font-medium">{t("cohortLabel")}</label>
-                <Input id="class-settings-cohort" className="h-11" value={values.cohortLabel} disabled={readOnly} placeholder={t("optionalPlaceholder")} onChange={(event) => updateField("cohortLabel", event.target.value)} onBlur={() => validateField("cohortLabel")} aria-invalid={Boolean(errors.cohortLabel)} aria-describedby="class-settings-cohort-help" />
-                <FieldMessage id="class-settings-cohort-help" error={errors.cohortLabel} help={t("fieldHelp")} />
+                <Input id="class-settings-cohort" className="h-11" disabled={readOnly} placeholder={t("optionalPlaceholder")} {...register("cohortLabel", { validate: (value) => validateClassDetailsField("cohortLabel", value) })} aria-invalid={Boolean(errors.cohortLabel)} aria-describedby="class-settings-cohort-help" />
+                <FieldMessage id="class-settings-cohort-help" error={errors.cohortLabel?.message} help={t("fieldHelp")} />
               </div>
             </div>
             <IntegrationNotice id="class-settings-integration" title={t("commandPendingTitle")} description={t("commandPendingBody")} />

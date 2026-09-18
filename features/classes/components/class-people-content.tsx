@@ -3,6 +3,7 @@
 import { History, Search, UserPlus, Upload, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { PageHeader } from "@/components/ui-v3/page-header";
 import { EmptyState } from "@/components/ui-v3/states";
 import {
@@ -29,21 +30,22 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useClassContext } from "@/features/workspace/context";
-import { useActorSession } from "@/lib/auth/provider";
-import type { ClassParticipantViewModel, IdentityCandidateViewModel, ParticipantRole, ParticipationAction, ParticipationState } from "../model";
+import type { ClassParticipantViewModel, IdentityCandidateViewModel, ParticipantAssignmentPolicyViewModel, ParticipantRole, ParticipationAction, ParticipationState } from "../model";
 import { assignableParticipantRoles, canManageParticipants, formatParticipantDate, matchesParticipant, participationActionsFor } from "../model";
+import { type ParticipantFormValues, validateParticipantField } from "../schemas";
 import { IntegrationNotice, ParticipantRoleBadge, ParticipationStateBadge } from "./shared";
 
 export function ClassPeopleContent({
   initialParticipants,
   identityCandidates,
+  assignmentPolicy,
 }: {
   initialParticipants?: ClassParticipantViewModel[];
   identityCandidates?: IdentityCandidateViewModel[];
+  assignmentPolicy?: ParticipantAssignmentPolicyViewModel;
 }) {
   const t = useTranslations("classPeople");
   const commonT = useTranslations("common");
-  const { actor } = useActorSession();
   const { activeClass } = useClassContext();
   const [query, setQuery] = useState("");
   const [role, setRole] = useState<ParticipantRole | "ALL">("ALL");
@@ -56,7 +58,7 @@ export function ClassPeopleContent({
 
   if (!activeClass) return null;
   const canManage = canManageParticipants(activeClass);
-  const roles = assignableParticipantRoles(actor, activeClass);
+  const roles = assignableParticipantRoles(activeClass, assignmentPolicy);
   const filtersActive = Boolean(query || role !== "ALL" || state !== "ALL");
 
   const actions = canManage ? (
@@ -65,7 +67,7 @@ export function ClassPeopleContent({
         <Upload className="size-4" aria-hidden="true" />
         {t("bulkPreview")}
       </Button>
-      <AddParticipantDialog candidates={identityCandidates} roles={roles} />
+      {roles.length > 0 ? <AddParticipantDialog candidates={identityCandidates} roles={roles} /> : null}
     </>
   ) : undefined;
 
@@ -77,6 +79,7 @@ export function ClassPeopleContent({
         <p className="rounded-xl border bg-muted/30 p-4 text-sm leading-relaxed text-muted-foreground">{t("selfEnrollmentNote")}</p>
         {canManage ? <p id="class-people-bulk-note" className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm leading-relaxed text-muted-foreground"><span className="font-semibold text-foreground">{t("bulkPendingTitle")}.</span> {t("bulkPendingBody")}</p> : null}
       </div>
+      {canManage && roles.length === 0 ? <IntegrationNotice title={t("assignmentPolicyPendingTitle")} description={t("assignmentPolicyPendingBody")} /> : null}
 
       {initialParticipants === undefined ? (
         <section className="space-y-4" aria-label={t("directoryPendingTitle")}>
@@ -158,8 +161,12 @@ function AddParticipantDialog({ candidates, roles }: { candidates?: IdentityCand
   const t = useTranslations("classPeople");
   const commonT = useTranslations("common");
   const [query, setQuery] = useState("");
-  const [selectedIdentity, setSelectedIdentity] = useState<string>();
-  const [selectedRole, setSelectedRole] = useState<ParticipantRole>(roles[0] ?? "student");
+  const { register, setValue, handleSubmit, control, formState: { errors } } = useForm<ParticipantFormValues>({
+    defaultValues: { userId: "", role: roles[0] ?? "student" },
+    mode: "onBlur",
+  });
+  const selectedIdentity = useWatch({ control, name: "userId" });
+  const selectedRole = useWatch({ control, name: "role" });
   const filteredCandidates = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("id-ID");
     if (!normalized) return candidates ?? [];
@@ -175,7 +182,7 @@ function AddParticipantDialog({ candidates, roles }: { candidates?: IdentityCand
           <DialogDescription>{t("addDescription")}</DialogDescription>
         </DialogHeader>
         <DialogClose render={<Button variant="ghost" size="icon" className="absolute right-2 top-2 size-11" aria-label={t("closeAdd")} />}><X className="size-4" aria-hidden="true" /></DialogClose>
-        <form onSubmit={(event) => event.preventDefault()} className="grid gap-5">
+        <form onSubmit={handleSubmit(() => undefined)} className="grid gap-5" noValidate>
           {candidates === undefined ? (
             <IntegrationNotice title={t("identityPendingTitle")} description={t("identityPendingBody")} />
           ) : (
@@ -188,12 +195,14 @@ function AddParticipantDialog({ candidates, roles }: { candidates?: IdentityCand
               <p aria-live="polite" className="text-xs text-muted-foreground">{t("identityResults", { count: filteredCandidates.length })}</p>
               <div className="grid max-h-52 gap-2 overflow-y-auto rounded-xl border p-2">
                 {filteredCandidates.length > 0 ? filteredCandidates.map((candidate) => (
-                  <button key={candidate.userId} type="button" onClick={() => setSelectedIdentity(candidate.userId)} aria-pressed={selectedIdentity === candidate.userId} aria-label={t("selectIdentity", { name: candidate.displayName })} className="min-h-14 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+                  <button key={candidate.userId} type="button" onClick={() => setValue("userId", candidate.userId, { shouldValidate: true })} aria-pressed={selectedIdentity === candidate.userId} aria-label={t("selectIdentity", { name: candidate.displayName })} className="min-h-14 rounded-lg border px-3 py-2 text-left transition-colors hover:bg-muted aria-pressed:border-primary aria-pressed:bg-primary/10 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
                     <span className="block text-sm font-semibold">{candidate.displayName}</span>
                     <span className="block text-xs text-muted-foreground">{candidate.email}</span>
                   </button>
                 )) : <p className="p-4 text-center text-sm text-muted-foreground">{t("noIdentityResults")}</p>}
               </div>
+              <input type="hidden" {...register("userId", { validate: (value) => validateParticipantField("userId", value) })} />
+              {errors.userId ? <p role="alert" className="text-xs text-destructive">{errors.userId.message}</p> : null}
             </fieldset>
           )}
           <fieldset className="grid gap-3">
@@ -201,7 +210,7 @@ function AddParticipantDialog({ candidates, roles }: { candidates?: IdentityCand
             <div className="grid gap-2 sm:grid-cols-2">
               {roles.map((role) => (
                 <label key={role} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg border px-3 has-checked:border-primary has-checked:bg-primary/10">
-                  <input type="radio" name="participant-role" value={role} checked={selectedRole === role} onChange={() => setSelectedRole(role)} className="size-4 accent-primary" />
+                  <input type="radio" value={role} checked={selectedRole === role} {...register("role", { validate: (value) => validateParticipantField("role", value) })} className="size-4 accent-primary" />
                   <span className="text-sm font-medium">{t(`roleLabels.${role}`)}</span>
                 </label>
               ))}

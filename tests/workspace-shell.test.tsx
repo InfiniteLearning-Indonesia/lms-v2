@@ -112,7 +112,7 @@ describe("workspace Class discovery", () => {
     renderWorkspace("/app/admin/classes", Object.values(classes), actors.siteAdmin);
 
     expect(screen.getByRole("link", { name: "Kelola Class" })).toHaveAttribute("aria-current", "page");
-    expect(screen.getAllByText("Administrasi Class").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Administrasi Situs").length).toBeGreaterThan(0);
     expect(screen.queryByRole("searchbox", { name: "Cari di Kelas Saya" })).not.toBeInTheDocument();
   });
 });

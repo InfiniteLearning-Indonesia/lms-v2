@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { ClassParticipantViewModel, IdentityCandidateViewModel } from "@/features/classes/model";
+import type { ClassParticipantViewModel, IdentityCandidateViewModel, ParticipantAssignmentPolicyViewModel } from "@/features/classes/model";
 import type { ActorContext, ClassAccessSummary } from "@/lib/api/types";
 import type { ClassOverviewViewModel } from "@/features/workspace/overview";
 import type { ClassLearningViewModel } from "@/features/learning/model";
@@ -10,6 +10,8 @@ import type { ClassCompletionViewModel } from "@/features/completion/model";
 import type { ClassCredentialViewModel, PublicCredentialVerificationViewModel } from "@/features/credential/model";
 import type { ClassAttendanceViewModel } from "@/features/attendance/model";
 import type { ClassLogbookViewModel } from "@/features/logbook/model";
+import type { AdminAuditViewModel, AdminMigrationsViewModel, AdminReportsViewModel, AdminUserDirectoryViewModel } from "@/features/admin/model";
+import { parseAdminPreviewFixtures } from "@/features/admin/model";
 
 export interface DevelopmentPreview {
   actor: ActorContext;
@@ -25,6 +27,11 @@ export interface DevelopmentPreview {
   adminClasses?: ClassAccessSummary[];
   classParticipants: Record<string, ClassParticipantViewModel[]>;
   identityCandidates?: IdentityCandidateViewModel[];
+  participantAssignmentPolicies?: Record<string, ParticipantAssignmentPolicyViewModel>;
+  adminUsers?: AdminUserDirectoryViewModel;
+  adminReports?: AdminReportsViewModel;
+  adminAudit?: AdminAuditViewModel;
+  adminMigrations?: AdminMigrationsViewModel;
 }
 
 const actorNames = ["student", "teacher", "teacherStudent", "facilitator", "siteAdmin"] as const;
@@ -38,8 +45,11 @@ export async function getDevelopmentPreview(): Promise<DevelopmentPreview | unde
     throw new Error(`LMS_DEV_PREVIEW_ACTOR harus salah satu dari: ${actorNames.join(", ")}`);
   }
 
-  const { actors, classes, classOverviews, classLearning, classSubmissions, classGradebooks, classCompletions, classCredentials, classAttendances, classLogbooks, classParticipants, identityCandidates } = await import("@/mocks/fixtures");
+  const { actors, classes, classOverviews, classLearning, classSubmissions, classGradebooks, classCompletions, classCredentials, classAttendances, classLogbooks, classParticipants, identityCandidates, adminUsers, adminReports, adminAudit, adminMigrations } = await import("@/mocks/fixtures");
   const scopedClasses = classesForActor(requestedActor, classes);
+  const adminPreview = requestedActor === "siteAdmin"
+    ? parseAdminPreviewFixtures({ users: adminUsers, reports: adminReports, audit: adminAudit, migrations: adminMigrations })
+    : undefined;
   return {
     actor: actors[requestedActor],
     classes: scopedClasses,
@@ -54,6 +64,11 @@ export async function getDevelopmentPreview(): Promise<DevelopmentPreview | unde
     adminClasses: requestedActor === "siteAdmin" ? scopedClasses : undefined,
     classParticipants: participantsForClasses(scopedClasses, classParticipants),
     identityCandidates: canPreviewIdentityDirectory(requestedActor) ? identityCandidates : undefined,
+    participantAssignmentPolicies: participantAssignmentPoliciesForActor(requestedActor, scopedClasses),
+    adminUsers: adminPreview?.users,
+    adminReports: adminPreview?.reports,
+    adminAudit: adminPreview?.audit,
+    adminMigrations: adminPreview?.migrations,
   };
 }
 
@@ -149,6 +164,19 @@ function learningForClasses(
 
 function canPreviewIdentityDirectory(actorName: PreviewActorName): boolean {
   return actorName === "siteAdmin" || actorName === "teacher" || actorName === "teacherStudent";
+}
+
+function participantAssignmentPoliciesForActor(
+  actorName: PreviewActorName,
+  scopedClasses: ClassAccessSummary[],
+): Record<string, ParticipantAssignmentPolicyViewModel> | undefined {
+  const assignableRoles = actorName === "siteAdmin"
+    ? (["teacher", "student"] as const)
+    : actorName === "teacher" || actorName === "teacherStudent"
+      ? (["student"] as const)
+      : [];
+  if (assignableRoles.length === 0) return undefined;
+  return Object.fromEntries(scopedClasses.map((item) => [item.id, { assignableRoles: [...assignableRoles] }]));
 }
 
 function participantsForClasses(

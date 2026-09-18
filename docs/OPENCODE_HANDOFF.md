@@ -1,22 +1,22 @@
 # Handoff Frontend LMS v3 untuk OpenCode
 
-**Diperbarui:** 17 September 2026  
+**Diperbarui:** 18 September 2026
 **Repository:** `lms-v2`  
 **Branch:** `fe-v3`  
-**HEAD:** `f04a94d` — `checkpoint(fe06): add attendance and logbook UI shell`  
-**Upstream saat handoff:** `origin/fe-v3` berada pada commit yang sama  
-**Worktree saat dokumen dibuat:** bersih sebelum penambahan dokumen ini
+**HEAD:** `42b97a9` — `Create OPENCODE_HANDOFF.md`
+**Upstream saat handoff:** `origin/fe-v3` berada pada commit yang sama sebelum implementasi FE07
+**Worktree saat dokumen diperbarui:** FE07 UI-first `6/8` siap direview; commit pending
 
 Dokumen ini adalah ringkasan operasional agar pekerjaan dapat dilanjutkan di OpenCode tanpa mengandalkan riwayat chat. Dokumen canonical tetap:
 
 - [Frontend Implementation Plan](FRONTEND_IMPLEMENTATION_PLAN.md)
 - [Implementation Status](IMPLEMENTATION_STATUS.md)
-- [Checkpoint FE01–FE06](checkpoints/)
+- [Checkpoint FE01–FE07](checkpoints/)
 - [Backend status](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md)
 
 ## 1. Posisi saat ini
 
-FE00–FE06 telah memiliki implementasi frontend/UI-first dan commit checkpoint. Hanya FE00 yang berstatus `COMPLETED`; FE01–FE06 tetap `BLOCKED_BACKEND` karena mandatory journey HTTPS terhadap backend/identity owner nyata belum dapat dijalankan.
+FE00–FE06 telah memiliki commit checkpoint. FE07 UI-first sudah diimplementasikan pada working tree. Hanya FE00 yang berstatus `COMPLETED`; FE01–FE07 tetap `BLOCKED_BACKEND` karena mandatory journey HTTPS terhadap backend/identity owner/ops nyata belum dapat dijalankan.
 
 | Checkpoint | Fokus | Posisi | Commit |
 |---|---|---|---|
@@ -27,10 +27,10 @@ FE00–FE06 telah memiliki implementasi frontend/UI-first dan commit checkpoint.
 | FE04 | Submission dan gradebook | `BLOCKED_BACKEND 6/8` | `64d74c6` |
 | FE05 | Completion dan credential | `BLOCKED_BACKEND 6/8` | `391eb35` |
 | FE06 | Attendance, izin/SP, logbook, mentoring | `BLOCKED_BACKEND 6/8` | `f04a94d` |
-| FE07 | Admin, reporting, jobs, migration/cutover | `NOT_STARTED` | — |
+| FE07 | Admin, reporting, jobs, migration/cutover | `BLOCKED_BACKEND 6/8`, commit pending | working tree |
 | FE08 | Public UI, polish, cleanup, release gate | `NOT_STARTED` | — |
 
-Angka terbaru setelah FE06 adalah **134 Vitest** dan **20 Playwright Chromium**. Beberapa angka historis di `IMPLEMENTATION_STATUS.md` menunjukkan jumlah test pada saat checkpoint sebelumnya dan tidak boleh dibaca sebagai regresi terkini.
+Angka terbaru setelah alignment remediation FE07 adalah **148 Vitest** dan **24 Playwright Chromium**. Beberapa angka historis di `IMPLEMENTATION_STATUS.md` menunjukkan jumlah test pada saat checkpoint sebelumnya dan tidak boleh dibaca sebagai regresi terkini.
 
 ## 2. Keputusan product dan kontrak yang sudah dikunci
 
@@ -65,8 +65,9 @@ Angka terbaru setelah FE06 adalah **134 Vitest** dan **20 Playwright Chromium**.
 ### FE02 — Class dan Participation
 
 - Site Admin preview mempunyai direktori Class, search/filter, create shell, settings metadata/version/lifecycle, serta action Edit/Lihat dan Buka.
-- Participant directory, identity picker, role scope, lifecycle participation, history, dan bulk dependency state.
-- Admin dapat memilih Teacher/Student; Teacher hanya dapat menambahkan Student bila capability mengizinkan.
+- Participant directory, identity picker, assignable-role policy actor-scoped, lifecycle participation, history, dan bulk dependency state.
+- Admin dapat memilih Teacher/Student dan Teacher hanya Student berdasarkan projection eksplisit; UI tidak menurunkannya dari `site_admin` atau contextual role label.
+- Form Class dan participant memakai React Hook Form + Zod; production menyembunyikan Add Participant bila assignable-role projection belum tersedia.
 - Student tidak dapat self-enroll.
 - Version/conflict semantics terlihat di UI, tetapi final command masih fail closed.
 
@@ -114,6 +115,14 @@ Angka terbaru setelah FE06 adalah **134 Vitest** dan **20 Playwright Chromium**.
 - Review izin dan SP hanya muncul pada Teacher surface; izin pending tidak otomatis approved dan SP tetap Class-local.
 - Logbook mendukung periode fleksibel, entry/revision/feedback, Teacher review inbox, serta read-only mentor/group history.
 - Detail keputusan ada di [FE06 checkpoint](checkpoints/FE06.md).
+
+### FE07 — Admin, Reporting, Jobs, dan Cutover
+
+- Admin Users, Reports/private export shell, immutable Audit, contextual durable Jobs, dan Migrations tetap production fail closed.
+- Invitation shell memakai React Hook Form + Zod; identity-owner, last-admin, version, idempotency, dan receipt tetap backend authority.
+- Migrations memisahkan code/data/ownership readiness, writer/fence/owner epoch, serta typed preflight, backup, mapping, reconciliation, quarantine, rehearsal, recovery, pilot, wave, dan approval evidence.
+- `CLASS_MOVED`, maintenance/read-only, unknown/pending/blocked state, dan no-browser-control-plane guidance eksplisit.
+- Automated axe scan menjaga serious/critical WCAG findings tetap nol pada Login dan Admin dependency surface; manual screen-reader/cross-browser matrix tetap release gate FE08.
 
 ## 4. Baseline flow aplikasi
 
@@ -221,7 +230,7 @@ Login/session dengan site capability
 
 User identity bersifat global; participant adalah assignment identity ke Class, bukan pembuatan akun baru di dalam Class. Final create/edit/participant/lifecycle commands tetap menunggu read model, CSRF, capability, version, dan receipt backend.
 
-Area Admin lain—Users/Invitation, Reports, Audit, Jobs, Migration/Cutover—adalah scope FE07 dan belum boleh dianggap sudah dibangun hanya karena route placeholder tersedia.
+FE07 menambahkan Users/Invitation shell, Reports/private export shell, immutable Audit, contextual Jobs, serta Migration/Cutover evidence. Seluruhnya memakai fixture server-only pada preview dan production dependency state; tidak boleh dianggap terintegrasi sebelum M04/M13–M18 dan journey ops nyata tersedia.
 
 ### 4.5 Baseline read dan mutation
 
@@ -245,7 +254,7 @@ Frontend tidak boleh mengubah local draft menjadi authoritative success sebelum 
 |---|---|---|
 | Identity | Actor dipilih melalui server-only `LMS_DEV_PREVIEW_ACTOR` | Login disabled/dependency state |
 | Class list/context | Typed fixture actor-scoped | Read/dependency state; tidak mengarang `/me/classes` |
-| Domain data | Typed fixture FE01–FE06 | Explicit dependency/empty state |
+| Domain data | Typed fixture FE01–FE07 | Explicit dependency/empty state |
 | Local form interaction | Boleh untuk mengevaluasi UX | Boleh bila tidak mengklaim tersimpan |
 | Final mutation | Disabled, tidak mengirim request | Disabled, tidak mengirim request |
 | Success/receipt | Tidak dipalsukan | Hanya dari backend authoritative |
@@ -303,12 +312,16 @@ Route penting:
 - Teacher Attendance: `/app/classes/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/attendance`
 - Teacher Logbook: `/app/classes/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/logbook`
 - Site Admin Classes: `/app/admin/classes`
+- Site Admin Users: `/app/admin/users`
+- Site Admin Reports: `/app/admin/reports`
+- Site Admin Audit: `/app/admin/audit`
+- Site Admin Migrations: `/app/admin/migrations`
 
 Preview tidak membuat session, tidak mengaktifkan mutation, dan tidak mengubah kontrak production.
 
 ## 7. Quality gate terakhir
 
-Pada source commit `f04a94d`:
+Pada FE07 working tree di atas baseline `42b97a9`:
 
 ```text
 npm run check     PASS
@@ -316,14 +329,14 @@ npm run check     PASS
 - contract:check  PASS, checksum 00b66b2ee0ed…
 - lint            PASS
 - typecheck       PASS
-- Vitest          134/134 PASS
+- Vitest          148/148 PASS
 - production build PASS
 - bundle scan     PASS, 11 forbidden patterns absent
 
-npm run test:e2e  20/20 Chromium PASS
+npm run test:e2e  24/24 Chromium PASS, termasuk axe serious/critical scan
 ```
 
-FE06 juga telah diperiksa visual pada desktop 1440 px dan mobile 375 px tanpa global horizontal overflow. Attendance modal diperiksa dengan keyboard/focus semantics dan reduced-motion-compatible dialog primitive.
+FE07 diperiksa visual memakai fixture Site Admin pada desktop 1440 px dan mobile 375 px tanpa global horizontal overflow. Users, Reports, Audit, dan Migrations memakai exact-active navigation, semantic status, disabled commands, dan desktop-table/mobile-card fallback. Screenshot sementara tidak menjadi baseline.
 
 Setelah perubahan apa pun, minimum jalankan:
 
@@ -337,14 +350,12 @@ git diff --check
 
 ### Jika melanjutkan UI-first
 
-Checkpoint berikutnya adalah **FE07**, tetapi brief-nya belum dibekukan. Sebelum menulis kode:
+FE07 UI-first sudah selesai `6/8` dan siap direview/commit. Langkah berikutnya:
 
-1. Re-read `FRONTEND_IMPLEMENTATION_PLAN.md`, status frontend, dan backend M13–M18 terbaru.
-2. Buat `docs/checkpoints/FE07.md`.
-3. Bekukan scope, deliverable, capability matrix, mandatory tests, backend dependencies, dan stop condition.
-4. Tentukan mana yang aman dibuat sebagai read-only/dependency UI: user/invitation administration, audit, report/export, async jobs, migration evidence, ownership, maintenance/read-only, `CLASS_MOVED`, dan safe retry.
-5. Jangan membuat endpoint/payload fixture yang dipresentasikan sebagai kontrak canonical.
-6. Gunakan `.agents/skills/ui-ux-pro-max/SKILL.md` untuk pekerjaan UI/UX dan ikuti instruksinya sebelum implementasi.
+1. Review diff dan hasil QA FE07; commit hanya setelah diminta/disetujui user.
+2. Jika lanjut UI roadmap, buat dan bekukan brief FE08 sebelum implementasi.
+3. Jangan mengubah FE07 menjadi `COMPLETED`: D06/D08 dan T14 masih menunggu M04/M13–M18 serta real identity/admin/ops journey.
+4. Jangan mengaktifkan invitation/export/retry/migration command atau menebak endpoint/payload canonical.
 
 ### Jika backend sudah siap
 
@@ -356,6 +367,7 @@ Jangan langsung membuka semua mutation. Integrasikan satu checkpoint berdasarkan
 - FE04-T14 untuk submit/grade/release.
 - FE05-T14 untuk completion/transcript/certificate.
 - FE06-T14 untuk attendance/permit/SP/logbook/review.
+- FE07-T14 untuk identity admin, actor-scoped report/private export/job/audit, maintenance/read-only, dan `CLASS_MOVED`.
 
 Pertahankan fixture, empty, denial, negative, accessibility, dan production fail-closed tests saat menambahkan integration tests.
 
@@ -368,7 +380,7 @@ Pertahankan fixture, empty, denial, negative, accessibility, dan production fail
 - Jangan membuat role label sebagai authorization shortcut.
 - Jangan menyimpan auth/file proof/signed URL di browser storage.
 - Jangan menganggap fixture sebagai bukti backend integration.
-- Jangan menandai FE01–FE06 `COMPLETED` sebelum real HTTPS journey lulus.
+- Jangan menandai FE01–FE07 `COMPLETED` sebelum real HTTPS journey lulus.
 - Jangan commit/push/deploy kecuali user meminta.
 
 ## 10. Prompt awal yang dapat dipakai di OpenCode
@@ -376,10 +388,11 @@ Pertahankan fixture, empty, denial, negative, accessibility, dan production fail
 ```text
 Kerjakan dari repository lms-v2 branch fe-v3. Baca docs/OPENCODE_HANDOFF.md,
 docs/FRONTEND_IMPLEMENTATION_PLAN.md, docs/IMPLEMENTATION_STATUS.md, dan checkpoint
-aktif sebelum bertindak. Posisi terakhir adalah commit f04a94d: FE00 selesai, FE01–FE06
-frontend/UI-first sudah committed tetapi tetap BLOCKED_BACKEND, FE07 belum dimulai.
+aktif sebelum bertindak. Posisi terakhir adalah baseline 42b97a9 dengan FE07 UI-first
+di working tree: FE00 selesai, FE01–FE07 berada pada posisi BLOCKED_BACKEND, dan FE07
+terverifikasi lokal 6/8 tetapi belum dikomit.
 Pertahankan capability-based authorization, assigned-only enrollment, production
 fail-closed, no browser token, no invented endpoint/mutation, serta mandatory unit dan
-Playwright tests. Tanyakan atau buat brief FE07 terlebih dahulu sebelum implementasi,
+Playwright tests. Review/commit FE07 bila diminta; sebelum FE08, bekukan checkpoint baru
 kecuali tugas saya secara eksplisit meminta revisi checkpoint sebelumnya.
 ```

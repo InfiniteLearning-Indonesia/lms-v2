@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ClassPeopleContent } from "@/features/classes/components/class-people-content";
-import type { ClassParticipantViewModel, IdentityCandidateViewModel } from "@/features/classes/model";
+import type { ClassParticipantViewModel, IdentityCandidateViewModel, ParticipantAssignmentPolicyViewModel } from "@/features/classes/model";
 import { ClassContextProvider } from "@/features/workspace/context";
 import { ActorSessionProvider } from "@/lib/auth/provider";
 import type { ActorContext, ClassAccessSummary } from "@/lib/api/types";
@@ -21,6 +21,7 @@ function renderPeople(options: {
   activeClass?: ClassAccessSummary;
   participants?: ClassParticipantViewModel[];
   candidates?: IdentityCandidateViewModel[];
+  assignmentPolicy?: ParticipantAssignmentPolicyViewModel;
 } = {}) {
   const actor = options.actor ?? actors.student;
   const activeClass = options.activeClass ?? classes.published;
@@ -33,7 +34,7 @@ function renderPeople(options: {
       <QueryClientProvider client={client}>
         <ActorSessionProvider initialActor={actor} previewMode>
           <ClassContextProvider initialClasses={[activeClass]} previewMode>
-            <ClassPeopleContent initialParticipants={participants} identityCandidates={candidates} />
+            <ClassPeopleContent initialParticipants={participants} identityCandidates={candidates} assignmentPolicy={options.assignmentPolicy} />
           </ClassContextProvider>
         </ActorSessionProvider>
       </QueryClientProvider>
@@ -68,7 +69,7 @@ describe("Class People UI", () => {
   it("gives Site Admin an owner-backed identity picker with locked mutation", async () => {
     const user = userEvent.setup();
     const managedClass = { ...classes.published, capabilities: [...(classes.published.capabilities ?? []), "participants.manage"] };
-    renderPeople({ actor: actors.siteAdmin, activeClass: managedClass, candidates: identityCandidates });
+    renderPeople({ actor: actors.siteAdmin, activeClass: managedClass, candidates: identityCandidates, assignmentPolicy: { assignableRoles: ["teacher", "student"] } });
     await user.click(screen.getByRole("button", { name: "Tambah participant" }));
     const dialog = screen.getByRole("dialog");
 
@@ -77,6 +78,13 @@ describe("Class People UI", () => {
     expect(within(dialog).getByLabelText("Student")).toBeInTheDocument();
     expect(within(dialog).getByRole("button", { name: "Tambahkan ke Class" })).toBeDisabled();
     expect(within(dialog).queryByLabelText(/user id/i)).not.toBeInTheDocument();
+  });
+
+  it("fails closed when participant management exists without an assignable-role projection", () => {
+    const managedClass = { ...classes.published, capabilities: [...(classes.published.capabilities ?? []), "participants.manage"] };
+    renderPeople({ actor: actors.siteAdmin, activeClass: managedClass, candidates: identityCandidates });
+    expect(screen.queryByRole("button", { name: "Tambah participant" })).not.toBeInTheDocument();
+    expect(screen.getByText("Pilihan peran menunggu backend")).toBeInTheDocument();
   });
 
   it("distinguishes the missing production directory from an empty roster", () => {

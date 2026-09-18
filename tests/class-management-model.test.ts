@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assignableParticipantRoles, canManageParticipants, lifecycleActionsFor, matchesManagedClass, matchesParticipant, participationActionsFor } from "@/features/classes/model";
 import { classDetailsFormSchema, participantFormSchema, toCreateClassInput, toEditClassInput } from "@/features/classes/schemas";
-import { actors, classParticipants, classes } from "@/mocks/fixtures";
+import { classParticipants, classes } from "@/mocks/fixtures";
 
 describe("Class management policy and forms", () => {
   it("offers only valid lifecycle transitions", () => {
@@ -18,11 +18,12 @@ describe("Class management policy and forms", () => {
     expect(matchesParticipant(classParticipants[classes.published.id][2], "dinda", "teacher", "SUSPENDED")).toBe(false);
   });
 
-  it("keeps participant role assignment scoped to the actor", () => {
-    expect(assignableParticipantRoles(actors.siteAdmin, { ...classes.published, capabilities: ["participants.manage"] })).toEqual(["teacher", "student"]);
+  it("keeps participant role assignment scoped to an explicit backend policy", () => {
+    expect(assignableParticipantRoles({ ...classes.published, capabilities: ["participants.manage"] }, { assignableRoles: ["teacher", "student"] })).toEqual(["teacher", "student"]);
     expect(canManageParticipants({ ...classes.published, capabilities: [] })).toBe(false);
-    expect(assignableParticipantRoles(actors.teacher, classes.draft)).toEqual(["student"]);
-    expect(assignableParticipantRoles(actors.student, classes.published)).toEqual([]);
+    expect(assignableParticipantRoles(classes.draft, { assignableRoles: ["student"] })).toEqual(["student"]);
+    expect(assignableParticipantRoles(classes.draft)).toEqual([]);
+    expect(assignableParticipantRoles(classes.published, { assignableRoles: ["teacher"] })).toEqual([]);
     expect(participationActionsFor("ACTIVE")).toEqual(["suspend", "end"]);
     expect(participationActionsFor("ENDED")).toEqual([]);
   });
