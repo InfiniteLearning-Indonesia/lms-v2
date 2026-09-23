@@ -24,9 +24,18 @@ const inclusiveSans = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Infinite Learning",
+  applicationName: "Infinite Learning LMS",
+  title: {
+    default: "Infinite Learning LMS",
+    template: "%s | Infinite Learning LMS",
+  },
   description:
     "Platform manajemen pembelajaran yang menghubungkan siswa, mentor, dan administrator dalam satu ekosistem digital.",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
 };
 
 export default function RootLayout({

@@ -15,8 +15,9 @@
     "contract:generate": "openapi-typescript contracts/cp11-cp12.openapi.json -o lib/api/generated.ts",
     "contract:check": "node scripts/check-contract.mjs",
     "assets:check": "node scripts/check-assets.mjs",
+    "performance:check": "node scripts/check-route-budget.mjs",
     "bundle:check": "node scripts/check-client-bundle.mjs",
-    "check": "npm run assets:check && npm run contract:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run bundle:check"
+    "check": "npm run assets:check && npm run contract:check && npm run lint && npm run typecheck && npm run test && npm run build && npm run performance:check && npm run bundle:check"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
@@ -26,7 +27,6 @@
     "@tiptap/starter-kit": "^3.29.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "framer-motion": "^12.42.2",
     "lucide-react": "^1.22.0",
     "next": "16.2.9",
     "next-intl": "4.13.4",

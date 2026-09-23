@@ -77,7 +77,7 @@ test("Class overview remains usable on a small phone and in landscape", async ({
   await expect(page.getByRole("link", { name: "Buka Pembelajaran", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
-  await page.getByRole("button", { name: "Toggle theme" }).click();
+  await page.getByRole("button", { name: "Ganti tema warna" }).click();
   await expect(page.locator("html")).toHaveClass(/dark/);
 
   await page.evaluate(() => { document.documentElement.style.fontSize = "125%"; });
@@ -101,9 +101,15 @@ test("workspace exposes backend dependency instead of a fabricated Class list", 
 
   await expect(page.getByRole("heading", { name: "Daftar Class belum tersedia" })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.getByRole("link", { name: "Buka profil Student Browser" }).focus();
-  await expect(page.getByRole("link", { name: "Buka profil Student Browser" })).toBeFocused();
-  await page.getByRole("link", { name: "Buka profil Student Browser" }).click();
+  await page.waitForLoadState("networkidle");
+  const profileLink = page.getByRole("link", { name: "Buka profil Student Browser" });
+  await page.locator("body").click({ position: { x: 1, y: 1 } });
+  for (let step = 0; step < 5; step += 1) {
+    await page.keyboard.press("Tab");
+    if (await profileLink.evaluate((element) => element === document.activeElement)) break;
+  }
+  await expect(profileLink).toBeFocused();
+  await profileLink.press("Enter");
   await expect(page.getByRole("heading", { name: "Profil dan keamanan" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Keluar" })).toBeDisabled();
 });

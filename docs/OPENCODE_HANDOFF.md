@@ -1,22 +1,22 @@
 # Handoff Frontend LMS v3 untuk OpenCode
 
-**Diperbarui:** 18 September 2026
+**Diperbarui:** 21 September 2026
 **Repository:** `lms-v2`  
 **Branch:** `fe-v3`  
-**HEAD:** `42b97a9` — `Create OPENCODE_HANDOFF.md`
-**Upstream saat handoff:** `origin/fe-v3` berada pada commit yang sama sebelum implementasi FE07
-**Worktree saat dokumen diperbarui:** FE07 UI-first `6/8` siap direview; commit pending
+**HEAD:** `91558db` — `checkpoint(fe07): add admin operations UI shell`
+**Upstream saat handoff:** `origin/fe-v3` berada pada commit yang sama sebelum implementasi FE08
+**Worktree saat dokumen diperbarui:** FE08 release-hardening lokal `6/8` siap direview; commit pending
 
 Dokumen ini adalah ringkasan operasional agar pekerjaan dapat dilanjutkan di OpenCode tanpa mengandalkan riwayat chat. Dokumen canonical tetap:
 
 - [Frontend Implementation Plan](FRONTEND_IMPLEMENTATION_PLAN.md)
 - [Implementation Status](IMPLEMENTATION_STATUS.md)
-- [Checkpoint FE01–FE07](checkpoints/)
+- [Checkpoint FE01–FE08](checkpoints/)
 - [Backend status](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md)
 
 ## 1. Posisi saat ini
 
-FE00–FE06 telah memiliki commit checkpoint. FE07 UI-first sudah diimplementasikan pada working tree. Hanya FE00 yang berstatus `COMPLETED`; FE01–FE07 tetap `BLOCKED_BACKEND` karena mandatory journey HTTPS terhadap backend/identity owner/ops nyata belum dapat dijalankan.
+FE00–FE07 telah memiliki commit checkpoint. FE08 release-hardening lokal sudah diimplementasikan pada working tree. Hanya FE00 yang berstatus `COMPLETED`; FE01–FE08 tetap `BLOCKED_BACKEND` karena mandatory journey HTTPS terhadap backend/identity owner/ops nyata serta final release evidence belum dapat dijalankan.
 
 | Checkpoint | Fokus | Posisi | Commit |
 |---|---|---|---|
@@ -27,10 +27,10 @@ FE00–FE06 telah memiliki commit checkpoint. FE07 UI-first sudah diimplementasi
 | FE04 | Submission dan gradebook | `BLOCKED_BACKEND 6/8` | `64d74c6` |
 | FE05 | Completion dan credential | `BLOCKED_BACKEND 6/8` | `391eb35` |
 | FE06 | Attendance, izin/SP, logbook, mentoring | `BLOCKED_BACKEND 6/8` | `f04a94d` |
-| FE07 | Admin, reporting, jobs, migration/cutover | `BLOCKED_BACKEND 6/8`, commit pending | working tree |
-| FE08 | Public UI, polish, cleanup, release gate | `NOT_STARTED` | — |
+| FE07 | Admin, reporting, jobs, migration/cutover | `BLOCKED_BACKEND 6/8` | `91558db` |
+| FE08 | Public UI, polish, cleanup, release gate | `BLOCKED_BACKEND 6/8`, commit pending | working tree |
 
-Angka terbaru setelah alignment remediation FE07 adalah **148 Vitest** dan **24 Playwright Chromium**. Beberapa angka historis di `IMPLEMENTATION_STATUS.md` menunjukkan jumlah test pada saat checkpoint sebelumnya dan tidak boleh dibaca sebagai regresi terkini.
+Angka terbaru setelah FE08 adalah **148 Vitest**, **31 Playwright Chromium**, **1 Firefox**, dan **1 WebKit**. Beberapa angka historis di `IMPLEMENTATION_STATUS.md` menunjukkan jumlah test pada saat checkpoint sebelumnya dan tidak boleh dibaca sebagai regresi terkini.
 
 ## 2. Keputusan product dan kontrak yang sudah dikunci
 
@@ -123,6 +123,17 @@ Angka terbaru setelah alignment remediation FE07 adalah **148 Vitest** dan **24 
 - Migrations memisahkan code/data/ownership readiness, writer/fence/owner epoch, serta typed preflight, backup, mapping, reconciliation, quarantine, rehearsal, recovery, pilot, wave, dan approval evidence.
 - `CLASS_MOVED`, maintenance/read-only, unknown/pending/blocked state, dan no-browser-control-plane guidance eksplisit.
 - Automated axe scan menjaga serious/critical WCAG findings tetap nol pada Login dan Admin dependency surface; manual screen-reader/cross-browser matrix tetap release gate FE08.
+
+### FE08 — Public UI, Polish, Cleanup, dan Release Gate
+
+- Landing dan Status dibuat server-rendered, responsif, terlokalisasi, serta jujur membedakan public UI yang tersedia dari identity/backend/HTTPS journey yang belum siap.
+- Login tetap disabled; Landing/Status tidak memanggil challenge atau endpoint bisnis yang belum canonical.
+- Root 404, skip link, metadata, theme control 44 px, light/dark, reduced motion, dan no-overflow mobile sudah diverifikasi.
+- Security-header baseline membatasi frame/object/base/connect. HTTPS redirect dan HSTS tetap tanggung jawab edge deployment agar local HTTP/reverse proxy tidak rusak.
+- Production route budget dijalankan dalam `npm run check`; current total 445285/786432 byte dan chunk terbesar 46682/98304 byte.
+- Full Chromium regression serta Firefox/WebKit public smoke lulus; axe serious/critical nol pada Landing, Status, Login, dan Admin dependency surface.
+- Dead active source dibersihkan dan theme source kembali dilint. Archive `legacy/` dipertahankan sebagai migration reference sampai ada approval final.
+- D07 production integration dan D08 manual screen-reader/deployment/security/monitoring approval tetap `BLOCKED_BACKEND/EXTERNAL`.
 
 ## 4. Baseline flow aplikasi
 
@@ -254,7 +265,7 @@ Frontend tidak boleh mengubah local draft menjadi authoritative success sebelum 
 |---|---|---|
 | Identity | Actor dipilih melalui server-only `LMS_DEV_PREVIEW_ACTOR` | Login disabled/dependency state |
 | Class list/context | Typed fixture actor-scoped | Read/dependency state; tidak mengarang `/me/classes` |
-| Domain data | Typed fixture FE01–FE07 | Explicit dependency/empty state |
+| Domain data | Typed fixture FE01–FE07; FE08 public UI statis dan jujur | Explicit dependency/empty state |
 | Local form interaction | Boleh untuk mengevaluasi UX | Boleh bila tidak mengklaim tersimpan |
 | Final mutation | Disabled, tidak mengirim request | Disabled, tidak mengirim request |
 | Success/receipt | Tidak dipalsukan | Hanya dari backend authoritative |
@@ -282,6 +293,7 @@ Urutan release yang nantinya wajib dibuktikan melalui backend nyata dan HTTPS:
 | FE05 | M07/M09/M10 completion evidence/policy, transcript release, credential lifecycle/download/public lookup |
 | FE06 | M06/M11/M12 meeting/attendance correction, private proof, permit/SP, logbook period/entry/review, mentor/group history |
 | FE07 | M13–M18 admin/reporting/audit/job/migration/cutover read models dan commands |
+| FE08 | Identity + selected domain HTTPS journey, edge TLS/HSTS, production observability, manual screen-reader matrix, security/deployment approval |
 
 Sebelum integrasi, re-read status dan OpenAPI backend terbaru. Backend commit yang dicatat pada inspeksi checkpoint adalah `52cbc88`, tetapi jangan menganggapnya masih current tanpa verifikasi.
 
@@ -321,7 +333,7 @@ Preview tidak membuat session, tidak mengaktifkan mutation, dan tidak mengubah k
 
 ## 7. Quality gate terakhir
 
-Pada FE07 working tree di atas baseline `42b97a9`:
+Pada FE08 working tree di atas baseline `91558db`:
 
 ```text
 npm run check     PASS
@@ -331,12 +343,16 @@ npm run check     PASS
 - typecheck       PASS
 - Vitest          148/148 PASS
 - production build PASS
+- route budget    PASS, 445285/786432 byte; terbesar 46682/98304 byte
 - bundle scan     PASS, 11 forbidden patterns absent
 
-npm run test:e2e  24/24 Chromium PASS, termasuk axe serious/critical scan
+npm run test:e2e  33/33 PASS
+- Chromium        31/31
+- Firefox         1/1 public smoke
+- WebKit          1/1 public smoke
 ```
 
-FE07 diperiksa visual memakai fixture Site Admin pada desktop 1440 px dan mobile 375 px tanpa global horizontal overflow. Users, Reports, Audit, dan Migrations memakai exact-active navigation, semantic status, disabled commands, dan desktop-table/mobile-card fallback. Screenshot sementara tidak menjadi baseline.
+FE08 diperiksa visual pada Landing dan Status desktop 1440 px serta mobile 375 px, termasuk dark theme dan reduced motion, tanpa global horizontal overflow. Baseline Login desktop/mobile diperbarui setelah inspeksi karena touch target theme menjadi 44 px. Screenshot eksplorasi lain tetap sementara.
 
 Setelah perubahan apa pun, minimum jalankan:
 
@@ -350,12 +366,12 @@ git diff --check
 
 ### Jika melanjutkan UI-first
 
-FE07 UI-first sudah selesai `6/8` dan siap direview/commit. Langkah berikutnya:
+FE08 release-hardening lokal sudah selesai `6/8` dan siap direview/commit. Langkah berikutnya:
 
-1. Review diff dan hasil QA FE07; commit hanya setelah diminta/disetujui user.
-2. Jika lanjut UI roadmap, buat dan bekukan brief FE08 sebelum implementasi.
-3. Jangan mengubah FE07 menjadi `COMPLETED`: D06/D08 dan T14 masih menunggu M04/M13–M18 serta real identity/admin/ops journey.
-4. Jangan mengaktifkan invitation/export/retry/migration command atau menebak endpoint/payload canonical.
+1. Review diff dan hasil QA FE08; commit hanya setelah diminta/disetujui user.
+2. Jangan membuka checkpoint UI-first baru hanya untuk mengejar progress. Roadmap frontend lokal FE00–FE08 sudah tertutup; prioritas berikutnya adalah integrasi berbasis contract nyata.
+3. Jangan mengubah FE01–FE08 menjadi `COMPLETED`: mandatory HTTPS journey, manual assistive-technology checks, deployment/monitoring, dan approval terkait masih terbuka.
+4. Jangan mengaktifkan identity/domain/admin command, menebak endpoint/payload, atau menampilkan health/success state yang tidak authoritative.
 
 ### Jika backend sudah siap
 
@@ -380,7 +396,7 @@ Pertahankan fixture, empty, denial, negative, accessibility, dan production fail
 - Jangan membuat role label sebagai authorization shortcut.
 - Jangan menyimpan auth/file proof/signed URL di browser storage.
 - Jangan menganggap fixture sebagai bukti backend integration.
-- Jangan menandai FE01–FE07 `COMPLETED` sebelum real HTTPS journey lulus.
+- Jangan menandai FE01–FE08 `COMPLETED` sebelum real HTTPS journey dan release gate terkait lulus.
 - Jangan commit/push/deploy kecuali user meminta.
 
 ## 10. Prompt awal yang dapat dipakai di OpenCode
@@ -388,11 +404,12 @@ Pertahankan fixture, empty, denial, negative, accessibility, dan production fail
 ```text
 Kerjakan dari repository lms-v2 branch fe-v3. Baca docs/OPENCODE_HANDOFF.md,
 docs/FRONTEND_IMPLEMENTATION_PLAN.md, docs/IMPLEMENTATION_STATUS.md, dan checkpoint
-aktif sebelum bertindak. Posisi terakhir adalah baseline 42b97a9 dengan FE07 UI-first
-di working tree: FE00 selesai, FE01–FE07 berada pada posisi BLOCKED_BACKEND, dan FE07
-terverifikasi lokal 6/8 tetapi belum dikomit.
+aktif sebelum bertindak. Posisi terakhir adalah baseline 91558db dengan FE08 release
+hardening di working tree: FE00 selesai, FE01–FE08 berada pada posisi BLOCKED_BACKEND,
+dan FE08 terverifikasi lokal 6/8 tetapi belum dikomit.
 Pertahankan capability-based authorization, assigned-only enrollment, production
 fail-closed, no browser token, no invented endpoint/mutation, serta mandatory unit dan
-Playwright tests. Review/commit FE07 bila diminta; sebelum FE08, bekukan checkpoint baru
-kecuali tugas saya secara eksplisit meminta revisi checkpoint sebelumnya.
+Playwright tests. Review/commit FE08 bila diminta; integrasikan checkpoint lama hanya
+berdasarkan OpenAPI/backend terbaru dan jangan menyebut release complete tanpa journey
+HTTPS, manual screen-reader matrix, deployment/monitoring, dan approval evidence.
 ```

@@ -41,7 +41,7 @@ test("production Admin Class directory is honest, responsive, and mutation-safe"
   await expect(page.getByRole("link", { name: "Kelola Class" })).toHaveAttribute("aria-current", "page");
   await expect(page.getByRole("searchbox", { name: "Cari di Kelas Saya" })).toHaveCount(0);
   await page.keyboard.press("Escape");
-  await page.getByRole("button", { name: "Toggle theme" }).click();
+  await page.getByRole("button", { name: "Ganti tema warna" }).click();
   await expect(page.locator("html")).toHaveClass(/dark/);
 
   await page.getByRole("button", { name: "Buat Class" }).click();

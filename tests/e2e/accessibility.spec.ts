@@ -22,6 +22,14 @@ test("public login has no serious automated WCAG violations", async ({ page }) =
   await expectNoSeriousAccessibilityViolations(page);
 });
 
+for (const route of ["/", "/status"] as const) {
+  test(`${route} has no serious automated WCAG violations`, async ({ page }) => {
+    await page.goto(route);
+    await expect(page.locator("h1")).toBeVisible();
+    await expectNoSeriousAccessibilityViolations(page);
+  });
+}
+
 test("Admin dependency surface has no serious automated WCAG violations", async ({ page }) => {
   await page.route("**/api/v3/auth/me", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(siteAdmin) }));
   await page.goto("/app/admin/migrations");

@@ -1,12 +1,12 @@
 # LMS v3 Frontend — Implementation Status
 
-**Diperbarui:** 18 September 2026
+**Diperbarui:** 21 September 2026
 **Branch:** `fe-v3`  
-**Frontend baseline sebelum brief FE07:** `42b97a9`
+**Frontend baseline FE08:** `91558db` (`checkpoint(fe07): add admin operations UI shell`)
 **Backend commit saat inspeksi:** `52cbc88`  
-**Status keseluruhan:** `FE07_BLOCKED_BACKEND / FE06_BLOCKED_BACKEND / FE05_BLOCKED_BACKEND / FE04_BLOCKED_BACKEND / FE03_BLOCKED_BACKEND / FE02_BLOCKED_BACKEND / FE01_BLOCKED_BACKEND`
+**Status keseluruhan:** `FE08_BLOCKED_BACKEND / FE07_BLOCKED_BACKEND / FE06_BLOCKED_BACKEND / FE05_BLOCKED_BACKEND / FE04_BLOCKED_BACKEND / FE03_BLOCKED_BACKEND / FE02_BLOCKED_BACKEND / FE01_BLOCKED_BACKEND`
 
-[Master plan](FRONTEND_IMPLEMENTATION_PLAN.md) · [Brief aktif FE07](checkpoints/FE07.md) · [FE06](checkpoints/FE06.md) · [FE05](checkpoints/FE05.md) · [FE04](checkpoints/FE04.md) · [FE03](checkpoints/FE03.md) · [FE02](checkpoints/FE02.md) · [FE01](checkpoints/FE01.md) · [Backend status](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md)
+[Master plan](FRONTEND_IMPLEMENTATION_PLAN.md) · [Brief aktif FE08](checkpoints/FE08.md) · [FE07](checkpoints/FE07.md) · [FE06](checkpoints/FE06.md) · [FE05](checkpoints/FE05.md) · [FE04](checkpoints/FE04.md) · [FE03](checkpoints/FE03.md) · [FE02](checkpoints/FE02.md) · [FE01](checkpoints/FE01.md) · [Backend status](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md)
 
 ## 1. Ringkasan
 
@@ -24,7 +24,9 @@ FE06 UI-first slice sudah siap `6/8`: Mentee mendapat halaman kalender kehadiran
 
 FE07 UI-first slice sudah siap `6/8`: Admin Users, Reports/private export shell, immutable Audit, contextual durable Jobs, serta Migration/Cutover evidence memakai typed server-only development fixture. Admin navigation exact-active; production menampilkan dependency state tanpa menebak endpoint atau memicu command. Code/data/ownership, writer/fence/owner epoch, dan seluruh gate preflight sampai approval dipisahkan; `CLASS_MOVED` serta read-only state eksplisit dan browser tidak memiliki migration control plane. Invitation shell memakai React Hook Form + Zod. D06/D08 tetap diblokir M04/M13–M18 dan real HTTPS/ops journey.
 
-Current next action: review hasil [checkpoint FE07](checkpoints/FE07.md), lalu commit checkpoint bila disetujui. Setelah itu FE08 dapat dibekukan tanpa menganggap FE01–FE07 integrated; seluruh real backend/HTTPS journey masih menunggu dependency masing-masing.
+FE08 release-hardening lokal sudah siap `6/8`: Landing dan Status bersifat server-rendered, responsif, terlokalisasi, serta jujur membedakan public UI yang tersedia dari identity/backend/HTTPS journey yang belum siap. Root 404, skip link, metadata, theme interaction 44 px, security-header baseline, production route budget, bundle scan, axe, full Chromium regression, dan Firefox/WebKit public smoke sudah lulus. Komponen aktif yang mati dibersihkan dan lint kembali mencakup theme source; archive `legacy/` tetap dipertahankan sebagai migration reference. D07 real production integration dan D08 manual screen-reader/deployment/security/monitoring approval tetap diblokir backend/external.
+
+Current next action: review dan commit source FE08 bila disetujui; sesudah itu hentikan perluasan UI-first dan prioritaskan integrasi per checkpoint ketika kontrak backend serta deployment HTTPS tersedia. Jangan mengubah FE01–FE08 menjadi `COMPLETED` hanya dari local fixture/test.
 
 **Brief testing development berikutnya:** setiap logic/state baru wajib membawa unit/component test pada checkpoint yang sama. Setiap FE juga wajib memiliki mandatory journey Playwright; unit test dan mock E2E tidak menggantikan journey HTTPS terhadap backend nyata. FE01-T13 adalah integration journey yang masih diblokir backend, bukan unit test yang belum ditulis.
 
@@ -40,7 +42,7 @@ Current next action: review hasil [checkpoint FE07](checkpoints/FE07.md), lalu c
 | FE05 | Completion/credential | `BLOCKED_BACKEND` (frontend slice ready; D06 partial) | `PARTIAL_QA` — current regression 120 Vitest + 18 Chromium PASS | `NOT_AVAILABLE` | D06/T14 menunggu M07/M09/M10 contract, CSRF, completion/transcript/credential/public verification journey |
 | FE06 | Attendance/logbook/mentoring | `BLOCKED_BACKEND` (frontend slice ready; D06 partial) | `PARTIAL_QA` — check + 134 Vitest + 20 Chromium PASS | `NOT_AVAILABLE` | D06/T14 menunggu M06/M11/M12 private proof dan real HTTPS journey |
 | FE07 | Admin/reporting/jobs/cutover | `BLOCKED_BACKEND` (frontend slice ready; D06 partial) | `PARTIAL_QA` — check + 148 Vitest + 24 Chromium PASS | `NOT_AVAILABLE` | D06/T14 menunggu M04/M13–M18 contract, real private export/job/audit/migration evidence, dan HTTPS/ops journey |
-| FE08 | Public UI/polish/release cleanup | `NOT_STARTED` | `NOT_RUN` | `BLOCKED_BY_PRIOR_FE` | Menunggu seluruh selected slice |
+| FE08 | Public UI/polish/release cleanup | `BLOCKED_BACKEND` (release-hardening lokal ready) | `PARTIAL_QA` — check + 148 Vitest + 31 Chromium + 1 Firefox + 1 WebKit PASS | `BLOCKED_BY_PRIOR_FE` | D07–D08 menunggu identity/domain integration, manual screen reader, HTTPS deployment, observability dan approval |
 
 Status `PARTIAL_LOCAL` berarti backend mempunyai slice lab yang diuji secara lokal; status tersebut bukan browser integration atau deployment readiness.
 
@@ -72,7 +74,7 @@ Jumlah deliverable hanya dinaikkan setelah evidence QA dicatat pada checkpoint t
 | FE05 | 8 | 6 | `6/8`; D01–D05 + D07 frontend/mock PASS; D06 public integration partial; D08 real integration blocked |
 | FE06 | 8 | 6 | `6/8`; D01–D05 + D07 frontend/mock PASS; D06 private integration partial; D08 real integration blocked |
 | FE07 | 8 | 6 | `6/8`; D01–D05 + D07 frontend/mock PASS; D06 operational integration partial; D08 real journey blocked |
-| FE08 | Belum dibekukan | 0 | `N/A` |
+| FE08 | 8 | 6 | `6/8`; D01–D06 local release hardening PASS; D07 production integration dan D08 final release gate blocked |
 
 Denominator FE01–FE08 dibekukan saat checkpoint masing-masing dibuat. Jangan menggunakan perkiraan persentase effort sebagai completion.
 
@@ -97,16 +99,16 @@ Denominator FE01–FE08 dibekukan saat checkpoint masing-masing dibuat. Jangan m
 
 ## 6. Evidence ledger
 
-Run FE00 dan partial QA FE01–FE07 telah dicatat; belum ada deployment atau integrasi identity/backend production.
+Run FE00 dan partial QA FE01–FE08 telah dicatat; belum ada deployment atau integrasi identity/backend production.
 
 | Field | Nilai |
 |---|---|
-| Latest FE checkpoint | FE07 `BLOCKED_BACKEND 6/8` (working tree; commit pending) |
+| Latest FE checkpoint | FE08 `BLOCKED_BACKEND 6/8` (working tree; commit pending) |
 | Latest lint | PASS — `npm run lint` |
 | Latest typecheck | PASS — `npm run typecheck` |
 | Latest build | PASS — `npm run build` |
 | Latest unit/component test | PASS — 148 tests |
-| Latest E2E/contract test | PASS — contract check + 24 Chromium journeys termasuk axe serious/critical scan; FE01-T13, FE02-T12, FE03-T14, FE04-T14, FE05-T14, FE06-T14, dan FE07-T14 real journey blocked |
+| Latest E2E/contract test | PASS — contract check + 31 Chromium + 1 Firefox + 1 WebKit journey; axe serious/critical nol; FE01-T13 sampai FE07-T14 serta FE08-T10 real journey blocked |
 | Latest locked install/assets | PASS — `npm ci`; 4 font/license checksums; `next-intl@4.13.4` |
 | Deployment | `NOT_DEPLOYED` |
 | Migration/cutover | `NOT_EXECUTED`; legacy source dipindahkan ke `legacy/` dan tidak menjadi route v3 |
@@ -253,6 +255,17 @@ Run FE00 dan partial QA FE01–FE07 telah dicatat; belum ada deployment atau int
 | 11:29–11:31 | development visual + UI/UX validation | PASS | fixture Site Admin; Users/Reports/Migrations 1440 px, Audit 375 px | Exact-active nav, status text+color, card fallback, no global overflow; screenshot sementara bukan baseline |
 | 11:30 | report mobile-card refinement | PASS targeted + lint/typecheck | FE07 final working tree | Tabel report desktop berubah menjadi card list pada mobile; M04/M13–M18 dan FE07-T14 tetap blocked |
 | 14:09–14:12 | alignment remediation | PASS targeted + visual | FE07 working tree; contract tetap `00b66b2ee0ed…` | D05 typed evidence lengkap, assignable-role projection fail-closed, RHF+Zod pada form domain utama, token contrast diperbaiki, serta axe Chromium ditambahkan |
+
+### FE08 partial QA history — 21 September 2026
+
+| Timestamp (WIB) | Command | Result | Source/contract evidence | Artifact/blocker |
+|---|---|---|---|---|
+| final source gate | `npm run check` | PASS — 148/148 Vitest | FE08 working tree; contract tetap `00b66b2ee0ed…` | assets, lint, typecheck, production build, route budget 445285/786432 byte, dan 11-pattern bundle scan PASS |
+| visual inspection | Landing/Status desktop + mobile + dark | PASS_LOCAL | 1440 px dan 375 px; reduced motion; theme toggle 44 px | Hierarchy, responsive reflow, contrast, dan no-overflow diperiksa; screenshot sementara bukan baseline |
+| first full browser regression | `npm run test:e2e` | FAIL — 25/33 PASS | FE08 working tree | Accessible name/theme, metadata expectation, intentional visual baseline, WebKit local HTTP upgrade, dan programmatic focus test diidentifikasi serta diperbaiki tanpa mengubah kontrak backend |
+| targeted browser remediation | Login/cross-browser/workspace | PASS | FE08 working tree | Baseline Login diperbarui setelah inspeksi; HSTS/HTTPS dipindahkan ke edge responsibility; keyboard test memakai Tab/Enter nyata |
+| final browser regression | `npm run test:e2e` | PASS — 33/33 | 31 Chromium + 1 Firefox + 1 WebKit | Landing/Status/Login/404/headers/axe dan seluruh FE00–FE07 regression PASS; FE08-T10 tetap blocked |
+| final release gates | manual screen reader + real HTTPS journey | `BLOCKED_BACKEND/EXTERNAL` | identity owner/backend/deployment belum tersedia | D07–D08 tidak dapat diganti oleh fixture, axe, atau local browser smoke |
 
 ## 7. Cara memperbarui status
 

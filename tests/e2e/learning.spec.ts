@@ -48,7 +48,7 @@ test("production Learning exposes the M06-M07 dependency without inventing conte
   expect(unexpectedBusinessRequests).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
-  await page.getByRole("button", { name: "Toggle theme" }).click();
+  await page.getByRole("button", { name: "Ganti tema warna" }).click();
   await expect(page.locator("html")).toHaveClass(/dark/);
   await page.evaluate(() => { document.documentElement.style.fontSize = "125%"; });
   await page.setViewportSize({ width: 812, height: 375 });

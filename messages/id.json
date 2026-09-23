@@ -24,7 +24,123 @@
     "cancel": "Batal",
     "save": "Simpan",
     "close": "Tutup",
-    "readOnly": "Hanya baca"
+    "readOnly": "Hanya baca",
+    "toggleTheme": "Ganti tema warna"
+  },
+  "public": {
+    "skipToContent": "Lewati navigasi dan buka konten utama",
+    "nav": {
+      "label": "Navigasi publik",
+      "home": "Infinite Learning — Beranda",
+      "status": "Status layanan",
+      "login": "Masuk"
+    },
+    "hero": {
+      "eyebrow": "Infinite Learning LMS v3",
+      "title": "Ruang belajar yang mengikuti konteks Class Anda.",
+      "description": "Student, Teacher, dan pengelola memperoleh ruang kerja yang relevan dengan peran dan Class yang diberikan—tanpa katalog terbuka atau self-enrollment.",
+      "primaryCta": "Lihat kesiapan layanan",
+      "secondaryCta": "Buka halaman login",
+      "securityNote": "Login tetap dinonaktifkan sampai identity owner dan browser bridge terverifikasi end-to-end."
+    },
+    "readiness": {
+      "eyebrow": "Kesiapan saat ini",
+      "title": "Progress ditampilkan apa adanya",
+      "publicUi": "Antarmuka publik",
+      "available": "Tersedia untuk ditinjau",
+      "login": "Login dan sesi",
+      "waitingOwner": "Menunggu identity owner",
+      "integration": "Data dan command LMS",
+      "waitingBackend": "Menunggu kontrak backend",
+      "note": "Status ini bukan health monitoring real-time dan tidak menyatakan integrasi production sudah selesai."
+    },
+    "features": {
+      "eyebrow": "Fondasi pengalaman",
+      "title": "Jelas bagi pengguna, ketat pada batas sistem.",
+      "description": "Setiap surface dirancang agar mudah dipahami tanpa mengarang data, capability, atau hasil operasi yang belum diberikan backend.",
+      "context": {
+        "title": "Class menjadi konteks utama",
+        "description": "Materi, aktivitas, kehadiran, dan logbook tetap terikat pada Class yang memang diberikan kepada actor."
+      },
+      "roles": {
+        "title": "Ruang kerja sesuai peran",
+        "description": "Kontrol Student, Teacher, dan Admin mengikuti capability; label peran tidak dipakai sebagai jalan pintas authorization."
+      },
+      "integrity": {
+        "title": "Status yang transparan",
+        "description": "Loading, unavailable, blocked, dan unknown tetap dibedakan agar preview UI tidak terlihat seperti keberhasilan backend."
+      }
+    },
+    "audiences": {
+      "eyebrow": "Satu sistem, fokus berbeda",
+      "title": "Informasi yang relevan untuk setiap pengguna.",
+      "student": {
+        "title": "Student",
+        "description": "Melihat Class yang diikuti, pembelajaran, tugas, kehadiran, logbook, dan hasil yang sudah dirilis."
+      },
+      "teacher": {
+        "title": "Teacher",
+        "description": "Mengelola struktur belajar, aktivitas, penilaian, kehadiran, dan review dalam Class yang ditugaskan."
+      },
+      "admin": {
+        "title": "Site Admin",
+        "description": "Mengelola Class dan meninjau surface operasional sesuai capability serta evidence backend."
+      }
+    },
+    "closing": {
+      "title": "Cek status sebelum mencoba masuk.",
+      "description": "Halaman status menjelaskan bagian yang sudah dapat ditinjau dan dependency yang masih menunggu integrasi nyata.",
+      "cta": "Buka status layanan"
+    },
+    "footer": {
+      "copyright": "© {year} Infinite Learning Indonesia. Hak Cipta Dilindungi."
+    },
+    "status": {
+      "back": "Kembali ke beranda",
+      "eyebrow": "Status integrasi — bukan monitoring real-time",
+      "title": "Status layanan",
+      "description": "Ringkasan ini membedakan kesiapan antarmuka dari integrasi backend dan journey HTTPS yang belum terverifikasi.",
+      "servicesTitle": "Kesiapan per lapisan",
+      "states": {
+        "available": "Tersedia",
+        "waitingOwner": "Menunggu identity owner",
+        "waitingBackend": "Menunggu backend",
+        "notVerified": "Belum terverifikasi"
+      },
+      "services": {
+        "publicUi": {
+          "label": "Antarmuka web publik",
+          "description": "Landing, status, dan halaman login dapat diakses tanpa membuat sesi atau request bisnis."
+        },
+        "identity": {
+          "label": "Login dan session bridge",
+          "description": "Google SSO tetap diproses identity owner; pertukaran opaque code dan session cookie belum terintegrasi."
+        },
+        "backend": {
+          "label": "Data dan command LMS",
+          "description": "Surface UI tersedia, tetapi endpoint domain yang belum canonical tetap fail-closed."
+        },
+        "journey": {
+          "label": "Journey production HTTPS",
+          "description": "Belum ada bukti end-to-end terhadap identity owner, backend, private file, jobs, atau operasi deployment nyata."
+        }
+      },
+      "safety": {
+        "title": "Kontrol yang belum aman tetap terkunci",
+        "description": "Login, mutation, export, retry, dan migration command tidak diaktifkan hanya untuk membuat demo terlihat selesai."
+      },
+      "freshness": {
+        "title": "Sumber status",
+        "description": "Status berasal dari checkpoint frontend FE08. Health contract real-time baru boleh ditampilkan setelah tersedia dari backend."
+      },
+      "loginCta": "Lihat halaman login",
+      "homeCta": "Kembali ke beranda"
+    },
+    "notFound": {
+      "title": "Halaman tidak ditemukan",
+      "description": "Alamat yang Anda buka tidak tersedia atau sudah berubah.",
+      "home": "Kembali ke beranda"
+    }
   },
   "state": {
     "forbiddenTitle": "Akses tidak tersedia",

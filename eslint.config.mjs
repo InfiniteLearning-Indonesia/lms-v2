@@ -14,16 +14,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Legacy dashboard is retained on the legacy branch/deployment. v3 quality
-    // gates apply to the new route groups and shared foundation only.
-    "app/dashboard/**",
-    "app/ui/**",
+    // The source-only legacy archive is retained for migration reference and
+    // is not part of the v3 route tree or client bundle.
     "legacy/**",
     "components/ui/**",
-    "components/theme-provider.tsx",
-    "components/theme-toggle.tsx",
-    "components/navbar.tsx",
-    "components/markdown-renderer.tsx",
   ]),
 ]);
 

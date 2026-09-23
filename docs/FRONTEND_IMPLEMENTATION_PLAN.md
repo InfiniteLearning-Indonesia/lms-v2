@@ -4,7 +4,7 @@
 **Tanggal:** 9 September 2026  
 **Repository:** `lms-v2`  
 **Branch implementasi:** `fe-v3`  
-**Status:** `IN_PROGRESS` — FE00 selesai; FE01–FE07 mempunyai slice UI-first dan tetap diblokir dependency backend masing-masing
+**Status:** `BLOCKED_BACKEND` — FE00 selesai; FE01–FE08 local/frontend slice siap, mandatory backend/HTTPS/release journey tetap diblokir
 **Backend target:** `api-lms-v2`, branch `be-v3`
 
 Dokumen ini adalah rencana canonical implementasi frontend LMS v3. Keputusan domain dan keamanan tetap mengikuti [ImplementationPlan.MD](../../ImplementationPlan.MD), sedangkan kesiapan backend aktual mengikuti [dashboard backend](../../api-lms-v2/docs/IMPLEMENTATION_STATUS.md). Status pekerjaan frontend dicatat di [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md).
@@ -246,6 +246,8 @@ Scope UI-first, baseline flow, contract handoff, capability boundary, mandatory 
 
 Rombak landing/status, selesaikan responsive/accessibility/performance/security headers, jalankan production smoke, hapus komponen dan konfigurasi API legacy dari branch `fe-v3`, lalu buat release evidence.
 
+Scope, safe cleanup, browser matrix, performance/security baseline, release blocker, dan mandatory test dibekukan pada [checkpoint FE08](checkpoints/FE08.md). Cleanup tidak mencakup penghapusan archive migration/reference tanpa approval final; production smoke dan release gate tetap external-blocked.
+
 ## 7. Aturan eksekusi dan tracking
 
 1. Kerjakan FE secara berurutan kecuali dependency backend memungkinkan dua slice independen.
@@ -282,7 +284,7 @@ Setiap FE wajib menjalankan gate yang relevan:
 - Mutation resilience: double-click, timeout retry, idempotency replay, `409`, `413`, `422`, `429`, job partial/failure, serta backend unavailable.
 - XSS/unsafe URL/embed, private file/MIME/size/scan, dan no-secret-in-log/storage tests.
 - WCAG 2.2 AA automated checks ditambah keyboard dan screen-reader smoke.
-- Gate lokal saat ini memakai axe pada journey Chromium terpilih; perluas screen-reader smoke dan browser matrix pada FE08/release gate, bukan menganggap semantic query saja sebagai bukti penuh WCAG.
+- Gate lokal memakai axe pada journey Chromium terpilih dan public smoke pada Firefox/WebKit; manual screen-reader matrix tetap release gate dan tidak dapat diganti oleh semantic query atau automation.
 - Responsive checks pada mobile 360 px, tablet, dan desktop.
 
 Journey release wajib:
