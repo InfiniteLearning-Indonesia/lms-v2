@@ -3,7 +3,7 @@
 import { API_BASE_URL } from "@/lib/config";
 
 import Link from "next/link";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText, AlertTriangle, ShieldAlert, X, CheckCircle2, ArrowUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,22 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompetencyItem } from "./types";
+
+type GradebookCell = { row: number; col: number };
+type DirectScoreCell = { studentId: string; competencyId: string; score: number };
+type GradebookStudent = { id: string; name?: string; email?: string };
+type GradebookColumn = {
+  key: string;
+  label: string;
+  studentIndexable: true;
+} & (
+  | { source: "mentee"; kind: "computed" }
+  | { source: "attendance" | "oncam"; kind: "computed"; competency: CompetencyItem }
+  | { source: "rubric"; kind: "computed"; rubric: { id: string; name: string } }
+  | { source: "competency"; kind: "editable"; competency: CompetencyItem }
+);
+
+const cellKey = (row: number, col: number) => `${row}:${col}`;
 
 interface MentorAssessmentViewProps {
   programCompetencies?: any[];
@@ -47,6 +63,7 @@ interface MentorAssessmentViewProps {
   attendanceScores?: Record<string, any>;
   competencyScores?: any[];
   handleSaveDirectCompetencyScore?: (studentId: string, competencyId: string, score: number) => void;
+  onSaveDirectScoresBulk?: (cells: DirectScoreCell[]) => Promise<void>;
   phaseDates?: any;
   setIsPhaseDatesModalOpen?: (v: boolean) => void;
 }
@@ -86,6 +103,7 @@ export function MentorAssessmentView({
   attendanceScores = {},
   competencyScores = [],
   handleSaveDirectCompetencyScore,
+  onSaveDirectScoresBulk,
   phaseDates,
   setIsPhaseDatesModalOpen,
 }: MentorAssessmentViewProps) {
@@ -107,6 +125,25 @@ export function MentorAssessmentView({
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [showSyllabusColumns, setShowSyllabusColumns] = useState(true);
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [anchor, setAnchor] = useState<GradebookCell | null>(null);
+  const [focus, setFocus] = useState<GradebookCell | null>(null);
+  const [selectionContext, setSelectionContext] = useState("");
+  const [isPasting, setIsPasting] = useState(false);
+  const isDragging = useRef(false);
+  const pasteInProgress = useRef(false);
+
+  useEffect(() => {
+    if (!isSelectMode || activeSubTab !== "assessment") return;
+    const stopDragging = () => { isDragging.current = false; };
+    window.addEventListener("mouseup", stopDragging);
+    window.addEventListener("blur", stopDragging);
+    return () => {
+      stopDragging();
+      window.removeEventListener("mouseup", stopDragging);
+      window.removeEventListener("blur", stopDragging);
+    };
+  }, [isSelectMode, activeSubTab]);
 
   const filteredAndSortedStudents = useMemo(() => {
     let result = [...allStudents];
@@ -633,9 +670,164 @@ export function MentorAssessmentView({
 
   const hasRAs = rubrikAssessments.length > 0;
 
+  const getColumns = (phase: string): GradebookColumn[] => {
+    const displayRAs = phase === "Micro" ? microRAs : massiveRAs;
+    const displayComps = competencies.filter(c => phase === "Micro" ? c.phase === "Micro" || !c.phase : c.phase === "Massive");
+    const attComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
+    const oncamComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
+    const columns: GradebookColumn[] = [
+      { key: "mentee", label: "Mentee", source: "mentee", kind: "computed", studentIndexable: true },
+    ];
+    if (attComp) columns.push({ key: `attendance:${attComp.id}`, label: attComp.name, source: "attendance", kind: "computed", competency: attComp, studentIndexable: true });
+    if (oncamComp) columns.push({ key: `oncam:${oncamComp.id}`, label: oncamComp.name, source: "oncam", kind: "computed", competency: oncamComp, studentIndexable: true });
+    displayRAs.forEach(rubric => columns.push({ key: `rubric:${rubric.id}`, label: rubric.name, source: "rubric", kind: "computed", rubric, studentIndexable: true }));
+    if (showSyllabusColumns) {
+      displayComps.filter(c => !c.name?.toLowerCase().includes("attendance")).forEach(competency => {
+        columns.push({ key: `competency:${competency.id}`, label: competency.name, source: "competency", kind: "editable", competency, studentIndexable: true });
+      });
+    }
+    return columns;
+  };
+
+  // Both rendering and clipboard reads use the existing displayed score and rounding.
+  const getCellData = (student: GradebookStudent, column: GradebookColumn, phase: string) => {
+    if (column.source === "mentee") return { value: student.name || "", title: "" };
+    if (column.source === "attendance" || column.source === "oncam") {
+      const att = attendanceScores?.[student.id];
+      const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
+      const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
+      const finalScore = column.source === "attendance"
+        ? (phaseScore !== undefined ? phaseScore : 65.0)
+        : (details?.oncamScore !== undefined ? details.oncamScore : 65.0);
+      let title = "Nilai otomatis (Default: 65.0)";
+      if (details && details.totalSyncDays > 0) {
+        title = column.source === "attendance"
+          ? `Nilai otomatis. Kehadiran: ${details.cleanAttendance}/${details.totalSyncDays} Hari (Alpha: ${details.alphaDays})`
+          : `Nilai otomatis. Kehadiran On-Cam: ${details.oncamDays}/${details.totalSyncDays} Hari`;
+      }
+      return { value: ensureMinScore(finalScore).toFixed(1), title };
+    }
+    if (column.source === "rubric") {
+      const score = calculateRAScore(student.id, column.rubric);
+      return { value: ensureMinScore(score).toFixed(1), title: "" };
+    }
+    const directMatch = competencyScores.find(s => s.studentId === student.id && s.competencyId === column.competency.id);
+    const finalScore: number = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, column.competency.id);
+    return { value: ensureMinScore(finalScore).toFixed(1), score: finalScore, title: "Klik untuk menginput/mengubah nilai secara langsung" };
+  };
+
+  const activeColumns = getColumns(assessmentTab);
+  // Coordinates belong to the visible students and columns, including their current order.
+  const viewContext = JSON.stringify([assessmentTab, selectedProgramId, paginatedStudents.map(s => s.id), activeColumns.map(c => c.key)]);
+  const hasSelection = selectionContext === viewContext && anchor !== null && focus !== null;
+  const rectangle = hasSelection ? {
+    top: Math.min(anchor.row, focus.row), bottom: Math.max(anchor.row, focus.row),
+    left: Math.min(anchor.col, focus.col), right: Math.max(anchor.col, focus.col),
+  } : null;
+
+  const cancelSelection = () => {
+    isDragging.current = false;
+    setAnchor(null);
+    setFocus(null);
+  };
+
+  const copySelection = async () => {
+    if (!isSelectMode || !rectangle) return;
+    const rows: string[] = [];
+    for (let row = rectangle.top; row <= rectangle.bottom; row++) {
+      const student = paginatedStudents[row];
+      if (!student) continue;
+      rows.push(activeColumns.slice(rectangle.left, rectangle.right + 1).map(column => getCellData(student, column, assessmentTab).value).join("\t"));
+    }
+    try {
+      await navigator.clipboard.writeText(rows.join("\n"));
+      toast.success("Pilihan disalin.");
+    } catch {
+      toast.error("Tidak dapat menyalin ke clipboard. Periksa izin clipboard browser.");
+    }
+  };
+
+  const pasteSelection = async () => {
+    if (!isSelectMode || isReadOnly || !onSaveDirectScoresBulk || pasteInProgress.current) return;
+    pasteInProgress.current = true;
+    setIsPasting(true);
+    try {
+      let clipboardText: string;
+      try {
+        clipboardText = await navigator.clipboard.readText();
+      } catch {
+        toast.error("Tidak dapat membaca clipboard. Periksa izin clipboard browser.");
+        return;
+      }
+      if (!clipboardText) return;
+      const start = hasSelection ? anchor : { row: 0, col: activeColumns.findIndex(c => c.kind === "editable") };
+      if (start.col < 0) {
+        toast.error("Kolom ini tidak bisa diisi (nilai otomatis)");
+        return;
+      }
+      const rows = clipboardText.replace(/\r\n?/g, "\n").replace(/\n$/, "").split("\n");
+      const cells: DirectScoreCell[] = [];
+      let skipped = 0;
+      let editableTargets = 0;
+      rows.forEach((row, rowOffset) => {
+        row.split("\t").forEach((rawValue, colOffset) => {
+          const student = paginatedStudents[start.row + rowOffset];
+          const column = activeColumns[start.col + colOffset];
+          if (!student || !column || column.kind !== "editable") {
+            skipped++;
+            return;
+          }
+          editableTargets++;
+          const normalized = rawValue.trim().replace(/%/g, "").replace(/,/g, ".").trim();
+          const value = Number(normalized);
+          if (!normalized || !Number.isFinite(value)) {
+            skipped++;
+            return;
+          }
+          cells.push({ studentId: student.id, competencyId: column.competency.id, score: Math.max(0, Math.min(100, value)) });
+        });
+      });
+      if (!editableTargets) {
+        toast.error("Kolom ini tidak bisa diisi (nilai otomatis)");
+        return;
+      }
+      // Update the bulk handler's toast so partial failures and skipped cells share one summary.
+      const toastId = "mentor-assessment-bulk";
+      try {
+        if (cells.length) await onSaveDirectScoresBulk(cells);
+        toast(`${cells.length} nilai tersimpan, ${skipped} sel dilewati`, { id: toastId });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Gagal menyimpan nilai";
+        toast.error(`${message}, ${skipped} sel dilewati`, { id: toastId });
+      }
+    } finally {
+      pasteInProgress.current = false;
+      setIsPasting(false);
+    }
+  };
+
+  const handleSelectionKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!isSelectMode) return;
+    const target = event.target;
+    if (target instanceof HTMLElement && target.closest("input, textarea, select, [contenteditable='true'], [role='dialog']")) return;
+    if (event.key === "Escape") {
+      event.preventDefault();
+      cancelSelection();
+      return;
+    }
+    if (!(event.ctrlKey || event.metaKey) || event.altKey || event.repeat) return;
+    if (event.key.toLowerCase() === "c" && rectangle) {
+      event.preventDefault();
+      void copySelection();
+    } else if (event.key.toLowerCase() === "v" && !isReadOnly && onSaveDirectScoresBulk) {
+      event.preventDefault();
+      void pasteSelection();
+    }
+  };
+
   return (
     <>
-      <Card className="border-border shadow-xs bg-card overflow-hidden font-sans">
+      <Card className="border-border shadow-xs bg-card overflow-hidden font-sans" onKeyDown={handleSelectionKeyDown}>
         <CardHeader className="border-b border-border bg-secondary/20 p-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -679,7 +871,31 @@ export function MentorAssessmentView({
                   <ArrowUpDown className="w-3.5 h-3.5" />
                   {sortOrder === "asc" ? "A-Z" : "Z-A"}
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-pressed={isSelectMode}
+                  onClick={() => {
+                    setIsSelectMode(prev => !prev);
+                    cancelSelection();
+                  }}
+                  className={`h-8 text-xs cursor-pointer ${isSelectMode ? "border-brand-purple bg-brand-purple/10 text-brand-purple font-bold" : "border-border"}`}
+                >
+                  Mode Salin {isSelectMode ? "Aktif" : "Nonaktif"}
+                </Button>
               </div>
+
+              {isSelectMode && (
+                <div className="flex flex-wrap items-center gap-2">
+                  <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" disabled={!rectangle} onClick={() => void copySelection()}>Salin</Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" disabled={isPasting || isReadOnly || !onSaveDirectScoresBulk} onClick={() => void pasteSelection()}>
+                    {isPasting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    Tempel
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" onClick={cancelSelection}>Batal</Button>
+                  <p className="w-full text-xs text-muted-foreground">Klik/Shift+klik pilih sel, Ctrl/Cmd+C salin, Ctrl/Cmd+V tempel</p>
+                </div>
+              )}
 
               {uniquePrograms.length > 1 && setSelectedProgramId && (
                 <div className="flex items-center gap-2 text-sm">
@@ -846,240 +1062,158 @@ export function MentorAssessmentView({
             </div>
 
             {["Micro", "Massive"].map((phase) => {
-              const displayRAs = phase === "Micro" ? microRAs : massiveRAs;
-              const microComps = competencies.filter((c) => c.phase === "Micro" || (!c.phase && "Micro" === "Micro"));
-              const massiveComps = competencies.filter((c) => c.phase === "Massive");
-              const displayComps = phase === "Micro" ? microComps : massiveComps;
+              const columns = phase === assessmentTab ? activeColumns : getColumns(phase);
 
               return (
                 <TabsContent key={phase} value={phase} className="space-y-6">
                   <div className="overflow-x-auto border border-border rounded-xl">
-                    <table className="w-full text-sm text-left whitespace-nowrap">
+                    <table
+                      className={`w-full text-sm text-left whitespace-nowrap ${isSelectMode ? "select-none focus-visible:outline-2 focus-visible:outline-brand-purple" : ""}`}
+                      tabIndex={isSelectMode ? 0 : undefined}
+                      aria-label={`Gradebook ${phase === "Micro" ? "Initial" : "Final"}`}
+                      aria-busy={isPasting}
+                    >
                       <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {isSelectMode && (
+                          <tr className="border-b border-brand-purple/20 bg-brand-purple/5 normal-case tracking-normal">
+                            {columns.map((column, col) => (
+                              <th key={column.key} className={`px-2 py-1 ${column.source === "mentee" ? "sticky left-0 z-10 bg-muted" : ""}`}>
+                                <button
+                                  type="button"
+                                  disabled={!paginatedStudents.length}
+                                  title={`Pilih seluruh kolom ${column.label} pada halaman ini`}
+                                  aria-label={`Pilih kolom ${column.label}`}
+                                  className="block w-full max-w-36 truncate rounded px-2 py-1 text-xs text-brand-purple cursor-pointer hover:bg-brand-purple/10 focus-visible:outline-2 focus-visible:outline-brand-purple disabled:opacity-50 disabled:cursor-default"
+                                  onClick={() => {
+                                    isDragging.current = false;
+                                    setSelectionContext(viewContext);
+                                    setAnchor({ row: 0, col });
+                                    setFocus({ row: paginatedStudents.length - 1, col });
+                                  }}
+                                >
+                                  {column.label}
+                                </button>
+                              </th>
+                            ))}
+                          </tr>
+                        )}
                         <tr>
-                          <th className="px-4 py-3 sticky left-0 z-10 bg-muted/95 backdrop-blur shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
-                            Mentee
-                          </th>
-
-
-
-                          {/* Syllabus Attendance Column (Extracted) */}
-                          {(() => {
-                            const attComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
-                            if (attComp) {
-                              return (
-                                <th
-                                  key={attComp.id}
-                                  className="px-4 py-3 cursor-pointer hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors text-center border-r border-border bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                                  onClick={() => setEditingWeightCompetency(attComp)}
-                                  title="Klik untuk mengatur bobot tugas di kompetensi/syllabus ini"
-                                >
-                                  <div className="flex flex-col items-center gap-0.5">
-                                    <span className="text-[9px] text-emerald-700/80 dark:text-emerald-300/80 font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-500/20">
-                                      {attComp.category || "Syllabus"}
-                                    </span>
-                                    <span className="font-semibold flex items-center gap-1">
-                                      {attComp.name}
-                                      <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
-                                    </span>
-                                  </div>
-                                </th>
-                              );
+                          {columns.map(column => {
+                            if (column.source === "mentee") {
+                              return <th key={column.key} className="px-4 py-3 sticky left-0 z-10 bg-muted/95 backdrop-blur shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">Mentee</th>;
                             }
-                            return null;
-                          })()}
-
-                          {/* Syllabus Attendance On-Cam Column (Extracted) */}
-                          {(() => {
-                            const oncamComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
-                            if (oncamComp) {
-                              return (
-                                <th
-                                  key={oncamComp.id}
-                                  className="px-4 py-3 cursor-pointer hover:text-blue-800 dark:hover:text-blue-200 transition-colors text-center border-r border-border bg-blue-500/10 text-blue-700 dark:text-blue-300"
-                                  onClick={() => setEditingWeightCompetency(oncamComp)}
-                                  title="Klik untuk mengatur bobot tugas di kompetensi/syllabus ini"
-                                >
-                                  <div className="flex flex-col items-center gap-0.5">
-                                    <span className="text-[9px] text-blue-700/80 dark:text-blue-300/80 font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/20">
-                                      {oncamComp.category || "Syllabus"}
-                                    </span>
-                                    <span className="font-semibold flex items-center gap-1">
-                                      {oncamComp.name}
-                                      <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
-                                    </span>
-                                  </div>
-                                </th>
-                              );
-                            }
-                            return null;
-                          })()}
-
-                          {/* Rubrik Assessment Columns */}
-                          {displayRAs.map((ra) => (
-                            <th
-                              key={ra.id}
-                              className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border bg-brand-purple/5"
-                              onClick={() => setEditingWeightRubrikAssessment && setEditingWeightRubrikAssessment(ra)}
-                              title="Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini"
-                            >
-                              <div className="flex flex-col items-center gap-0.5">
-                                <span className="text-[9px] text-muted-foreground font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-secondary">
-                                  Rubrik {phase === "Micro" ? "Initial" : "Final"}
-                                </span>
-                                <span className="font-semibold flex items-center gap-1 text-brand-purple">
-                                  {ra.name}
-                                  <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
-                                </span>
-                              </div>
-                            </th>
-                          ))}
-
-                          {/* Syllabus & Competency Columns */}
-                          {showSyllabusColumns && displayComps.filter(c => !c.name?.toLowerCase().includes("attendance")).map((comp) => (
-                            <th
-                              key={comp.id}
-                              className="px-4 py-3 cursor-pointer hover:text-brand-purple hover:underline transition-colors text-center border-l border-border"
-                              onClick={() => setEditingWeightCompetency(comp)}
-                              title="Klik untuk mengatur bobot tugas di kompetensi/syllabus ini"
-                            >
-                              <div className="flex flex-col items-center gap-0.5">
-                                <span className="text-[9px] text-brand-purple font-mono uppercase font-bold px-1.5 py-0.5 rounded bg-brand-purple/10">
-                                  {comp.category || "Syllabus"}
-                                </span>
-                                <span className="font-semibold flex items-center gap-1">
-                                  {comp.name}
-                                  <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
-                                </span>
-                              </div>
-                            </th>
-                          ))}
+                            const headerClassName = column.source === "attendance"
+                              ? "hover:text-emerald-800 dark:hover:text-emerald-200 border-r border-border bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                              : column.source === "oncam"
+                                ? "hover:text-blue-800 dark:hover:text-blue-200 border-r border-border bg-blue-500/10 text-blue-700 dark:text-blue-300"
+                                : `hover:text-brand-purple hover:underline border-l border-border ${column.source === "rubric" ? "bg-brand-purple/5" : ""}`;
+                            const badgeClassName = column.source === "attendance"
+                              ? "text-emerald-700/80 dark:text-emerald-300/80 bg-emerald-500/20"
+                              : column.source === "oncam"
+                                ? "text-blue-700/80 dark:text-blue-300/80 bg-blue-500/20"
+                                : column.source === "rubric" ? "text-muted-foreground bg-secondary" : "text-brand-purple bg-brand-purple/10";
+                            return (
+                              <th
+                                key={column.key}
+                                className={`px-4 py-3 cursor-pointer transition-colors text-center ${headerClassName}`}
+                                onClick={() => {
+                                  if (isSelectMode) return;
+                                  if (column.source === "rubric") setEditingWeightRubrikAssessment?.(column.rubric);
+                                  else setEditingWeightCompetency(column.competency);
+                                }}
+                                title={column.source === "rubric" ? "Klik untuk mengatur bobot kompetensi di Rubrik Assessment ini" : "Klik untuk mengatur bobot tugas di kompetensi/syllabus ini"}
+                              >
+                                <div className="flex flex-col items-center gap-0.5">
+                                  <span className={`text-[9px] font-mono uppercase font-bold px-1.5 py-0.5 rounded ${badgeClassName}`}>
+                                    {column.source === "rubric" ? `Rubrik ${phase === "Micro" ? "Initial" : "Final"}` : column.competency.category || "Syllabus"}
+                                  </span>
+                                  <span className={`font-semibold flex items-center gap-1 ${column.source === "rubric" ? "text-brand-purple" : ""}`}>
+                                    {column.label}
+                                    <Pencil className="w-2.5 h-2.5 inline-block opacity-40" />
+                                  </span>
+                                </div>
+                              </th>
+                            );
+                          })}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
                         {filteredAndSortedStudents.length === 0 ? (
                           <tr>
-                            <td
-                              colSpan={(showSyllabusColumns ? displayComps.length : 0) + displayRAs.length + 2}
-                              className="px-4 py-8 text-center text-muted-foreground"
-                            >
+                            <td colSpan={columns.length} className="px-4 py-8 text-center text-muted-foreground">
                               Belum ada mentee yang terdaftar atau cocok dengan pencarian.
                             </td>
                           </tr>
                         ) : (
-                          paginatedStudents.map((student) => {
-                            return (
-                              <tr key={student.id} className="hover:bg-muted/30 transition-colors">
-                                <td className="px-4 py-3 sticky left-0 z-10 bg-card shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]">
-                                  <div className="font-semibold text-foreground text-xs">
-                                    {student.name}
-                                  </div>
-                                  <div className="text-[10px] text-muted-foreground">
-                                    {student.email}
-                                  </div>
-                                </td>
-
-
-
-                                {/* Extracted Syllabus Attendance Cell */}
-                                {(() => {
-                                  const attComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && !c.name?.toLowerCase().includes("on"));
-                                  if (attComp) {
-                                    const att = attendanceScores?.[student.id];
-                                    const phaseScore = phase === "Micro" ? att?.microScore : att?.massiveScore;
-                                    const finalScore = phaseScore !== undefined ? phaseScore : 65.0;
-                                    
-                                    const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
-                                    let tooltipTitle = "Nilai otomatis (Default: 65.0)";
-                                    if (details && details.totalSyncDays > 0) {
-                                      tooltipTitle = `Nilai otomatis. Kehadiran: ${details.cleanAttendance}/${details.totalSyncDays} Hari (Alpha: ${details.alphaDays})`;
-                                    }
-                                    
-                                    return (
-                                      <td
-                                        key={attComp.id}
-                                        className="px-4 py-3 text-center border-r border-border text-xs font-bold bg-emerald-500/5 text-emerald-700 dark:text-emerald-400 cursor-help"
-                                        onClick={() => toast.info("Nilai kehadiran terisi otomatis dari rekap absensi.")}
-                                        title={tooltipTitle}
-                                      >
-                                        {ensureMinScore(finalScore).toFixed(1)}
-                                      </td>
-                                    );
-                                  }
-                                  return null;
-                                })()}
-
-                                {/* Extracted Syllabus Oncam Cell */}
-                                {(() => {
-                                  const oncamComp = competencies.find(c => c.name?.toLowerCase().includes("attendance") && (c.name?.toLowerCase().includes("on cam") || c.name?.toLowerCase().includes("oncam") || c.name?.toLowerCase().includes("on-cam")));
-                                  if (oncamComp) {
-                                    const att = attendanceScores?.[student.id];
-                                    const details = phase === "Micro" ? att?.microDetails : att?.massiveDetails;
-                                    const oncamScoreVal = details?.oncamScore !== undefined ? details.oncamScore : 65.0;
-                                    
-                                    let tooltipTitle = "Nilai otomatis (Default: 65.0)";
-                                    if (details && details.totalSyncDays > 0) {
-                                      tooltipTitle = `Nilai otomatis. Kehadiran On-Cam: ${details.oncamDays}/${details.totalSyncDays} Hari`;
-                                    }
-                                    
-                                    return (
-                                      <td
-                                        key={oncamComp.id}
-                                        className="px-4 py-3 text-center border-r border-border text-xs font-bold bg-blue-500/5 text-blue-700 dark:text-blue-400 cursor-help"
-                                        onClick={() => toast.info("Nilai kehadiran terisi otomatis dari rekap absensi.")}
-                                        title={tooltipTitle}
-                                      >
-                                        {ensureMinScore(oncamScoreVal).toFixed(1)}
-                                      </td>
-                                    );
-                                  }
-                                  return null;
-                                })()}
-
-                                {/* Rubrik Assessment Cells */}
-                                {displayRAs.map((ra) => {
-                                  const score = calculateRAScore(student.id, ra);
-                                  return (
-                                    <td
-                                      key={ra.id}
-                                      className="px-4 py-3 text-center border-l border-border text-xs font-medium bg-brand-purple/5"
-                                    >
-                                      {ensureMinScore(score).toFixed(1)}
-                                    </td>
-                                  );
-                                })}
-
-                                {/* Syllabus / Competency Cells */}
-                                {showSyllabusColumns && displayComps.filter(c => !c.name?.toLowerCase().includes("attendance")).map((comp) => {
-                                  const directMatch = competencyScores.find(
-                                    (s: any) => s.studentId === student.id && s.competencyId === comp.id
-                                  );
-                                  const finalScore = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, comp.id);
-
-                                  return (
-                                    <td
-                                      key={comp.id}
-                                      className="px-4 py-3 text-center border-l border-border text-xs font-medium cursor-pointer hover:bg-brand-purple/10 transition-colors"
-                                      onClick={() => {
+                          paginatedStudents.map((student, row) => (
+                            <tr key={student.id} className="hover:bg-muted/30 transition-colors">
+                              {columns.map((column, col) => {
+                                const cell = getCellData(student, column, phase);
+                                const selected = isSelectMode && phase === assessmentTab && rectangle !== null && row >= rectangle.top && row <= rectangle.bottom && col >= rectangle.left && col <= rectangle.right;
+                                const cellClassName = column.source === "mentee"
+                                  ? "sticky left-0 z-10 shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]"
+                                  : column.source === "attendance"
+                                    ? "text-center border-r border-border text-xs font-bold text-emerald-700 dark:text-emerald-400"
+                                    : column.source === "oncam"
+                                      ? "text-center border-r border-border text-xs font-bold text-blue-700 dark:text-blue-400"
+                                      : "text-center border-l border-border text-xs font-medium";
+                                const backgroundClassName = selected
+                                  ? "ring-2 ring-inset ring-brand-purple/60 bg-brand-purple/10"
+                                  : column.source === "mentee" ? "bg-card"
+                                    : column.source === "attendance" ? "bg-emerald-500/5"
+                                      : column.source === "oncam" ? "bg-blue-500/5"
+                                        : column.source === "rubric" ? "bg-brand-purple/5" : "hover:bg-brand-purple/10";
+                                return (
+                                  <td
+                                    key={column.key}
+                                    data-cell-key={cellKey(row, col)}
+                                    data-selected={selected || undefined}
+                                    className={`px-4 py-3 transition-colors ${cellClassName} ${backgroundClassName} ${isSelectMode ? "cursor-cell" : column.kind === "editable" ? "cursor-pointer" : column.source === "attendance" || column.source === "oncam" ? "cursor-help" : ""}`}
+                                    title={isSelectMode ? `${column.label}: ${cell.value}` : cell.title}
+                                    onMouseDown={event => {
+                                      if (!isSelectMode || event.button !== 0) return;
+                                      event.preventDefault();
+                                      event.currentTarget.closest("table")?.focus({ preventScroll: true });
+                                      isDragging.current = true;
+                                      setSelectionContext(viewContext);
+                                      if (!event.shiftKey || !hasSelection) setAnchor({ row, col });
+                                      setFocus({ row, col });
+                                    }}
+                                    onMouseEnter={event => {
+                                      if (isSelectMode && isDragging.current && event.buttons === 1 && hasSelection) setFocus({ row, col });
+                                    }}
+                                    onClick={() => {
+                                      if (isSelectMode) return;
+                                      if (column.source === "attendance" || column.source === "oncam") {
+                                        toast.info("Nilai kehadiran terisi otomatis dari rekap absensi.");
+                                      } else if (column.source === "competency") {
                                         setDirectScoreModal({
                                           isOpen: true,
                                           studentId: student.id,
                                           studentName: student.name || "",
-                                          compId: comp.id,
-                                          compName: comp.name || "",
-                                          scoreInput: finalScore.toString()
+                                          compId: column.competency.id,
+                                          compName: column.competency.name || "",
+                                          scoreInput: cell.score?.toString() || "",
                                         });
-                                      }}
-                                      title="Klik untuk menginput/mengubah nilai secara langsung"
-                                    >
-                                      {ensureMinScore(finalScore).toFixed(1)}
-                                      <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            );
-                          })
+                                      }
+                                    }}
+                                  >
+                                    {column.source === "mentee" ? (
+                                      <>
+                                        <div className="font-semibold text-foreground text-xs">{cell.value}</div>
+                                        <div className="text-[10px] text-muted-foreground">{student.email}</div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        {cell.value}
+                                        {column.kind === "editable" && <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />}
+                                      </>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))
                         )}
                       </tbody>
                     </table>

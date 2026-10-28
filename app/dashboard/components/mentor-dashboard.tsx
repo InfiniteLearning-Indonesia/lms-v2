@@ -62,9 +62,22 @@ const MENTOR_QUOTES = [
   "Pengajaran yang hebat tidak hanya menyampaikan materi, tetapi juga menumbuhkan rasa percaya diri.",
 ];
 
+type RecapStudent = {
+  id: string;
+  name?: string | null;
+  email?: string | null;
+};
+
+type RecapClass = {
+  id: string;
+  enrolledStudents?: RecapStudent[];
+};
+
 export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardProps) {
   const [randomQuote] = useState(() => MENTOR_QUOTES[Math.floor(Math.random() * MENTOR_QUOTES.length)]);
   const [classes, setClasses] = useState<MentorClass[]>([]);
+  const [recapClasses, setRecapClasses] = useState<RecapClass[]>([]);
+  const [, setIsRecapClassesLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("classes");
@@ -677,6 +690,35 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   };
 
+  const handleSaveDirectScoresBulk = async (cells: { studentId: string; competencyId: string; score: number }[]) => {
+    if (!cells.length) return;
+    let successes = 0;
+    let failures = 0;
+    for (const { studentId, competencyId, score } of cells) {
+      try {
+        const res = await fetch(`${API_BASE_URL}/classes/competencies/scores`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ studentId, competencyId, score }),
+        });
+        if (res.ok) successes++;
+        else failures++;
+      } catch {
+        failures++;
+      }
+    }
+    await fetchCompetencyScores(selectedProgramId || classes[0]?.program?.id);
+    const message = `${successes} nilai tersimpan${failures ? `, ${failures} gagal` : ""}`;
+    // The assessment view adds its skipped-cell count to this same toast.
+    const toastOptions = { id: "mentor-assessment-bulk" };
+    if (failures) {
+      toast.error(message, toastOptions);
+      throw new Error(message);
+    }
+    toast.success(message, toastOptions);
+  };
+
   const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1198,6 +1240,35 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
   };
 
+  useEffect(() => {
+    const fetchRecapClasses = async (batchId: string) => {
+      if (!batchId) return;
+      setIsRecapClassesLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/classes/batches/${batchId}/recap-classes`, {
+          headers: { Accept: "application/json" },
+          credentials: "include",
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setRecapClasses(Array.isArray(data) ? data : []);
+        } else {
+          setRecapClasses([]);
+        }
+      } catch (err) {
+        console.error("Gagal memuat kelas rekap:", err);
+        setRecapClasses([]);
+      } finally {
+        setIsRecapClassesLoading(false);
+      }
+    };
+
+    if (activeTab === "assessment") {
+      const batchId = classes.find(c => c.id === selectedClassId)?.batchId ?? classes[0]?.batchId;
+      if (batchId) fetchRecapClasses(batchId);
+    }
+  }, [activeTab, selectedClassId, classes]);
+
   const handleSuspendStudent = async () => {
     if (!selectedStudentForSuspend) return;
     setIsSuspending(true);
@@ -1267,6 +1338,19 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     }
     return acc;
   }, []);
+
+  const recapStudents: RecapStudent[] = (() => {
+    const source: RecapStudent[] =
+      recapClasses.length > 0
+        ? recapClasses.flatMap((cls) => cls.enrolledStudents ?? [])
+        : (allStudents as RecapStudent[]);
+    const seen = new Set<string>();
+    return source.filter((student) => {
+      if (!student?.id || seen.has(student.id)) return false;
+      seen.add(student.id);
+      return true;
+    });
+  })();
 
   const totalMaterials = activeClasses.reduce((acc, cls) => acc + (cls.materials?.length || 0), 0);
   const totalAssignments = activeClasses.reduce((acc, cls) => acc + (cls.assignments?.length || 0), 0);
@@ -1909,7 +1993,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             activeSubTab="assessment"
             competencies={competencies}
             rubrikAssessments={rubrikAssessments}
-            allStudents={allStudents}
+            allStudents={recapStudents}
             onOpenAddCompetency={() => setIsAddCompetencyModalOpen(true)}
             onOpenAddRubrikAssessment={() => setIsAddRubrikAssessmentModalOpen(true)}
             setEditingCompetency={setEditingCompetency}
@@ -1933,6 +2017,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             attendanceScores={attendanceScores}
             competencyScores={competencyScores}
             handleSaveDirectCompetencyScore={handleSaveDirectCompetencyScore}
+            onSaveDirectScoresBulk={handleSaveDirectScoresBulk}
             phaseDates={phaseDates}
             setIsPhaseDatesModalOpen={setIsPhaseDatesModalOpen}
           />
