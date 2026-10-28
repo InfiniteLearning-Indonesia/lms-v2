@@ -907,21 +907,6 @@ export function MentorAssessmentView({
                   <ArrowUpDown className="w-3.5 h-3.5" />
                   {sortOrder === "asc" ? "A-Z" : "Z-A"}
                 </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-pressed={isSelectMode}
-                  onClick={() => {
-                    setIsSelectMode(prev => !prev);
-                    cancelSelection();
-                  }}
-                  className={`h-8 text-xs cursor-pointer ${isSelectMode ? "border-brand-purple bg-brand-purple/10 text-brand-purple font-bold" : "border-border"}`}
-                >
-                  Mode Salin {isSelectMode ? "Aktif" : "Nonaktif"}
-                  {!isSelectMode && pendingCount > 0 && (
-                    <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">• {pendingCount} belum disimpan</span>
-                  )}
-                </Button>
               </div>
 
               {isSelectMode && (
@@ -972,28 +957,6 @@ export function MentorAssessmentView({
 
             {!isReadOnly && (
               <div className="flex items-center gap-2">
-                <input
-                  type="file"
-                  ref={csvInputRef}
-                  onChange={handleImportCSV}
-                  accept=".csv"
-                  className="hidden"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={isImportingCSV}
-                  onClick={() => csvInputRef?.current?.click()}
-                  className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/30 hover:bg-brand-purple/5 text-brand-purple cursor-pointer"
-                >
-                  {isImportingCSV ? (
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  ) : (
-                    <Upload className="w-3.5 h-3.5" />
-                  )}
-                  Import CSV
-                </Button>
-
                 {(() => {
                   const isCurrentReleased = assessmentTab === "Micro" ? isTranscriptReleased : isCertificateReleased;
                   return (
@@ -1098,18 +1061,60 @@ export function MentorAssessmentView({
                 </TabsTrigger>
               </TabsList>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowSyllabusColumns(!showSyllabusColumns)}
-                className="h-10 px-4 text-xs flex items-center gap-2 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10 cursor-pointer font-semibold rounded-xl bg-card transition-all"
-              >
-                {showSyllabusColumns ? (
-                  <>Sembunyikan Kolom Syllabus</>
-                ) : (
-                  <>Tampilkan Kolom Syllabus</>
+              <div className="flex flex-wrap items-center gap-2">
+                {!isReadOnly && (
+                  <>
+                    <input
+                      type="file"
+                      ref={csvInputRef}
+                      onChange={handleImportCSV}
+                      accept=".csv"
+                      className="hidden"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isImportingCSV}
+                      onClick={() => csvInputRef?.current?.click()}
+                      className="h-8 text-xs flex items-center gap-1.5 border-brand-purple/30 hover:bg-brand-purple/5 text-brand-purple cursor-pointer"
+                    >
+                      {isImportingCSV ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Upload className="w-3.5 h-3.5" />
+                      )}
+                      Import CSV
+                    </Button>
+                  </>
                 )}
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-pressed={isSelectMode}
+                  onClick={() => {
+                    setIsSelectMode(prev => !prev);
+                    cancelSelection();
+                  }}
+                  className={`h-8 text-xs cursor-pointer ${isSelectMode ? "border-brand-purple bg-brand-purple/10 text-brand-purple font-bold" : "border-border"}`}
+                >
+                  Mode Salin {isSelectMode ? "Aktif" : "Nonaktif"}
+                  {!isSelectMode && pendingCount > 0 && (
+                    <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">• {pendingCount} belum disimpan</span>
+                  )}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSyllabusColumns(!showSyllabusColumns)}
+                  className="h-10 px-4 text-xs flex items-center gap-2 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10 cursor-pointer font-semibold rounded-xl bg-card transition-all"
+                >
+                  {showSyllabusColumns ? (
+                    <>Sembunyikan Kolom Syllabus</>
+                  ) : (
+                    <>Tampilkan Kolom Syllabus</>
+                  )}
+                </Button>
+              </div>
             </div>
 
             {["Micro", "Massive"].map((phase) => {
