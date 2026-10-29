@@ -725,7 +725,7 @@ export function MentorAssessmentView({
     const directMatch = competencyScores.find(s => s.studentId === student.id && s.competencyId === column.competency.id);
     const finalScore: number = directMatch !== undefined ? directMatch.score : calculateCompetencyScore(student.id, column.competency.id);
     const pendingScore = pendingScores[`${student.id}:${column.competency.id}`];
-    return { value: pendingScore !== undefined ? pendingScore.toFixed(1) : ensureMinScore(finalScore).toFixed(1), score: finalScore, title: "Klik untuk menginput/mengubah nilai secara langsung" };
+    return { value: pendingScore !== undefined ? pendingScore.toFixed(1) : ensureMinScore(finalScore).toFixed(1), score: finalScore, title: "Dobel klik untuk menginput/mengubah nilai secara langsung" };
   };
 
   const activeColumns = getColumns(assessmentTab);
@@ -904,10 +904,10 @@ export function MentorAssessmentView({
     setFocus(cell);
   };
 
-  const handleCellMouseUp = (event: React.MouseEvent<HTMLTableCellElement>) => {
-    const start = dragStart.current;
+  const handleCellDoubleClick = (event: React.MouseEvent<HTMLTableCellElement>) => {
+    if (event.button !== 0 || didDrag.current || event.shiftKey) return;
     const selectedCell = getEventCell(event);
-    if (event.button !== 0 || !start || !selectedCell || start.row !== selectedCell.row || start.col !== selectedCell.col || didDrag.current || event.shiftKey) return;
+    if (!selectedCell) return;
     const student = paginatedStudents[selectedCell.row];
     const column = activeColumns[selectedCell.col];
     if (student && column?.source === "competency") {
@@ -944,40 +944,36 @@ export function MentorAssessmentView({
 
             <div className="flex flex-wrap items-center gap-3">
               {/* Search & Sort UI */}
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Cari nama mentee..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full sm:w-48 bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple"
-                  />
-                  {searchQuery && (
-                    <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                      <X className="w-3 h-3" />
-                    </button>
-                  )}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Cari nama mentee..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="w-full sm:w-48 bg-card border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-1 focus:ring-brand-purple"
+                    />
+                    {searchQuery && (
+                      <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
+                    className="h-8 px-2 text-xs border-border flex items-center gap-1 cursor-pointer"
+                    title="Urutkan berdasarkan nama"
+                  >
+                    <ArrowUpDown className="w-3.5 h-3.5" />
+                    {sortOrder === "asc" ? "A-Z" : "Z-A"}
+                  </Button>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setSortOrder(prev => prev === "asc" ? "desc" : "asc")}
-                  className="h-8 px-2 text-xs border-border flex items-center gap-1 cursor-pointer"
-                  title="Urutkan berdasarkan nama"
-                >
-                  <ArrowUpDown className="w-3.5 h-3.5" />
-                  {sortOrder === "asc" ? "A-Z" : "Z-A"}
-                </Button>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" disabled={!rectangle} onClick={() => void copySelection()}>Salin</Button>
-                <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" disabled={isPasting || isSavingPending || isReadOnly || !onSaveDirectScoresBulk} onClick={() => void pasteSelection()}>
-                  {isPasting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  Tempel
-                </Button>
-                <p className="w-full text-xs text-muted-foreground">Drag atau Shift+klik untuk pilih sel, Ctrl/Cmd+C salin, Ctrl/Cmd+V tempel</p>
+                {!isReadOnly && (
+                  <p className="text-[11px] text-muted-foreground">Drag atau Shift+klik untuk pilih sel, Ctrl/Cmd+C salin, Ctrl/Cmd+V tempel, dobel klik untuk input nilai</p>
+                )}
               </div>
 
               {uniquePrograms.length > 1 && setSelectedProgramId && (
@@ -1260,7 +1256,7 @@ export function MentorAssessmentView({
                                     title={hasPendingScore ? "Belum disimpan, tekan Simpan" : cell.title}
                                     onMouseDown={handleCellMouseDown}
                                     onMouseMove={handleCellMouseMove}
-                                    onMouseUp={handleCellMouseUp}
+                                    onDoubleClick={column.kind === "editable" ? handleCellDoubleClick : undefined}
                                   >
                                     {column.source === "mentee" ? (
                                       <>
@@ -1271,7 +1267,6 @@ export function MentorAssessmentView({
                                       <>
                                         {cell.value}
                                         {hasPendingScore && <span className="ml-1" aria-label="Belum disimpan, tekan Simpan">•</span>}
-                                        {column.kind === "editable" && <Pencil className="w-2.5 h-2.5 inline-block ml-1 opacity-40" />}
                                       </>
                                     )}
                                   </td>
