@@ -4,7 +4,7 @@ import { API_BASE_URL } from "@/lib/config";
 
 import Link from "next/link";
 import React, { useState, useEffect, useMemo, useRef } from "react";
-import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText, AlertTriangle, ShieldAlert, X, CheckCircle2, ArrowUpDown } from "lucide-react";
+import { FileSpreadsheet, Loader2, Pencil, Plus, Settings, Trash2, Upload, Award, Calendar, FileText, AlertTriangle, ShieldAlert, X, CheckCircle2, ArrowUpDown, TriangleAlert, Save } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -125,7 +125,6 @@ export function MentorAssessmentView({
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [showSyllabusColumns, setShowSyllabusColumns] = useState(true);
-  const [isSelectMode, setIsSelectMode] = useState(false);
   const [anchor, setAnchor] = useState<GradebookCell | null>(null);
   const [focus, setFocus] = useState<GradebookCell | null>(null);
   const [selectionContext, setSelectionContext] = useState("");
@@ -134,12 +133,20 @@ export function MentorAssessmentView({
   const [isSavingPending, setIsSavingPending] = useState(false);
   const pendingCount = Object.keys(pendingScores).length;
   const isDragging = useRef(false);
+  const dragStart = useRef<{ x: number; y: number; row: number; col: number } | null>(null);
+  const didDrag = useRef(false);
+  const dragTable = useRef<HTMLTableElement | null>(null);
   const pasteInProgress = useRef(false);
   const pasteOperation = useRef(0);
 
   useEffect(() => {
-    if (!isSelectMode || activeSubTab !== "assessment") return;
-    const stopDragging = () => { isDragging.current = false; };
+    if (activeSubTab !== "assessment") return;
+    const stopDragging = () => {
+      isDragging.current = false;
+      dragStart.current = null;
+      dragTable.current?.classList.remove("select-none");
+      dragTable.current = null;
+    };
     window.addEventListener("mouseup", stopDragging);
     window.addEventListener("blur", stopDragging);
     return () => {
@@ -147,7 +154,7 @@ export function MentorAssessmentView({
       window.removeEventListener("mouseup", stopDragging);
       window.removeEventListener("blur", stopDragging);
     };
-  }, [isSelectMode, activeSubTab]);
+  }, [activeSubTab]);
 
   const filteredAndSortedStudents = useMemo(() => {
     let result = [...allStudents];
@@ -732,6 +739,9 @@ export function MentorAssessmentView({
 
   const cancelSelection = () => {
     isDragging.current = false;
+    dragStart.current = null;
+    dragTable.current?.classList.remove("select-none");
+    dragTable.current = null;
     setAnchor(null);
     setFocus(null);
   };
@@ -764,7 +774,7 @@ export function MentorAssessmentView({
   };
 
   const copySelection = async () => {
-    if (!isSelectMode || !rectangle) return;
+    if (!rectangle) return;
     const rows: string[] = [];
     for (let row = rectangle.top; row <= rectangle.bottom; row++) {
       const student = paginatedStudents[row];
@@ -780,7 +790,7 @@ export function MentorAssessmentView({
   };
 
   const pasteSelection = async () => {
-    if (!isSelectMode || isReadOnly || !onSaveDirectScoresBulk || isSavingPending || pasteInProgress.current) return;
+    if (isReadOnly || !onSaveDirectScoresBulk || isSavingPending || pasteInProgress.current) return;
     pasteInProgress.current = true;
     const operation = ++pasteOperation.current;
     setIsPasting(true);
@@ -845,7 +855,6 @@ export function MentorAssessmentView({
       void savePendingScores();
       return;
     }
-    if (!isSelectMode) return;
     if (event.key === "Escape") {
       event.preventDefault();
       cancelSelection();
@@ -858,6 +867,59 @@ export function MentorAssessmentView({
     } else if (event.key.toLowerCase() === "v" && !isReadOnly && onSaveDirectScoresBulk) {
       event.preventDefault();
       void pasteSelection();
+    }
+  };
+
+  const getEventCell = (event: React.MouseEvent<HTMLTableCellElement>): GradebookCell | null => {
+    const key = event.currentTarget.dataset.cellKey;
+    if (!key) return null;
+    const [row, col] = key.split(":").map(Number);
+    return { row, col };
+  };
+
+  const handleCellMouseDown = (event: React.MouseEvent<HTMLTableCellElement>) => {
+    if (event.button !== 0) return;
+    const cell = getEventCell(event);
+    if (!cell) return;
+    event.preventDefault();
+    event.currentTarget.closest("table")?.focus({ preventScroll: true });
+    dragStart.current = { x: event.clientX, y: event.clientY, ...cell };
+    didDrag.current = false;
+    isDragging.current = false;
+    setSelectionContext(viewContext);
+    if (!event.shiftKey || !hasSelection) setAnchor(cell);
+    setFocus(cell);
+  };
+
+  const handleCellMouseMove = (event: React.MouseEvent<HTMLTableCellElement>) => {
+    const start = dragStart.current;
+    if (!start || event.buttons !== 1) return;
+    if (!didDrag.current && Math.hypot(event.clientX - start.x, event.clientY - start.y) <= 4) return;
+    const cell = getEventCell(event);
+    if (!cell) return;
+    didDrag.current = true;
+    isDragging.current = true;
+    dragTable.current = event.currentTarget.closest("table");
+    dragTable.current?.classList.add("select-none");
+    setFocus(cell);
+  };
+
+  const handleCellMouseUp = (event: React.MouseEvent<HTMLTableCellElement>) => {
+    const start = dragStart.current;
+    const selectedCell = getEventCell(event);
+    if (event.button !== 0 || !start || !selectedCell || start.row !== selectedCell.row || start.col !== selectedCell.col || didDrag.current || event.shiftKey) return;
+    const student = paginatedStudents[selectedCell.row];
+    const column = activeColumns[selectedCell.col];
+    if (student && column?.source === "competency") {
+      const cell = getCellData(student, column, assessmentTab);
+      setDirectScoreModal({
+        isOpen: true,
+        studentId: student.id,
+        studentName: student.name || "",
+        compId: column.competency.id,
+        compName: column.competency.name || "",
+        scoreInput: cell.score?.toString() || "",
+      });
     }
   };
 
@@ -909,29 +971,14 @@ export function MentorAssessmentView({
                 </Button>
               </div>
 
-              {isSelectMode && (
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" disabled={!rectangle} onClick={() => void copySelection()}>Salin</Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" disabled={isPasting || isSavingPending || isReadOnly || !onSaveDirectScoresBulk} onClick={() => void pasteSelection()}>
-                    {isPasting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    Tempel
-                  </Button>
-                  <p className="w-full text-xs text-muted-foreground">Klik/Shift+klik pilih sel, Ctrl/Cmd+C salin, Ctrl/Cmd+V tempel, Ctrl/Cmd+Enter simpan</p>
-                </div>
-              )}
-
-              {pendingCount > 0 && (
-                <div className="flex flex-wrap items-center gap-2 rounded-lg border border-amber-500/40 bg-amber-500/5 px-2 py-1">
-                  <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">
-                    {pendingCount} nilai belum disimpan
-                  </span>
-                  <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer border-amber-500/50 text-amber-700 dark:text-amber-300" disabled={isSavingPending || isReadOnly || !onSaveDirectScoresBulk} onClick={() => void savePendingScores()}>
-                    {isSavingPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    Simpan
-                  </Button>
-                  <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" onClick={cancelPendingScores}>Batal</Button>
-                </div>
-              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" disabled={!rectangle} onClick={() => void copySelection()}>Salin</Button>
+                <Button variant="outline" size="sm" className="h-8 text-xs cursor-pointer" disabled={isPasting || isSavingPending || isReadOnly || !onSaveDirectScoresBulk} onClick={() => void pasteSelection()}>
+                  {isPasting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Tempel
+                </Button>
+                <p className="w-full text-xs text-muted-foreground">Drag atau Shift+klik untuk pilih sel, Ctrl/Cmd+C salin, Ctrl/Cmd+V tempel</p>
+              </div>
 
               {uniquePrograms.length > 1 && setSelectedProgramId && (
                 <div className="flex items-center gap-2 text-sm">
@@ -1090,21 +1137,6 @@ export function MentorAssessmentView({
                 <Button
                   variant="outline"
                   size="sm"
-                  aria-pressed={isSelectMode}
-                  onClick={() => {
-                    setIsSelectMode(prev => !prev);
-                    cancelSelection();
-                  }}
-                  className={`h-8 text-xs cursor-pointer ${isSelectMode ? "border-brand-purple bg-brand-purple/10 text-brand-purple font-bold" : "border-border"}`}
-                >
-                  Mode Salin {isSelectMode ? "Aktif" : "Nonaktif"}
-                  {!isSelectMode && pendingCount > 0 && (
-                    <span className="rounded bg-amber-500/10 px-1.5 py-0.5 text-amber-600 dark:text-amber-400">• {pendingCount} belum disimpan</span>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
                   onClick={() => setShowSyllabusColumns(!showSyllabusColumns)}
                   className="h-10 px-4 text-xs flex items-center gap-2 border-brand-purple/30 text-brand-purple hover:bg-brand-purple/10 cursor-pointer font-semibold rounded-xl bg-card transition-all"
                 >
@@ -1121,38 +1153,36 @@ export function MentorAssessmentView({
               const columns = phase === assessmentTab ? activeColumns : getColumns(phase);
 
               return (
-                <TabsContent key={phase} value={phase} className="space-y-6">
+                <TabsContent key={phase} value={phase} className={`space-y-6 ${pendingCount > 0 ? "pb-28" : ""}`}>
                   <div className="overflow-x-auto border border-border rounded-xl">
                     <table
-                      className={`w-full text-sm text-left whitespace-nowrap ${isSelectMode ? "select-none focus-visible:outline-2 focus-visible:outline-brand-purple" : ""}`}
-                      tabIndex={isSelectMode ? 0 : undefined}
+                      className="w-full text-sm text-left whitespace-nowrap focus-visible:outline-2 focus-visible:outline-brand-purple"
+                      tabIndex={0}
                       aria-label={`Gradebook ${phase === "Micro" ? "Initial" : "Final"}`}
                       aria-busy={isPasting}
                     >
                       <thead className="bg-muted/50 border-b border-border text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        {isSelectMode && (
-                          <tr className="border-b border-brand-purple/20 bg-brand-purple/5 normal-case tracking-normal">
-                            {columns.map((column, col) => (
-                              <th key={column.key} className={`px-2 py-1 ${column.source === "mentee" ? "sticky left-0 z-10 bg-muted" : ""}`}>
-                                <button
-                                  type="button"
-                                  disabled={!paginatedStudents.length}
-                                  title={`Pilih seluruh kolom ${column.label} pada halaman ini`}
-                                  aria-label={`Pilih kolom ${column.label}`}
-                                  className="block w-full max-w-36 truncate rounded px-2 py-1 text-xs text-brand-purple cursor-pointer hover:bg-brand-purple/10 focus-visible:outline-2 focus-visible:outline-brand-purple disabled:opacity-50 disabled:cursor-default"
-                                  onClick={() => {
-                                    isDragging.current = false;
-                                    setSelectionContext(viewContext);
-                                    setAnchor({ row: 0, col });
-                                    setFocus({ row: paginatedStudents.length - 1, col });
-                                  }}
-                                >
-                                  {column.label}
-                                </button>
-                              </th>
-                            ))}
-                          </tr>
-                        )}
+                        <tr className="border-b border-brand-purple/20 bg-brand-purple/5 normal-case tracking-normal">
+                          {columns.map((column, col) => (
+                            <th key={column.key} className={`px-2 py-1 ${column.source === "mentee" ? "sticky left-0 z-10 bg-muted" : ""}`}>
+                              <button
+                                type="button"
+                                disabled={!paginatedStudents.length}
+                                title={`Pilih seluruh kolom ${column.label} pada halaman ini`}
+                                aria-label={`Pilih kolom ${column.label}`}
+                                className="block w-full max-w-36 truncate rounded px-2 py-1 text-xs text-brand-purple cursor-pointer hover:bg-brand-purple/10 focus-visible:outline-2 focus-visible:outline-brand-purple disabled:opacity-50 disabled:cursor-default"
+                                onClick={() => {
+                                  isDragging.current = false;
+                                  setSelectionContext(viewContext);
+                                  setAnchor({ row: 0, col });
+                                  setFocus({ row: paginatedStudents.length - 1, col });
+                                }}
+                              >
+                                {column.label}
+                              </button>
+                            </th>
+                          ))}
+                        </tr>
                         <tr>
                           {columns.map(column => {
                             if (column.source === "mentee") {
@@ -1173,7 +1203,6 @@ export function MentorAssessmentView({
                                 key={column.key}
                                 className={`px-4 py-3 cursor-pointer transition-colors text-center ${headerClassName}`}
                                 onClick={() => {
-                                  if (isSelectMode) return;
                                   if (column.source === "rubric") setEditingWeightRubrikAssessment?.(column.rubric);
                                   else setEditingWeightCompetency(column.competency);
                                 }}
@@ -1206,7 +1235,7 @@ export function MentorAssessmentView({
                               {columns.map((column, col) => {
                                 const cell = getCellData(student, column, phase);
                                 const hasPendingScore = column.kind === "editable" && pendingScores[`${student.id}:${column.competency.id}`] !== undefined;
-                                const selected = isSelectMode && phase === assessmentTab && rectangle !== null && row >= rectangle.top && row <= rectangle.bottom && col >= rectangle.left && col <= rectangle.right;
+                                const selected = phase === assessmentTab && rectangle !== null && row >= rectangle.top && row <= rectangle.bottom && col >= rectangle.left && col <= rectangle.right;
                                 const cellClassName = column.source === "mentee"
                                   ? "sticky left-0 z-10 shadow-[1px_0_0_0_#e5e7eb] dark:shadow-[1px_0_0_0_#262626]"
                                   : column.source === "attendance"
@@ -1227,35 +1256,11 @@ export function MentorAssessmentView({
                                     key={column.key}
                                     data-cell-key={cellKey(row, col)}
                                     data-selected={selected || undefined}
-                                    className={`px-4 py-3 transition-colors ${cellClassName} ${backgroundClassName} ${isSelectMode ? "cursor-cell" : column.kind === "editable" ? "cursor-pointer" : column.source === "attendance" || column.source === "oncam" ? "cursor-help" : ""}`}
-                                    title={hasPendingScore ? "Belum disimpan, tekan Simpan" : isSelectMode ? `${column.label}: ${cell.value}` : cell.title}
-                                    onMouseDown={event => {
-                                      if (!isSelectMode || event.button !== 0) return;
-                                      event.preventDefault();
-                                      event.currentTarget.closest("table")?.focus({ preventScroll: true });
-                                      isDragging.current = true;
-                                      setSelectionContext(viewContext);
-                                      if (!event.shiftKey || !hasSelection) setAnchor({ row, col });
-                                      setFocus({ row, col });
-                                    }}
-                                    onMouseEnter={event => {
-                                      if (isSelectMode && isDragging.current && event.buttons === 1 && hasSelection) setFocus({ row, col });
-                                    }}
-                                    onClick={() => {
-                                      if (isSelectMode) return;
-                                      if (column.source === "attendance" || column.source === "oncam") {
-                                        toast.info("Nilai kehadiran terisi otomatis dari rekap absensi.");
-                                      } else if (column.source === "competency") {
-                                        setDirectScoreModal({
-                                          isOpen: true,
-                                          studentId: student.id,
-                                          studentName: student.name || "",
-                                          compId: column.competency.id,
-                                          compName: column.competency.name || "",
-                                          scoreInput: cell.score?.toString() || "",
-                                        });
-                                      }
-                                    }}
+                                    className={`px-4 py-3 transition-colors ${cellClassName} ${backgroundClassName} ${column.kind === "editable" ? "cursor-pointer" : "cursor-cell"}`}
+                                    title={hasPendingScore ? "Belum disimpan, tekan Simpan" : cell.title}
+                                    onMouseDown={handleCellMouseDown}
+                                    onMouseMove={handleCellMouseMove}
+                                    onMouseUp={handleCellMouseUp}
                                   >
                                     {column.source === "mentee" ? (
                                       <>
@@ -1312,6 +1317,34 @@ export function MentorAssessmentView({
             })}
           </Tabs>
         </CardContent>
+        {pendingCount > 0 && (
+          <div
+            className="fixed bottom-5 left-1/2 z-50 w-[min(92vw,640px)] -translate-x-1/2 rounded-xl border border-amber-500/50 bg-card/95 px-4 py-3 shadow-2xl backdrop-blur supports-[backdrop-filter]:bg-card/80"
+            role="status"
+            aria-live="polite"
+          >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-2">
+                <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <p className="text-sm font-semibold text-foreground">
+                    Kamu memiliki {pendingCount} perubahan nilai yang belum disimpan
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Tekan Simpan untuk menerapkan, atau Batal untuk mengembalikan nilai asli.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 sm:shrink-0">
+                <Button size="sm" onClick={() => void savePendingScores()} disabled={isSavingPending || isReadOnly || !onSaveDirectScoresBulk}>
+                  {isSavingPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                  Simpan
+                </Button>
+                <Button size="sm" variant="outline" onClick={cancelPendingScores}>Batal</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* ── WARNING MODAL: RILIS SERTIFIKAT & TRANSKRIP ── */}
