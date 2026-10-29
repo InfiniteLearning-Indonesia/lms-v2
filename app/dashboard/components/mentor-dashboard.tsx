@@ -692,6 +692,29 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
   const handleSaveDirectScoresBulk = async (cells: { studentId: string; competencyId: string; score: number }[]) => {
     if (!cells.length) return;
+    const toastOptions = { id: "mentor-assessment-bulk" };
+    try {
+      const res = await fetch(`${API_BASE_URL}/classes/competencies/scores/bulk`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ scores: cells }),
+      });
+      if (res.ok) {
+        const result: { saved: number; skipped: number } = await res.json();
+        toast.success(`${result.saved} nilai tersimpan${result.skipped ? `, ${result.skipped} dilewati` : ""}`, toastOptions);
+        await fetchCompetencyScores(selectedProgramId || classes[0]?.program?.id);
+        return;
+      }
+      if (res.status !== 404 && res.status !== 405) {
+        throw new Error("Gagal menyimpan nilai. Silakan coba lagi.");
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Gagal menyimpan nilai. Silakan coba lagi.";
+      toast.error(message, toastOptions);
+      throw new Error(message);
+    }
+
     let successes = 0;
     let failures = 0;
     for (const { studentId, competencyId, score } of cells) {
@@ -711,7 +734,6 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
     await fetchCompetencyScores(selectedProgramId || classes[0]?.program?.id);
     const message = `${successes} nilai tersimpan${failures ? `, ${failures} gagal` : ""}`;
     // The assessment view adds its skipped-cell count to this same toast.
-    const toastOptions = { id: "mentor-assessment-bulk" };
     if (failures) {
       toast.error(message, toastOptions);
       throw new Error(message);
