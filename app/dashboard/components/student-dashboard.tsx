@@ -41,6 +41,9 @@ import {
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 
+const jakartaMonthKey = (value: string | Date) =>
+  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit' }).format(new Date(value));
+
 const STUDENT_QUOTES = [
   "Setiap langkah kecil yang Anda ambil hari ini mendekatkan Anda pada impian menjadi ahli teknologi.",
   "Konsistensi dalam belajar dan menyelesaikan tugas adalah kunci kesuksesan di dunia profesional.",
@@ -203,12 +206,19 @@ export function StudentDashboard({ profile, onProfileUpdate }: StudentDashboardP
         return res.json();
       })
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const maxSp = Math.max(...data.map((d: any) => d.spLevel || 0));
+        if (Array.isArray(data)) {
+          const currentMonthKey = jakartaMonthKey(new Date());
+          const currentMonthRows: { date: string; spLevel?: number }[] = data.filter(
+            (d) => jakartaMonthKey(d.date) === currentMonthKey
+          );
+          const maxSp = currentMonthRows.reduce((max, d) => Math.max(max, d.spLevel || 0), 0);
           if (maxSp >= 1 && maxSp <= 3) {
             setGlobalSpLevel(maxSp);
             setGlobalSpPopupOpen(true);
             setGlobalSpCountdown(10);
+          } else {
+            setGlobalSpPopupOpen(false);
+            setGlobalSpLevel(0);
           }
         }
       })
