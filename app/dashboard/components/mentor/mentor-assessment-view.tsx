@@ -35,6 +35,7 @@ export interface ProgramRecap {
     value: boolean;
     at: string | null;
     by: string | { id?: string; name?: string | null } | null;
+    byName: string | null;
   };
   certificateReleased: ProgramRecap["transcriptReleased"];
   completeness: {
@@ -231,9 +232,7 @@ export function MentorAssessmentView({
   const needsMassiveConfirmation = assessmentTab === "Massive" && incompleteMassiveCount > 0;
   const incompleteMassiveStudents = recap?.students.filter(student => student.missingMassiveCount > 0) ?? [];
   const activeRelease = assessmentTab === "Micro" ? recap?.transcriptReleased : recap?.certificateReleased;
-  const releasedBy = typeof activeRelease?.by === "string"
-    ? activeRelease.by
-    : activeRelease?.by?.name || activeRelease?.by?.id || "—";
+  const releasedBy = activeRelease?.byName?.trim() || "Tidak diketahui";
 
   useEffect(() => {
     let timer: any;
