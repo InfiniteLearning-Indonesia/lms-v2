@@ -28,7 +28,35 @@ type GradebookColumn = {
 
 const cellKey = (row: number, col: number) => `${row}:${col}`;
 
+export interface ProgramRecap {
+  program: { id: string; name: string };
+  canRelease: boolean;
+  transcriptReleased: {
+    value: boolean;
+    at: string | null;
+    by: string | { id?: string; name?: string | null } | null;
+  };
+  certificateReleased: ProgramRecap["transcriptReleased"];
+  completeness: {
+    totalStudents: number;
+    studentsWithMassiveComplete: number;
+    studentsWithMassiveIncomplete: number;
+  };
+  students: Array<{
+    id: string;
+    name: string;
+    className: string;
+    totalMicroScore: number;
+    totalMassiveScore: number;
+    finalScore: number;
+    predicate: string;
+    missingMassiveCount: number;
+  }>;
+}
+
 interface MentorAssessmentViewProps {
+  recap?: ProgramRecap | null;
+  onRefetchRecap?: () => void;
   programCompetencies?: any[];
   fetchProgramCompetencies?: () => void;
   competencies: CompetencyItem[];
@@ -69,6 +97,8 @@ interface MentorAssessmentViewProps {
 }
 
 export function MentorAssessmentView({
+  recap = null,
+  onRefetchRecap,
   programCompetencies = [],
   fetchProgramCompetencies,
   competencies,
@@ -108,16 +138,19 @@ export function MentorAssessmentView({
   setIsPhaseDatesModalOpen,
 }: MentorAssessmentViewProps) {
   const [assessmentTab, setAssessmentTab] = useState<"Micro" | "Massive">("Micro");
-  const [isTranscriptReleased, setIsTranscriptReleased] = useState<boolean>(Boolean(initialIsTranscriptReleased));
-  const [isCertificateReleased, setIsCertificateReleased] = useState<boolean>(Boolean(initialIsCertificateReleased));
+  const transcriptReleasedValue = recap?.transcriptReleased.value ?? initialIsTranscriptReleased;
+  const certificateReleasedValue = recap?.certificateReleased.value ?? initialIsCertificateReleased;
+  const [isTranscriptReleased, setIsTranscriptReleased] = useState<boolean>(Boolean(transcriptReleasedValue));
+  const [isCertificateReleased, setIsCertificateReleased] = useState<boolean>(Boolean(certificateReleasedValue));
+  const [isRecapOpen, setIsRecapOpen] = useState(false);
 
   useEffect(() => {
-    setIsTranscriptReleased(Boolean(initialIsTranscriptReleased));
-  }, [initialIsTranscriptReleased]);
+    setIsTranscriptReleased(Boolean(transcriptReleasedValue));
+  }, [transcriptReleasedValue, selectedProgramId]);
 
   useEffect(() => {
-    setIsCertificateReleased(Boolean(initialIsCertificateReleased));
-  }, [initialIsCertificateReleased]);
+    setIsCertificateReleased(Boolean(certificateReleasedValue));
+  }, [certificateReleasedValue, selectedProgramId]);
   const [internalActiveRubrikTab, setInternalActiveRubrikTab] = useState("kompetensi");
   const activeRubrikTab = externalActiveRubrikTab || internalActiveRubrikTab;
   const setActiveRubrikTab = externalSetActiveRubrikTab || setInternalActiveRubrikTab;
@@ -193,6 +226,14 @@ export function MentorAssessmentView({
   const [isReleaseModalOpen, setIsReleaseModalOpen] = useState(false);
   const [releaseCountdown, setReleaseCountdown] = useState(5);
   const [isSubmittingRelease, setIsSubmittingRelease] = useState(false);
+  const [hasConfirmedIncompleteMassive, setHasConfirmedIncompleteMassive] = useState(false);
+  const incompleteMassiveCount = recap?.completeness.studentsWithMassiveIncomplete ?? 0;
+  const needsMassiveConfirmation = assessmentTab === "Massive" && incompleteMassiveCount > 0;
+  const incompleteMassiveStudents = recap?.students.filter(student => student.missingMassiveCount > 0) ?? [];
+  const activeRelease = assessmentTab === "Micro" ? recap?.transcriptReleased : recap?.certificateReleased;
+  const releasedBy = typeof activeRelease?.by === "string"
+    ? activeRelease.by
+    : activeRelease?.by?.name || activeRelease?.by?.id || "—";
 
   useEffect(() => {
     let timer: any;
@@ -999,13 +1040,15 @@ export function MentorAssessmentView({
             </div>
 
             {!isReadOnly && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col items-start gap-2" title={recap?.canRelease === false ? "Hanya Head Program yang dapat merilis dokumen ini" : undefined}>
                 {(() => {
                   const isCurrentReleased = assessmentTab === "Micro" ? isTranscriptReleased : isCertificateReleased;
                   return (
                     <Button
                       variant={isCurrentReleased ? "outline" : "default"}
                       size="sm"
+                      disabled={recap?.canRelease === false}
+                      title={recap?.canRelease === false ? "Hanya Head Program yang dapat merilis dokumen ini" : undefined}
                       onClick={() => {
                         if (!selectedProgramId) {
                           toast.error("Silakan pilih program terlebih dahulu.");
@@ -1019,6 +1062,7 @@ export function MentorAssessmentView({
                           return;
                         }
 
+                        setHasConfirmedIncompleteMassive(false);
                         setReleaseCountdown(5);
                         setIsReleaseModalOpen(true);
                       }}
@@ -1051,6 +1095,20 @@ export function MentorAssessmentView({
                     </Button>
                   );
                 })()}
+                {activeRelease?.value && (
+                  <p className="text-xs text-muted-foreground">
+                    Dirilis oleh {releasedBy} pada {activeRelease.at
+                      ? `${new Date(activeRelease.at).toLocaleString("id-ID", {
+                          timeZone: "Asia/Jakarta",
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })} WIB`
+                      : "—"}
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -1311,6 +1369,60 @@ export function MentorAssessmentView({
               );
             })}
           </Tabs>
+          {activeSubTab === "assessment" && recap && (
+            <section className="rounded-xl border border-border bg-card" aria-label={`Rekap Program ${recap.program.name}`}>
+              <div className="flex flex-wrap items-center justify-between gap-3 p-4">
+                <div className="space-y-2">
+                  <h3 className="text-sm font-bold text-foreground">Rekap Program {recap.program.name}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge variant="secondary">Total siswa: {recap.completeness.totalStudents}</Badge>
+                    <Badge variant="outline">Massive lengkap: {recap.completeness.studentsWithMassiveComplete}</Badge>
+                    <Badge variant="outline">Belum lengkap: {recap.completeness.studentsWithMassiveIncomplete}</Badge>
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-expanded={isRecapOpen}
+                  aria-controls="program-recap-table"
+                  onClick={() => setIsRecapOpen(open => !open)}
+                >
+                  {isRecapOpen ? "Sembunyikan rekap" : "Lihat rekap"}
+                </Button>
+              </div>
+              {isRecapOpen && (
+                <div id="program-recap-table" className="overflow-x-auto border-t border-border">
+                  <table className="w-full text-xs text-left">
+                    <thead className="bg-muted/30 text-muted-foreground">
+                      <tr>
+                        {["Nama", "Kelas", "Micro", "Massive", "Nilai Akhir", "Predikat", "Item Kurang"].map(label => (
+                          <th key={label} scope="col" className="px-4 py-3 whitespace-nowrap font-semibold">{label}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {recap.students.map(student => (
+                        <tr key={student.id}>
+                          <td className="px-4 py-3 font-medium">{student.name}</td>
+                          <td className="px-4 py-3">{student.className}</td>
+                          <td className="px-4 py-3 tabular-nums">{Number(student.totalMicroScore).toFixed(1)}</td>
+                          <td className="px-4 py-3 tabular-nums">{Number(student.totalMassiveScore).toFixed(1)}</td>
+                          <td className="px-4 py-3 tabular-nums">{Number(student.finalScore).toFixed(1)}</td>
+                          <td className="px-4 py-3">{student.predicate}</td>
+                          <td className={`px-4 py-3 tabular-nums ${student.missingMassiveCount > 0 ? "font-semibold text-amber-700 dark:text-amber-400" : "text-muted-foreground"}`}>
+                            {student.missingMassiveCount}
+                          </td>
+                        </tr>
+                      ))}
+                      {recap.students.length === 0 && (
+                        <tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">Belum ada siswa pada program ini.</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
         </CardContent>
         {pendingCount > 0 && (
           <div
@@ -1345,7 +1457,7 @@ export function MentorAssessmentView({
       {/* ── WARNING MODAL: RILIS SERTIFIKAT & TRANSKRIP ── */}
       {isReleaseModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-xs">
-          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-card border border-border rounded-2xl shadow-2xl max-w-lg w-full max-h-[90dvh] overflow-y-auto p-6 space-y-5 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-start justify-between border-b border-border pb-3">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-amber-500/10 text-amber-600 rounded-xl border border-amber-500/20 shrink-0">
@@ -1392,6 +1504,25 @@ export function MentorAssessmentView({
               );
             })()}
 
+            {needsMassiveConfirmation && (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-3 text-xs text-amber-800 dark:text-amber-300">
+                <p className="font-semibold">{incompleteMassiveCount} mentee belum memiliki nilai Massive lengkap</p>
+                <ul className="list-disc pl-4 space-y-1">
+                  {incompleteMassiveStudents.slice(0, 10).map(student => <li key={student.id}>{student.name}</li>)}
+                </ul>
+                {incompleteMassiveCount > 10 && <p>+ {incompleteMassiveCount - 10} lainnya</p>}
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasConfirmedIncompleteMassive}
+                    onChange={event => setHasConfirmedIncompleteMassive(event.target.checked)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-brand-purple"
+                  />
+                  <span>Saya mengerti dan tetap ingin merilis sertifikat</span>
+                </label>
+              </div>
+            )}
+
             <div className="flex items-center justify-end gap-3 pt-3 border-t border-border">
               <Button
                 variant="outline"
@@ -1406,9 +1537,9 @@ export function MentorAssessmentView({
               <Button
                 variant="default"
                 size="sm"
-                disabled={releaseCountdown > 0 || isSubmittingRelease}
+                disabled={releaseCountdown > 0 || isSubmittingRelease || recap?.canRelease === false || (needsMassiveConfirmation && !hasConfirmedIncompleteMassive)}
                 onClick={async () => {
-                  if (!selectedProgramId) return;
+                  if (!selectedProgramId || recap?.canRelease === false || (needsMassiveConfirmation && !hasConfirmedIncompleteMassive)) return;
                   setIsSubmittingRelease(true);
                   const endpoint = assessmentTab === "Micro"
                     ? `${API_BASE_URL}/classes/programs/${selectedProgramId}/release-transcript`
@@ -1426,6 +1557,7 @@ export function MentorAssessmentView({
                       if (onToggleReleaseCertificate) {
                         onToggleReleaseCertificate(Boolean(d.isCertificateReleased));
                       }
+                      onRefetchRecap?.();
                       setIsReleaseModalOpen(false);
                       if (assessmentTab === "Micro") {
                         toast.success(d.isTranscriptReleased ? "Transkrip Nilai (Micro) berhasil dirilis untuk mentee!" : "Rilis Transkrip Nilai ditarik kembali.");

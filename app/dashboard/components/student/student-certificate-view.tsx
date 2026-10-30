@@ -46,6 +46,10 @@ interface GradeData {
   totalMassiveScore: number;
   finalScore: number;
   predicate: string;
+  locked?: boolean;
+  lockReason?: string | null;
+  certificateLocked?: boolean;
+  certificateLockReason?: string | null;
   isCertificateReleased?: boolean;
   isTranscriptReleased?: boolean;
   logbookCompletionStatus?: {
@@ -342,35 +346,31 @@ export function StudentCertificateView({ profile }: { profile: any }) {
 
   const activeGrade = gradesData[selectedProgramIndex] || gradesData[0];
 
-  let isBlocked = false;
+  const isBlocked = Boolean(subTab === "transcript" ? activeGrade.locked : activeGrade.certificateLocked);
   let blockTitle = "";
   let blockMessage = "";
   let blockReason = "";
 
-  if (subTab === "transcript") {
-    if (!activeGrade?.isTranscriptReleased) {
-      isBlocked = true;
-      blockTitle = "Transkrip Nilai Belum Dirilis oleh Mentor";
-      blockMessage = `Transkrip Nilai untuk program ${activeGrade?.program?.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
-      blockReason = "Menunggu Rilis Official Mentor";
-    } else if (!activeGrade?.logbookCompletionStatus?.month1Accepted) {
-      isBlocked = true;
+  if (isBlocked && subTab === "transcript") {
+    if (activeGrade.lockReason === "LOGBOOK_MONTH1_INCOMPLETE") {
       blockTitle = "Logbook Bulan ke-1 Belum Diisi";
       blockMessage = `Transkrip Nilai sudah dirilis, namun Anda belum bisa mengaksesnya karena Logbook bulan ke-1 Anda belum diisi atau belum berstatus Accepted oleh mentor. Silakan lengkapi Logbook bulan ke-1 terlebih dahulu.`;
       blockReason = "Syarat Logbook Bulan 1 Belum Terpenuhi";
-    }
-  } else {
-    // Certificate & Internship Certificate
-    if (!activeGrade?.isCertificateReleased) {
-      isBlocked = true;
-      blockTitle = "Sertifikat Belum Dirilis oleh Mentor";
-      blockMessage = `Sertifikat Kelulusan untuk program ${activeGrade?.program?.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
+    } else {
+      blockTitle = "Transkrip Nilai Belum Dirilis oleh Mentor";
+      blockMessage = `Transkrip Nilai untuk program ${activeGrade?.program?.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
       blockReason = "Menunggu Rilis Official Mentor";
-    } else if (!activeGrade?.logbookCompletionStatus?.allAccepted) {
-      isBlocked = true;
+    }
+  } else if (isBlocked) {
+    // Certificate & Internship Certificate
+    if (activeGrade.certificateLockReason === "LOGBOOK_INCOMPLETE") {
       blockTitle = "Logbook Belum Lengkap (Bulan 1 - 4)";
       blockMessage = `Sertifikat Kelulusan sudah dirilis, namun Anda belum bisa mengaksesnya karena seluruh Logbook (Bulan 1 sampai 4) belum berstatus Accepted. Silakan lengkapi logbook Anda yang masih berstatus Pending/Revision.`;
       blockReason = "Syarat Logbook 4 Bulan Belum Terpenuhi";
+    } else {
+      blockTitle = "Sertifikat Belum Dirilis oleh Mentor";
+      blockMessage = `Sertifikat Kelulusan untuk program ${activeGrade?.program?.name} belum dikonfirmasi atau sedang ditarik kembali untuk proses finalisasi oleh mentor pembimbing Anda.`;
+      blockReason = "Menunggu rilis sertifikat";
     }
   }
 

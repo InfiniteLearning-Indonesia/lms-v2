@@ -4,7 +4,7 @@ import { API_BASE_URL } from "@/lib/config";
 import { Greeting } from "@/components/greeting";
 
 import Link from "next/link";
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Papa from "papaparse";
@@ -44,6 +44,7 @@ import { CompetencyItem, MentorClass, MentorDashboardProps } from "./mentor/type
 import { MentorClassesView } from "./mentor/mentor-classes-view";
 import { MentorStudentsView } from "./mentor/mentor-students-view";
 import { MentorAssessmentView } from "./mentor/mentor-assessment-view";
+import type { ProgramRecap } from "./mentor/mentor-assessment-view";
 import { ManageClassLinksModal } from "./admin/modals/manage-class-links-modal";
 import { MentorProfileSettings } from "./mentor/mentor-profile-settings";
 import { MentorPastBatches } from "./mentor/mentor-past-batches";
@@ -84,6 +85,33 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [isManageClassLinksModalOpen, setIsManageClassLinksModalOpen] = useState(false);
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [programRecapData, setProgramRecap] = useState<ProgramRecap | null>(null);
+  const programRecapRequest = useRef(0);
+  const recapProgramId = selectedProgramId || classes[0]?.program?.id;
+  const programRecap = programRecapData?.program.id === recapProgramId ? programRecapData : null;
+
+  const fetchProgramRecap = useCallback(() => {
+    const requestId = ++programRecapRequest.current;
+    if (!recapProgramId) return;
+
+    return fetch(`${API_BASE_URL}/classes/programs/${recapProgramId}/recap`, {
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    })
+      .then(res => res.ok ? res.json() : null)
+      .then((data: ProgramRecap | null) => {
+        if (requestId === programRecapRequest.current) setProgramRecap(data);
+      })
+      .catch(err => {
+        if (requestId === programRecapRequest.current) setProgramRecap(null);
+        console.error("Gagal memuat rekap program:", err);
+      });
+  }, [recapProgramId]);
+
+  useEffect(() => {
+    if (activeTab === "assessment") void fetchProgramRecap();
+    return () => { programRecapRequest.current += 1; };
+  }, [activeTab, fetchProgramRecap]);
 
   const uniquePrograms = Array.from(new Map(
     classes.filter(c => c.program).map(c => [c.program!.id, c.program!])
@@ -2013,6 +2041,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
             programCompetencies={programCompetencies}
             fetchProgramCompetencies={() => fetchProgramCompetencies(selectedProgramId || undefined)}
             activeSubTab="assessment"
+            recap={programRecap}
+            onRefetchRecap={fetchProgramRecap}
             competencies={competencies}
             rubrikAssessments={rubrikAssessments}
             allStudents={recapStudents}
