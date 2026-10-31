@@ -16,6 +16,7 @@ interface GradeData {
     id: string;
     name: string;
     email: string;
+    nim: string | null;
     institution: string;
     studyProgram: string;
   };
@@ -26,6 +27,8 @@ interface GradeData {
   };
   mentor: {
     name: string;
+    fullNameWithTitle: string | null;
+    signatureUrl: string | null;
     email: string;
   } | null;
   microItems: Array<{
@@ -58,6 +61,32 @@ interface GradeData {
     totalRequired: number;
     totalAccepted: number;
     firstIncompleteMonth: number | null;
+  };
+}
+
+function getStudentNim(student: GradeData["student"]) {
+  return student.nim?.trim() || student.email?.match(/^(\d+)@/)?.[1] || "-";
+}
+
+function getTranscriptSkills(microItems: GradeData["microItems"]) {
+  // Global and program rubrics may reference the same professional competency.
+  const seen = new Set<string>();
+  const items = microItems.filter((item) => {
+    const name = item.name.trim().toLowerCase().replace(/^micro[\s:–-]+/, "");
+    const key = name.includes("cca") || name.includes("communication")
+      ? "cca"
+      : name.includes("product research")
+      ? "product research"
+      : name.includes("career coaching")
+      ? "career coaching"
+      : item.id;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return {
+    softSkills: items.filter((item) => item.category.toLowerCase().includes("soft")),
+    hardSkills: items.filter((item) => !item.category.toLowerCase().includes("soft")),
   };
 }
 
@@ -99,7 +128,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
       let docXml = await zip.file("word/document.xml")?.async("string");
       if (!docXml) throw new Error("File template tidak valid");
 
-      const studentNim = activeGrade.student.id.slice(0, 11).toUpperCase();
+      const studentNim = getStudentNim(activeGrade.student);
       const studentName = activeGrade.student.name;
       const studyProgram = activeGrade.student.studyProgram || activeGrade.student.institution || "Studi Independen Bersertifikat";
       const programName = activeGrade.program.name;
@@ -144,48 +173,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
       docXml = docXml.replace(/<w:t>01 Juli 2026<\/w:t>/g, `<w:t>${escapeXml(dateStr)}</w:t>`);
 
       // 6. Build dynamic Table 2 rows
-      const allGrades = [...(activeGrade.microItems || []), ...(activeGrade.massiveItems || [])];
-      const softSkills = allGrades.filter((item) => {
-        const n = item.name.toLowerCase();
-        const c = (item.category || "").toLowerCase();
-        return (
-          c.includes("soft") ||
-          n.includes("cca") ||
-          n.includes("communication") ||
-          n.includes("collaboration") ||
-          n.includes("adaptive") ||
-          n.includes("project management") ||
-          n.includes("leadership") ||
-          n.includes("soft skill")
-        );
-      });
-      const hardSkills = allGrades.filter((item) => !softSkills.includes(item));
-
-      const displaySoft =
-        softSkills.length > 0
-          ? softSkills
-          : [
-              {
-                name: "CCA (Communication, Collaboration, Adaptive)",
-                score: activeGrade.totalMicroScore || 89.42,
-              },
-              {
-                name: "Project Management",
-                score: activeGrade.finalScore || 84.46,
-              },
-            ];
-
-      const displayHard =
-        hardSkills.length > 0
-          ? hardSkills
-          : activeGrade.microItems?.length > 0
-          ? activeGrade.microItems
-          : [
-              {
-                name: `${activeGrade.program.name} Core Competency`,
-                score: activeGrade.finalScore || 85.0,
-              },
-            ];
+      const { softSkills: displaySoft, hardSkills: displayHard } = getTranscriptSkills(activeGrade.microItems);
 
       const makeRow = (idx: number, name: string, score: number) => `
         <w:tr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
@@ -211,7 +199,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
           <w:tc>
             <w:tcPr><w:tcW w:w="2895" w:type="dxa" /><w:vAlign w:val="center" /></w:tcPr>
             <w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr></w:pPr>
-              <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr><w:t>Final Assessment</w:t></w:r>
+              <w:r><w:rPr><w:rFonts w:ascii="Times New Roman" w:eastAsia="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman"/><w:sz w:val="22"/></w:rPr><w:t>Initial Assessment</w:t></w:r>
             </w:p>
           </w:tc>
         </w:tr>`;
@@ -529,51 +517,10 @@ export function StudentCertificateView({ profile }: { profile: any }) {
             );
           }
 
-          const allGrades = [...(activeGrade.microItems || []), ...(activeGrade.massiveItems || [])];
-          const softSkills = allGrades.filter((item) => {
-            const n = item.name.toLowerCase();
-            const c = (item.category || "").toLowerCase();
-            return (
-              c.includes("soft") ||
-              n.includes("cca") ||
-              n.includes("communication") ||
-              n.includes("collaboration") ||
-              n.includes("adaptive") ||
-              n.includes("project management") ||
-              n.includes("leadership") ||
-              n.includes("soft skill")
-            );
-          });
-          const hardSkills = allGrades.filter((item) => !softSkills.includes(item));
-
-          const displaySoftSkills =
-            softSkills.length > 0
-              ? softSkills
-              : [
-                  {
-                    name: "CCA (Communication, Collaboration, Adaptive)",
-                    score: activeGrade.totalMicroScore || 89.42,
-                  },
-                  {
-                    name: "Project Management",
-                    score: activeGrade.finalScore || 84.46,
-                  },
-                ];
-
-          const displayHardSkills =
-            hardSkills.length > 0
-              ? hardSkills
-              : activeGrade.microItems.length > 0
-              ? activeGrade.microItems
-              : [
-                  {
-                    name: `${activeGrade.program.name} Core Fundamentals`,
-                    score: activeGrade.finalScore || 85.0,
-                  },
-                ];
+          const { softSkills: displaySoftSkills, hardSkills: displayHardSkills } = getTranscriptSkills(activeGrade.microItems);
 
           return subTab === "transcript" ? (
-            /* ── VIEW FORM FINAL ASSESSMENT (OFFICIAL TEMPLATE) ── */
+            /* ── VIEW FORM INITIAL ASSESSMENT (OFFICIAL TEMPLATE) ── */
             <div className="relative bg-white text-black p-6 sm:p-10 border border-border/80 shadow-lg rounded-xl max-w-4xl mx-auto overflow-hidden font-serif">
               {/* Watermark Background */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06] select-none">
@@ -598,7 +545,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                       </td>
                       <td className="w-2/3 border border-black p-3 align-middle text-center font-bold font-serif leading-snug">
                         <div className="text-sm sm:text-base font-extrabold tracking-wider text-black">
-                          FORM Initial ASSESSMENT
+                          FORM INITIAL ASSESSMENT PROGRAM MANDIRI
                         </div>
                         <div className="text-xs sm:text-sm font-bold mt-0.5 text-black">
                           PENILAIAN STUDI INDEPENDEN
@@ -617,7 +564,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                     <tr className="border-b border-black">
                       <td className="w-48 px-3 py-1.5 font-bold border-r border-black">NIM</td>
                       <td className="w-4 text-center border-r border-black font-bold">:</td>
-                      <td className="px-3 py-1.5 font-mono">{activeGrade.student.id.slice(0, 11).toUpperCase()}</td>
+                      <td className="px-3 py-1.5 font-mono">{getStudentNim(activeGrade.student)}</td>
                     </tr>
                     <tr className="border-b border-black">
                       <td className="px-3 py-1.5 font-bold border-r border-black">Nama</td>
@@ -673,7 +620,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                         <td className="text-center py-1 border-r border-black font-semibold">
                           {Number(item.score).toFixed(2)}
                         </td>
-                        <td className="text-center py-1">Final Assessment</td>
+                        <td className="text-center py-1">Initial Assessment</td>
                       </tr>
                     ))}
 
@@ -690,7 +637,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                         <td className="text-center py-1 border-r border-black font-semibold">
                           {Number(item.score).toFixed(2)}
                         </td>
-                        <td className="text-center py-1">Final Assessment</td>
+                        <td className="text-center py-1">Initial Assessment</td>
                       </tr>
                     ))}
                   </tbody>
@@ -716,11 +663,21 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                             year: "numeric",
                           })}
                         </div>
-                        <div className="font-bold">Program Director</div>
+                        <div className="font-bold">Personal Mentor</div>
                         <div className="h-14 flex items-center justify-center">
-                          {/* Space for stamp / signature */}
+                          {activeGrade.mentor?.signatureUrl && (
+                            // Native img keeps the mentor signature available in the printed form.
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={activeGrade.mentor.signatureUrl}
+                              alt={`Tanda tangan ${activeGrade.mentor.name}`}
+                              className="h-14 w-auto object-contain"
+                            />
+                          )}
                         </div>
-                        <div className="font-bold underline text-xs">Ari Nugrahanto, B.Ed., M.Sc.</div>
+                        <div className="font-bold underline text-xs">
+                          {activeGrade.mentor?.fullNameWithTitle || activeGrade.mentor?.name || "-"}
+                        </div>
                       </td>
                     </tr>
                   </tbody>
