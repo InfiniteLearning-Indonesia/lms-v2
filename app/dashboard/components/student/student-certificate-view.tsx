@@ -64,6 +64,14 @@ interface GradeData {
   };
 }
 
+function sanitizeFileName(value: string) {
+  return value.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, " ").trim();
+}
+
+function buildTranscriptFileName(name: string) {
+  return `Transkrip Nilai - ${sanitizeFileName(name)}`;
+}
+
 function getStudentNim(student: GradeData["student"]) {
   return student.nim?.trim() || student.email?.match(/^(\d+)@/)?.[1] || "-";
 }
@@ -115,7 +123,28 @@ export function StudentCertificateView({ profile }: { profile: any }) {
   }, []);
 
   const handlePrint = () => {
-    window.print();
+    if (subTab !== "transcript") {
+      window.print();
+      return;
+    }
+
+    const activeGrade = gradesData[selectedProgramIndex] || gradesData[0];
+    const previousTitle = document.title;
+    const restoreTitle = () => {
+      document.title = previousTitle;
+      window.removeEventListener("afterprint", restoreTitle);
+      window.clearTimeout(fallbackTimeout);
+    };
+
+    document.title = buildTranscriptFileName(activeGrade.student.name);
+    window.addEventListener("afterprint", restoreTitle, { once: true });
+    const fallbackTimeout = window.setTimeout(restoreTitle, 1500);
+    try {
+      window.print();
+    } catch (error) {
+      restoreTitle();
+      throw error;
+    }
   };
 
   const handleDownloadDocx = async (activeGrade: GradeData) => {
@@ -291,7 +320,9 @@ export function StudentCertificateView({ profile }: { profile: any }) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Final-Assessment-${studentName.replace(/\s+/g, "_")}.docx`;
+      a.download = subTab === "transcript"
+        ? `${buildTranscriptFileName(studentName)}.docx`
+        : `Final-Assessment-${studentName.replace(/\s+/g, "_")}.docx`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -395,6 +426,11 @@ export function StudentCertificateView({ profile }: { profile: any }) {
             color: black !important;
             box-sizing: border-box;
           }
+          ${subTab === "transcript" ? `
+            #printable-area, #printable-area * {
+              font-family: 'Times New Roman', Times, serif !important;
+            }
+          ` : ""}
           .no-print {
             display: none !important;
           }
@@ -521,7 +557,10 @@ export function StudentCertificateView({ profile }: { profile: any }) {
 
           return subTab === "transcript" ? (
             /* ── VIEW FORM INITIAL ASSESSMENT (OFFICIAL TEMPLATE) ── */
-            <div className="relative bg-white text-black p-6 sm:p-10 border border-border/80 shadow-lg rounded-xl max-w-4xl mx-auto overflow-hidden font-serif">
+            <div
+              className="relative bg-white text-black p-6 sm:p-10 border border-border/80 shadow-lg rounded-xl max-w-4xl mx-auto overflow-hidden"
+              style={{ fontFamily: "'Times New Roman', Times, serif" }}
+            >
               {/* Watermark Background */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.06] select-none">
                 <img
@@ -543,15 +582,12 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                           className="h-14 w-auto mx-auto object-contain"
                         />
                       </td>
-                      <td className="w-2/3 border border-black p-3 align-middle text-center font-bold font-serif leading-snug">
+                      <td className="w-2/3 border border-black p-3 align-middle text-center font-bold leading-snug">
                         <div className="text-sm sm:text-base font-extrabold tracking-wider text-black">
-                          FORM INITIAL ASSESSMENT PROGRAM MANDIRI
+                          Form Initial Assessment
                         </div>
                         <div className="text-xs sm:text-sm font-bold mt-0.5 text-black">
-                          PENILAIAN STUDI INDEPENDEN
-                        </div>
-                        <div className="text-xs sm:text-sm font-bold mt-0.5 text-black">
-                          PROGRAM BELAJAR MANDIRI
+                          Program Mandiri
                         </div>
                       </td>
                     </tr>
@@ -559,12 +595,12 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                 </table>
 
                 {/* 2. Student Metadata Table */}
-                <table className="w-full border-collapse border border-black text-xs font-serif mb-4">
+                <table className="w-full border-collapse border border-black text-xs mb-4">
                   <tbody>
                     <tr className="border-b border-black">
                       <td className="w-48 px-3 py-1.5 font-bold border-r border-black">NIM</td>
                       <td className="w-4 text-center border-r border-black font-bold">:</td>
-                      <td className="px-3 py-1.5 font-mono">{getStudentNim(activeGrade.student)}</td>
+                      <td className="px-3 py-1.5">{getStudentNim(activeGrade.student)}</td>
                     </tr>
                     <tr className="border-b border-black">
                       <td className="px-3 py-1.5 font-bold border-r border-black">Nama</td>
@@ -592,7 +628,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                 </table>
 
                 {/* 3. Daftar Penilaian Table */}
-                <table className="w-full border-collapse border border-black text-xs font-serif mb-4">
+                <table className="w-full border-collapse border border-black text-xs mb-4">
                   <thead>
                     <tr className="border-b border-black bg-gray-100 font-bold text-center">
                       <th colSpan={4} className="py-1.5 text-center text-sm font-extrabold tracking-wider border-b border-black">
@@ -644,7 +680,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
                 </table>
 
                 {/* 4. Catatan & Signature Block Table */}
-                <table className="w-full border-collapse border border-black text-xs font-serif mb-4">
+                <table className="w-full border-collapse border border-black text-xs mb-4">
                   <tbody>
                     <tr>
                       <td className="w-1/2 p-3 border-r border-black align-top">
@@ -685,7 +721,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
 
                 {/* 5. Index Penilaian Infinite Learning */}
                 <div className="w-full max-w-xs">
-                  <table className="w-full border-collapse border border-black text-2xs font-serif text-center">
+                  <table className="w-full border-collapse border border-black text-2xs text-center">
                     <thead>
                       <tr className="border-b border-black bg-gray-100 font-bold">
                         <th colSpan={2} className="py-1 border-b border-black text-[11px]">
