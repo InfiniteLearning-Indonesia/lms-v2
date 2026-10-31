@@ -400,7 +400,7 @@ export function StudentCertificateView({ profile }: { profile: any }) {
         @media print {
           @page {
             size: ${subTab === "transcript" ? "A4 portrait" : "A4 landscape"};
-            margin: ${subTab === "transcript" ? "12mm" : "0mm"};
+            margin: 0;
           }
           html, body {
             background: white !important;
@@ -421,12 +421,15 @@ export function StudentCertificateView({ profile }: { profile: any }) {
             left: 0;
             top: 0;
             width: 100%;
-            padding: ${subTab === "transcript" ? "0" : "15mm 20mm"};
+            padding: ${subTab === "transcript" ? "12mm" : "15mm 20mm"};
             background: white !important;
             color: black !important;
             box-sizing: border-box;
           }
           ${subTab === "transcript" ? `
+            #printable-area > div {
+              padding: 0 !important;
+            }
             #printable-area, #printable-area * {
               font-family: 'Times New Roman', Times, serif !important;
             }
