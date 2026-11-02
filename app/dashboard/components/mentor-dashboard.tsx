@@ -63,12 +63,14 @@ const MENTOR_QUOTES = [
 
 type RecapStudent = {
   id: string;
+  programId?: string | null;
   name?: string | null;
   email?: string | null;
 };
 
 type RecapClass = {
   id: string;
+  programId?: string | null;
   enrolledStudents?: RecapStudent[];
 };
 
@@ -1368,10 +1370,15 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   }, []);
 
   const recapStudents: RecapStudent[] = (() => {
+    const effectiveProgramId = selectedProgramId || recapProgramId || classes[0]?.program?.id;
     const source: RecapStudent[] =
       recapClasses.length > 0
-        ? recapClasses.flatMap((cls) => cls.enrolledStudents ?? [])
-        : (allStudents as RecapStudent[]);
+        ? recapClasses
+            .filter((cls) => cls.programId === effectiveProgramId)
+            .flatMap((cls) => cls.enrolledStudents ?? [])
+        : (allStudents as RecapStudent[]).filter(
+            (student) => !student.programId || student.programId === effectiveProgramId
+          );
     const seen = new Set<string>();
     return source.filter((student) => {
       if (!student?.id || seen.has(student.id)) return false;
