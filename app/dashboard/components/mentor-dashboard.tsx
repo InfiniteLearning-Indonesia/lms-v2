@@ -358,6 +358,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   const [isDistributing, setIsDistributing] = useState(false);
 
   const [competencies, setCompetencies] = useState<any[]>([]);
+  const [allCompetencies, setAllCompetencies] = useState<CompetencyItem[]>();
   const [programCompetencies, setProgramCompetencies] = useState<any[]>([]);
   const [rubrikAssessments, setRubrikAssessments] = useState<any[]>([]);
   const [externalScores, setExternalScores] = useState<any[]>([]);
@@ -566,6 +567,14 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   }, [selectedProgramId, classes]);
 
   const fetchCompetencies = async (programId?: string) => {
+    void fetch(`${API_BASE_URL}/classes/competencies?scope=all`, {
+      headers: { Accept: "application/json" },
+      credentials: "include",
+    })
+      .then(async (res) => {
+        if (res.ok) setAllCompetencies(await res.json());
+      })
+      .catch((err: unknown) => console.error(err));
     try {
       const url = programId
         ? `${API_BASE_URL}/classes/competencies?programId=${programId}`
@@ -2112,6 +2121,8 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
 
       {/* Modal Dialogs */}
       <MentorModals
+        allCompetencies={allCompetencies}
+        selectedProgramId={selectedProgramId}
         activeRubrikTab={activeRubrikTab}
         isAddCompetencyModalOpen={isAddCompetencyModalOpen}
         setIsAddCompetencyModalOpen={setIsAddCompetencyModalOpen}
