@@ -81,6 +81,7 @@ export interface CompetencyItem {
   phase?: string;
   programId?: string;
   rubric?: any;
+  program?: { id: string; name: string } | null;
   programCompetency?: any;
   programCompetencyId?: string;
   isGlobal?: boolean;

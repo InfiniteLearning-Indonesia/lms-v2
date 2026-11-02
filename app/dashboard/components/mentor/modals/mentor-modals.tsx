@@ -38,6 +38,8 @@ interface MentorModalsProps {
   setMaterialType: (v: string) => void;
   handleCreateMaterial: (e: React.FormEvent<HTMLFormElement>) => void;
   competencies: CompetencyItem[];
+  allCompetencies?: CompetencyItem[];
+  selectedProgramId?: string | null;
 
   // Edit Material Modal
   editingMaterial?: any;
@@ -120,6 +122,8 @@ export function MentorModals({
   setMaterialType,
   handleCreateMaterial,
   competencies,
+  allCompetencies,
+  selectedProgramId,
   programCompetencies = [],
   isAddProgramCompetencyModalOpen,
   setIsAddProgramCompetencyModalOpen,
@@ -1279,6 +1283,8 @@ export function MentorModals({
           editingWeightRubrikAssessment={editingWeightRubrikAssessment}
           setEditingWeightRubrikAssessment={setEditingWeightRubrikAssessment}
           competencies={competencies}
+          allCompetencies={allCompetencies}
+          selectedProgramId={selectedProgramId}
           rubrikAssessments={rubrikAssessments}
           handleSaveRubrikAssessmentWeights={handleSaveRubrikAssessmentWeights}
         />
@@ -1453,12 +1459,16 @@ function RubrikAssessmentWeightModal({
   editingWeightRubrikAssessment,
   setEditingWeightRubrikAssessment,
   competencies,
+  allCompetencies,
+  selectedProgramId,
   rubrikAssessments,
   handleSaveRubrikAssessmentWeights,
 }: {
   editingWeightRubrikAssessment: any;
   setEditingWeightRubrikAssessment?: (v: any) => void;
   competencies: CompetencyItem[];
+  allCompetencies?: CompetencyItem[];
+  selectedProgramId?: string | null;
   rubrikAssessments: any[];
   handleSaveRubrikAssessmentWeights?: (id: string, payload: { competencies: any[]; subAssessments: any[] }) => Promise<void>;
 }) {
@@ -1483,26 +1493,33 @@ function RubrikAssessmentWeightModal({
   });
 
   const [isSaving, setIsSaving] = useState(false);
+  const [competencySearch, setCompetencySearch] = useState("");
 
   const targetIsGlobal = Boolean(editingWeightRubrikAssessment?.isGlobal || !editingWeightRubrikAssessment?.programId);
   const targetProgramCompetencyId = editingWeightRubrikAssessment?.programCompetency?.id || editingWeightRubrikAssessment?.programCompetencyId;
 
-  // Simplifikasi: Pada Rubrik Professional, tampilkan seluruh kompetensi KECUALI Technical Skill
-  const filteredCompetencies = competencies.filter((comp) => {
-    if (targetIsGlobal) {
-      return comp.category !== "Technical Skill";
-    }
-
-    // Program-specific Rubrik: Tetap filter berdasarkan programCompetencyId
-    const isCompGlobal = Boolean(comp.isGlobal || !comp.programId);
-    if (isCompGlobal) return false;
-    
-    if (targetProgramCompetencyId) {
-      const compPcId = comp.programCompetency?.id || comp.programCompetencyId;
-      return compPcId === targetProgramCompetencyId;
-    }
-    return true;
-  });
+  const activeProgramId = selectedProgramId || editingWeightRubrikAssessment?.programId;
+  const isGlobalCompetency = (comp: CompetencyItem) => Boolean(comp.isGlobal || !comp.programId);
+  const programLabel = (comp: CompetencyItem) =>
+    isGlobalCompetency(comp) ? "Global" : comp.program?.name || comp.programId || "Program";
+  const programRank = (comp: CompetencyItem) => {
+    if (isGlobalCompetency(comp)) return 1;
+    return comp.programId === activeProgramId ? 0 : 2;
+  };
+  const filteredCompetencies = (allCompetencies ?? competencies)
+    .filter((comp) => comp.name.toLowerCase().includes(competencySearch.trim().toLowerCase()))
+    .sort((a, b) =>
+      programRank(a) - programRank(b) ||
+      programLabel(a).localeCompare(programLabel(b)) ||
+      a.name.localeCompare(b.name)
+    );
+  const competencyGroups = new Map<string, { label: string; items: CompetencyItem[] }>();
+  for (const comp of filteredCompetencies) {
+    const key = isGlobalCompetency(comp) ? "global" : comp.programId!;
+    const group = competencyGroups.get(key) ?? { label: programLabel(comp), items: [] };
+    group.items.push(comp);
+    competencyGroups.set(key, group);
+  }
 
   // Filter sub-assessments (other RAs)
   const availableOtherRAs = rubrikAssessments.filter((r) => {
@@ -1601,40 +1618,57 @@ function RubrikAssessmentWeightModal({
                 Subtotal Bobot: {totalCompWeight.toFixed(2)}
               </span>
             </h4>
+            <Input
+              type="search"
+              aria-label="Cari nama kompetensi"
+              placeholder="Cari nama kompetensi..."
+              value={competencySearch}
+              onChange={(e) => setCompetencySearch(e.target.value)}
+              className="mb-3"
+            />
             {filteredCompetencies.length === 0 ? (
-              <p className="text-xs text-muted-foreground italic">Belum ada kompetensi.</p>
+              <p className="text-xs text-muted-foreground italic">
+                {competencySearch.trim() ? "Kompetensi tidak ditemukan." : "Belum ada kompetensi."}
+              </p>
             ) : (
               <div className="space-y-2">
-                {filteredCompetencies.map((comp) => {
-                  const currentWeight = compWeights[comp.id] ?? 0;
-                  return (
-                    <div
-                      key={comp.id}
-                      className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-secondary/20 text-xs"
-                    >
-                      <div>
-                        <p className="font-semibold text-foreground">{comp.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{comp.category}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-muted-foreground">Bobot:</span>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          max="1"
-                          placeholder="0.0"
-                          value={currentWeight === 0 ? "" : currentWeight}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value) || 0;
-                            setCompWeights((prev) => ({ ...prev, [comp.id]: val }));
-                          }}
-                          className="w-20 h-8 text-xs font-bold text-center"
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                {Array.from(competencyGroups, ([key, group]) => (
+                  <div key={key} className="space-y-2">
+                    <h5 className="text-xs font-semibold text-muted-foreground">{group.label}</h5>
+                    {group.items.map((comp) => {
+                      const currentWeight = compWeights[comp.id] ?? 0;
+                      return (
+                        <div
+                          key={comp.id}
+                          className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-secondary/20 text-xs"
+                        >
+                          <div>
+                            <p className="font-semibold text-foreground">
+                              {comp.name} <span className="font-normal text-muted-foreground">({programLabel(comp)})</span>
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">{comp.category}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-muted-foreground">Bobot:</span>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              max="1"
+                              placeholder="0.0"
+                              value={currentWeight === 0 ? "" : currentWeight}
+                              onChange={(e) => {
+                                const val = parseFloat(e.target.value) || 0;
+                                setCompWeights((prev) => ({ ...prev, [comp.id]: val }));
+                              }}
+                              className="w-20 h-8 text-xs font-bold text-center"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             )}
           </div>
