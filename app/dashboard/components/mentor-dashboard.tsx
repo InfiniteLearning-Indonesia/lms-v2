@@ -1370,7 +1370,7 @@ export function MentorDashboard({ profile, onProfileUpdate }: MentorDashboardPro
   }, []);
 
   const recapStudents: RecapStudent[] = (() => {
-    const effectiveProgramId = selectedProgramId || recapProgramId || classes[0]?.program?.id;
+    const effectiveProgramId = selectedProgramId || classes[0]?.program?.id;
     const source: RecapStudent[] =
       recapClasses.length > 0
         ? recapClasses
